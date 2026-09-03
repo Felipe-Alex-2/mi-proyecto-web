@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://probando1-production-f535.up.railway.app/api/v1',
+  apiUrl: 'https://mi-proyecto-backend-production-9c3c.up.railway.app/api/v1',
 };
