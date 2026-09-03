@@ -64,13 +64,17 @@ export class RegisterComponent {
         });
       },
       error: (err) => {
+        if (err.status === 0) {
+          this.errorMessage.set('No se pudo conectar con el servidor. Verifica tu conexión o el estado del backend.');
+          return;
+        }
         const detail = err?.error?.detail;
         if (typeof detail === 'string') {
           this.errorMessage.set(detail);
         } else if (Array.isArray(err?.error?.errors)) {
           this.errorMessage.set(err.error.errors[0]?.message || 'Datos inválidos');
         } else {
-          this.errorMessage.set('Error al registrar usuario. Intenta con otro correo.');
+          this.errorMessage.set('Error al registrar usuario. Intenta nuevamente.');
         }
       },
     });
