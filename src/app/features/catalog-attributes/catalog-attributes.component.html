@@ -1,0 +1,439 @@
+<div class="catalog-page-wrapper">
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link" title="Volver al Panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Panel Principal</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Categorías, Tallas y Colores</h1>
+    </div>
+
+    <div class="navbar-right">
+      <a routerLink="/seasons" class="nav-link-secondary" title="Ir a Temporadas">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+        </svg>
+        <span>Temporadas</span>
+      </a>
+      <span class="admin-badge">
+        <span class="status-dot"></span>
+        Administrador General
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+    <!-- Header Action Bar -->
+    <div class="action-bar">
+      <div class="action-bar-info">
+        <h2 class="section-title">Atributos del Catálogo</h2>
+        <p class="section-subtitle">
+          Gestiona las categorías de ropa, tallas disponibles y paleta de colores para tu catálogo de FashionStore.
+        </p>
+      </div>
+      <button class="btn-primary" (click)="openCreateModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        <span>{{ activeTab() === 'categories' ? 'Nueva Categoría' : activeTab() === 'sizes' ? 'Nueva Talla' : 'Nuevo Color' }}</span>
+      </button>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (successMessage()) {
+      <div class="alert-success" role="status">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-error" role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Tab Navigation -->
+    <div class="tab-bar">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'categories'"
+        (click)="switchTab('categories')"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+        </svg>
+        <span>Categorías</span>
+        <span class="tab-count">{{ categories().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'sizes'"
+        (click)="switchTab('sizes')"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.5 2a3.5 3.5 0 101.665 6.58L8.586 10l-1.421 1.42A3.5 3.5 0 105.5 18h9a3.5 3.5 0 10-1.665-6.58L11.414 10l1.421-1.42A3.5 3.5 0 1014.5 2h-9z" clip-rule="evenodd" />
+        </svg>
+        <span>Tallas</span>
+        <span class="tab-count">{{ sizes().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'colors'"
+        (click)="switchTab('colors')"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clip-rule="evenodd" />
+        </svg>
+        <span>Colores</span>
+        <span class="tab-count">{{ colors().length }}</span>
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando datos...</span>
+      </div>
+    } @else {
+
+      <!-- CATEGORIES TAB -->
+      @if (activeTab() === 'categories') {
+        @if (categories().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">📂</div>
+            <h3>No hay categorías registradas</h3>
+            <p>Crea la primera categoría de ropa para organizar tu catálogo.</p>
+          </div>
+        } @else {
+          <div class="items-grid">
+            @for (cat of categories(); track cat.id) {
+              <div class="item-card" [class.card-inactive]="!cat.is_active">
+                <div class="item-card-header">
+                  <div class="item-icon cat-icon">👗</div>
+                  <div class="item-info">
+                    <h3 class="item-name">{{ cat.name }}</h3>
+                    @if (cat.description) {
+                      <p class="item-desc">{{ cat.description }}</p>
+                    }
+                  </div>
+                  <span class="status-badge" [class.active]="cat.is_active">
+                    <span class="badge-dot"></span>
+                    {{ cat.is_active ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </div>
+                <div class="item-card-actions">
+                  <button class="btn-card-action edit" (click)="openEditCategory(cat)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                    <span>Editar</span>
+                  </button>
+                  <button
+                    class="btn-card-action"
+                    [ngClass]="cat.is_active ? 'btn-deactivate' : 'btn-activate'"
+                    (click)="toggleCategoryStatus(cat)"
+                  >
+                    <span>{{ cat.is_active ? 'Desactivar' : 'Activar' }}</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- SIZES TAB -->
+      @if (activeTab() === 'sizes') {
+        @if (sizes().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">📏</div>
+            <h3>No hay tallas registradas</h3>
+            <p>Registra las tallas disponibles para tus prendas.</p>
+          </div>
+        } @else {
+          <div class="items-grid">
+            @for (size of sizes(); track size.id) {
+              <div class="item-card" [class.card-inactive]="!size.is_active">
+                <div class="item-card-header">
+                  <div class="item-icon size-icon">
+                    <span class="size-code-display">{{ size.code }}</span>
+                  </div>
+                  <div class="item-info">
+                    <h3 class="item-name">{{ size.name }}</h3>
+                    @if (size.category_type) {
+                      <p class="item-desc">Tipo: {{ size.category_type }}</p>
+                    }
+                  </div>
+                  <span class="status-badge" [class.active]="size.is_active">
+                    <span class="badge-dot"></span>
+                    {{ size.is_active ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </div>
+                <div class="item-card-actions">
+                  <button class="btn-card-action edit" (click)="openEditSize(size)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                    <span>Editar</span>
+                  </button>
+                  <button
+                    class="btn-card-action"
+                    [ngClass]="size.is_active ? 'btn-deactivate' : 'btn-activate'"
+                    (click)="toggleSizeStatus(size)"
+                  >
+                    <span>{{ size.is_active ? 'Desactivar' : 'Activar' }}</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- COLORS TAB -->
+      @if (activeTab() === 'colors') {
+        @if (colors().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🎨</div>
+            <h3>No hay colores registrados</h3>
+            <p>Agrega los colores disponibles para tu catálogo de prendas.</p>
+          </div>
+        } @else {
+          <div class="items-grid colors-grid">
+            @for (color of colors(); track color.id) {
+              <div class="item-card color-card" [class.card-inactive]="!color.is_active">
+                <div class="item-card-header">
+                  <div
+                    class="color-swatch"
+                    [style.background-color]="color.hex_code"
+                  ></div>
+                  <div class="item-info">
+                    <h3 class="item-name">{{ color.name }}</h3>
+                    <p class="item-desc hex-label">{{ color.hex_code }}</p>
+                  </div>
+                  <span class="status-badge" [class.active]="color.is_active">
+                    <span class="badge-dot"></span>
+                    {{ color.is_active ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+                <div class="item-card-actions">
+                  <button class="btn-card-action edit" (click)="openEditColor(color)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                    <span>Editar</span>
+                  </button>
+                  <button
+                    class="btn-card-action"
+                    [ngClass]="color.is_active ? 'btn-deactivate' : 'btn-activate'"
+                    (click)="toggleColorStatus(color)"
+                  >
+                    <span>{{ color.is_active ? 'Desactivar' : 'Activar' }}</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+  </main>
+
+  <!-- Modal Create / Edit -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">{{ getModalTitle() }}</h3>
+            <p class="modal-subtitle">
+              {{ isEditMode() ? 'Modifica los datos del registro' : 'Completa la información para crear un nuevo registro' }}
+            </p>
+          </div>
+          <button class="btn-close" (click)="closeModal()" type="button">&times;</button>
+        </div>
+
+        @if (modalError()) {
+          <div class="alert-error modal-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ modalError() }}</span>
+          </div>
+        }
+
+        <!-- Category Form -->
+        @if (activeTab() === 'categories') {
+          <form [formGroup]="categoryForm" (ngSubmit)="save()" class="modal-form">
+            <div class="form-group">
+              <label for="cat-name">Nombre de la Categoría</label>
+              <input
+                id="cat-name"
+                type="text"
+                class="form-input"
+                formControlName="name"
+                placeholder="Ej: Vestidos, Camisas, Pantalones..."
+              />
+              @if (categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched) {
+                <span class="field-error">Ingresa un nombre válido (mínimo 2 caracteres)</span>
+              }
+            </div>
+            <div class="form-group">
+              <label for="cat-desc">Descripción (Opcional)</label>
+              <input
+                id="cat-desc"
+                type="text"
+                class="form-input"
+                formControlName="description"
+                placeholder="Descripción breve de la categoría"
+              />
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+              <button type="submit" class="btn-primary" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  <span class="spinner-small"></span>
+                  <span>Guardando...</span>
+                } @else {
+                  <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Categoría' }}</span>
+                }
+              </button>
+            </div>
+          </form>
+        }
+
+        <!-- Size Form -->
+        @if (activeTab() === 'sizes') {
+          <form [formGroup]="sizeForm" (ngSubmit)="save()" class="modal-form">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="size-name">Nombre de la Talla</label>
+                <input
+                  id="size-name"
+                  type="text"
+                  class="form-input"
+                  formControlName="name"
+                  placeholder="Ej: Extra Grande"
+                />
+                @if (sizeForm.get('name')?.invalid && sizeForm.get('name')?.touched) {
+                  <span class="field-error">Nombre requerido</span>
+                }
+              </div>
+              <div class="form-group flex-1">
+                <label for="size-code">Código</label>
+                <input
+                  id="size-code"
+                  type="text"
+                  class="form-input"
+                  formControlName="code"
+                  placeholder="Ej: XL"
+                />
+                @if (sizeForm.get('code')?.invalid && sizeForm.get('code')?.touched) {
+                  <span class="field-error">Código requerido</span>
+                }
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="size-cattype">Tipo de Categoría (Opcional)</label>
+              <select
+                id="size-cattype"
+                class="form-input"
+                formControlName="category_type"
+              >
+                <option value="">-- Sin tipo específico --</option>
+                @for (ct of categoryTypes; track ct) {
+                  <option [value]="ct">{{ ct }}</option>
+                }
+              </select>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+              <button type="submit" class="btn-primary" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  <span class="spinner-small"></span>
+                  <span>Guardando...</span>
+                } @else {
+                  <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Talla' }}</span>
+                }
+              </button>
+            </div>
+          </form>
+        }
+
+        <!-- Color Form -->
+        @if (activeTab() === 'colors') {
+          <form [formGroup]="colorForm" (ngSubmit)="save()" class="modal-form">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="color-name">Nombre del Color</label>
+                <input
+                  id="color-name"
+                  type="text"
+                  class="form-input"
+                  formControlName="name"
+                  placeholder="Ej: Rojo Carmesí"
+                />
+                @if (colorForm.get('name')?.invalid && colorForm.get('name')?.touched) {
+                  <span class="field-error">Nombre requerido (mínimo 2 caracteres)</span>
+                }
+              </div>
+              <div class="form-group flex-1">
+                <label for="color-hex">Código Hex</label>
+                <div class="color-picker-wrapper">
+                  <input
+                    id="color-hex"
+                    type="color"
+                    class="color-picker-input"
+                    formControlName="hex_code"
+                  />
+                  <span class="hex-display">{{ colorForm.get('hex_code')?.value }}</span>
+                </div>
+                @if (colorForm.get('hex_code')?.invalid && colorForm.get('hex_code')?.touched) {
+                  <span class="field-error">Formato: #RRGGBB</span>
+                }
+              </div>
+            </div>
+
+            <!-- Color Preview -->
+            <div class="color-preview-box">
+              <div
+                class="color-preview-swatch"
+                [style.background-color]="colorForm.get('hex_code')?.value"
+              ></div>
+              <span class="color-preview-label">Vista previa del color</span>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+              <button type="submit" class="btn-primary" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  <span class="spinner-small"></span>
+                  <span>Guardando...</span>
+                } @else {
+                  <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Color' }}</span>
+                }
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  }
+</div>

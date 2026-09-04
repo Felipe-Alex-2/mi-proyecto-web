@@ -1,0 +1,249 @@
+<div class="seasons-page-wrapper">
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link" title="Volver al Panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Panel Principal</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Temporadas y Colecciones</h1>
+    </div>
+
+    <div class="navbar-right">
+      <a routerLink="/catalog-attributes" class="nav-link-secondary" title="Ir a Atributos">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        <span>Catálogo</span>
+      </a>
+      <a routerLink="/suppliers" class="nav-link-secondary" title="Ir a Proveedores">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+          <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+        </svg>
+        <span>Proveedores</span>
+      </a>
+      <span class="admin-badge">
+        <span class="status-dot"></span>
+        Administrador General
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+    <!-- Header Action Bar -->
+    <div class="action-bar">
+      <div class="action-bar-info">
+        <h2 class="section-title">Campañas y Temporadas</h2>
+        <p class="section-subtitle">
+          Organiza tus colecciones por temporada con fechas de inicio y fin. Las temporadas expiradas se marcan automáticamente.
+        </p>
+      </div>
+      <button class="btn-primary" (click)="openCreateModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        <span>Nueva Temporada</span>
+      </button>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (successMessage()) {
+      <div class="alert-success" role="status">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-error" role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Seasons Grid -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando temporadas...</span>
+      </div>
+    } @else if (seasons().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <h3>No hay temporadas registradas</h3>
+        <p>Crea tu primera temporada o colección para organizar tu catálogo de moda.</p>
+      </div>
+    } @else {
+      <div class="seasons-grid">
+        @for (season of seasons(); track season.id) {
+          <div class="season-card" [class.card-inactive]="!season.is_active" [class.card-expired]="season.is_expired">
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="season-title-group">
+                <div class="season-badges">
+                  <span class="status-badge" [class.active]="season.is_active">
+                    <span class="badge-dot"></span>
+                    {{ season.is_active ? 'Activa' : 'Inactiva' }}
+                  </span>
+                  @if (season.is_expired) {
+                    <span class="expired-badge">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                      </svg>
+                      Expirada
+                    </span>
+                  } @else {
+                    @if (getDaysRemaining(season.end_date) > 0 && getDaysRemaining(season.end_date) <= 30) {
+                      <span class="warning-badge">
+                        ⚠️ {{ getDaysRemaining(season.end_date) }} días restantes
+                      </span>
+                    }
+                  }
+                </div>
+                <h3 class="season-name">{{ season.name }}</h3>
+                @if (season.description) {
+                  <p class="season-desc">{{ season.description }}</p>
+                }
+              </div>
+            </div>
+
+            <!-- Date Range -->
+            <div class="date-range-box">
+              <div class="date-item">
+                <span class="date-label">Inicio</span>
+                <span class="date-value">{{ formatDate(season.start_date) }}</span>
+              </div>
+              <div class="date-arrow">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="date-item">
+                <span class="date-label">Fin</span>
+                <span class="date-value">{{ formatDate(season.end_date) }}</span>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions">
+              <button class="btn-card-action edit" (click)="openEditModal(season)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                <span>Editar</span>
+              </button>
+              <button
+                class="btn-card-action"
+                [ngClass]="season.is_active ? 'btn-deactivate' : 'btn-activate'"
+                (click)="toggleSeasonStatus(season)"
+              >
+                <span>{{ season.is_active ? 'Desactivar' : 'Activar' }}</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  <!-- Modal Create / Edit Season -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">{{ isEditMode() ? 'Editar Temporada' : 'Nueva Temporada' }}</h3>
+            <p class="modal-subtitle">
+              {{ isEditMode() ? 'Modifica los datos de la temporada' : 'Define una nueva campaña o colección de moda' }}
+            </p>
+          </div>
+          <button class="btn-close" (click)="closeModal()" type="button">&times;</button>
+        </div>
+
+        @if (modalError()) {
+          <div class="alert-error modal-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ modalError() }}</span>
+          </div>
+        }
+
+        <form [formGroup]="seasonForm" (ngSubmit)="save()" class="modal-form">
+          <div class="form-group">
+            <label for="season-name">Nombre de la Temporada</label>
+            <input
+              id="season-name"
+              type="text"
+              class="form-input"
+              formControlName="name"
+              placeholder="Ej: Primavera-Verano 2026, Black Friday..."
+            />
+            @if (seasonForm.get('name')?.invalid && seasonForm.get('name')?.touched) {
+              <span class="field-error">Ingresa un nombre válido (mínimo 2 caracteres)</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="season-desc">Descripción (Opcional)</label>
+            <input
+              id="season-desc"
+              type="text"
+              class="form-input"
+              formControlName="description"
+              placeholder="Descripción breve de la campaña"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="season-start">Fecha de Inicio</label>
+              <input
+                id="season-start"
+                type="date"
+                class="form-input"
+                formControlName="start_date"
+              />
+              @if (seasonForm.get('start_date')?.invalid && seasonForm.get('start_date')?.touched) {
+                <span class="field-error">Fecha de inicio requerida</span>
+              }
+            </div>
+            <div class="form-group flex-1">
+              <label for="season-end">Fecha de Fin</label>
+              <input
+                id="season-end"
+                type="date"
+                class="form-input"
+                formControlName="end_date"
+              />
+              @if (seasonForm.get('end_date')?.invalid && seasonForm.get('end_date')?.touched) {
+                <span class="field-error">Fecha de fin requerida</span>
+              }
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-small"></span>
+                <span>Guardando...</span>
+              } @else {
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Temporada' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>
