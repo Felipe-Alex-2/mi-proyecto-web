@@ -1,0 +1,293 @@
+<div class="suppliers-page-wrapper">
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link" title="Volver al Panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Panel Principal</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Gestión de Proveedores</h1>
+    </div>
+
+    <div class="navbar-right">
+      <a routerLink="/catalog-attributes" class="nav-link-secondary" title="Ir a Atributos">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        <span>Catálogo</span>
+      </a>
+      <a routerLink="/seasons" class="nav-link-secondary" title="Ir a Temporadas">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+        </svg>
+        <span>Temporadas</span>
+      </a>
+      <span class="admin-badge">
+        <span class="status-dot"></span>
+        Administrador General
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+    <!-- Header Action Bar -->
+    <div class="action-bar">
+      <div class="action-bar-info">
+        <h2 class="section-title">Empresas Proveedoras</h2>
+        <p class="section-subtitle">
+          Administra las marcas, fabricantes y distribuidores textiles para el aprovisionamiento de stock.
+        </p>
+      </div>
+
+      <div class="action-bar-controls">
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar por empresa, contacto, NIT..."
+            [value]="searchQuery()"
+            (input)="onSearch($event)"
+            class="search-input"
+          />
+        </div>
+
+        <button class="btn-primary" (click)="openCreateModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          <span>Nuevo Proveedor</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (successMessage()) {
+      <div class="alert-success" role="status">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-error" role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Suppliers Grid -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando proveedores...</span>
+      </div>
+    } @else if (filteredSuppliers().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🏭</div>
+        <h3>No se encontraron proveedores</h3>
+        <p>{{ searchQuery() ? 'No hay resultados que coincidan con la búsqueda.' : 'Crea tu primer proveedor de catálogo textil.' }}</p>
+      </div>
+    } @else {
+      <div class="suppliers-grid">
+        @for (supplier of filteredSuppliers(); track supplier.id) {
+          <div class="supplier-card" [class.card-inactive]="!supplier.is_active">
+            <!-- Header Card -->
+            <div class="card-header">
+              <div class="supplier-identity">
+                <div class="supplier-avatar">
+                  {{ supplier.company_name.slice(0, 2).toUpperCase() }}
+                </div>
+                <div class="supplier-names">
+                  <div class="supplier-top-line">
+                    <h3 class="company-name">{{ supplier.company_name }}</h3>
+                    <span class="status-badge" [class.active]="supplier.is_active">
+                      <span class="badge-dot"></span>
+                      {{ supplier.is_active ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </div>
+                  @if (supplier.tax_id) {
+                    <span class="tax-badge">NIT / RUT: {{ supplier.tax_id }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Details -->
+            <div class="card-details">
+              @if (supplier.contact_name) {
+                <div class="detail-item">
+                  <span class="detail-label">Contacto:</span>
+                  <span class="detail-value">{{ supplier.contact_name }}</span>
+                </div>
+              }
+
+              @if (supplier.email) {
+                <div class="detail-item">
+                  <span class="detail-label">Correo:</span>
+                  <a [href]="'mailto:' + supplier.email" class="detail-link">{{ supplier.email }}</a>
+                </div>
+              }
+
+              @if (supplier.phone) {
+                <div class="detail-item">
+                  <span class="detail-label">Teléfono:</span>
+                  <a [href]="'tel:' + supplier.phone" class="detail-link">{{ supplier.phone }}</a>
+                </div>
+              }
+
+              @if (supplier.address) {
+                <div class="detail-item">
+                  <span class="detail-label">Dirección:</span>
+                  <span class="detail-value address-value">{{ supplier.address }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions">
+              <button class="btn-card-action edit" (click)="openEditModal(supplier)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                <span>Editar</span>
+              </button>
+              <button
+                class="btn-card-action"
+                [ngClass]="supplier.is_active ? 'btn-deactivate' : 'btn-activate'"
+                (click)="toggleSupplierStatus(supplier)"
+              >
+                <span>{{ supplier.is_active ? 'Desactivar' : 'Activar' }}</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  <!-- Modal Create / Edit Supplier -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">{{ isEditMode() ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h3>
+            <p class="modal-subtitle">
+              {{ isEditMode() ? 'Actualiza los datos del proveedor seleccionado' : 'Registra una nueva empresa proveedora de indumentaria' }}
+            </p>
+          </div>
+          <button class="btn-close" (click)="closeModal()" type="button">&times;</button>
+        </div>
+
+        @if (modalError()) {
+          <div class="alert-error modal-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ modalError() }}</span>
+          </div>
+        }
+
+        <form [formGroup]="supplierForm" (ngSubmit)="save()" class="modal-form">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="sup-company">Razón Social / Empresa *</label>
+              <input
+                id="sup-company"
+                type="text"
+                class="form-input"
+                formControlName="company_name"
+                placeholder="Ej: Textiles Andinos S.A."
+              />
+              @if (supplierForm.get('company_name')?.invalid && supplierForm.get('company_name')?.touched) {
+                <span class="field-error">Razón Social requerida (mínimo 2 letras)</span>
+              }
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="sup-tax">NIT / RUT / RUC</label>
+              <input
+                id="sup-tax"
+                type="text"
+                class="form-input"
+                formControlName="tax_id"
+                placeholder="Ej: 102938475-1"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="sup-contact">Persona de Contacto</label>
+              <input
+                id="sup-contact"
+                type="text"
+                class="form-input"
+                formControlName="contact_name"
+                placeholder="Ej: Laura Pérez"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="sup-phone">Teléfono / WhatsApp</label>
+              <input
+                id="sup-phone"
+                type="text"
+                class="form-input"
+                formControlName="phone"
+                placeholder="Ej: +591 70012345"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sup-email">Correo Electrónico</label>
+            <input
+              id="sup-email"
+              type="email"
+              class="form-input"
+              formControlName="email"
+              placeholder="ventas@textilesandinos.com"
+            />
+            @if (supplierForm.get('email')?.invalid && supplierForm.get('email')?.touched) {
+              <span class="field-error">Ingresa un formato de correo válido</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="sup-address">Dirección / Depósito</label>
+            <input
+              id="sup-address"
+              type="text"
+              class="form-input"
+              formControlName="address"
+              placeholder="Av. Las Américas #450, Galería Central"
+            />
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-small"></span>
+                <span>Guardando...</span>
+              } @else {
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Registrar Proveedor' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

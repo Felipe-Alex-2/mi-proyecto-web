@@ -66,6 +66,30 @@ export const routes: Routes = [
           ),
         canActivate: [adminGuard],
       },
+      {
+        path: 'catalog-attributes',
+        loadComponent: () =>
+          import('./features/catalog-attributes/catalog-attributes.component').then(
+            (m) => m.CatalogAttributesComponent
+          ),
+        canActivate: [adminGuard],
+      },
+      {
+        path: 'seasons',
+        loadComponent: () =>
+          import('./features/seasons/seasons.component').then(
+            (m) => m.SeasonsComponent
+          ),
+        canActivate: [adminGuard],
+      },
+      {
+        path: 'suppliers',
+        loadComponent: () =>
+          import('./features/suppliers/suppliers.component').then(
+            (m) => m.SuppliersComponent
+          ),
+        canActivate: [adminGuard],
+      },
     ],
   },
   {
