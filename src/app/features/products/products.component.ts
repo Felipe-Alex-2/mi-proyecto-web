@@ -52,6 +52,7 @@ export class ProductsComponent implements OnInit {
   modalError = signal<string | null>(null);
 
   productForm: FormGroup;
+  imagePreview = signal<string | null>(null);
   selectedSizeIds = signal<string[]>([]);
   selectedColorIds = signal<string[]>([]);
   initialStockMap = signal<Record<string, number>>({}); // key: `${sizeId}_${colorId}_${branchId}` -> qty
@@ -195,11 +196,62 @@ export class ProductsComponent implements OnInit {
     return this.initialStockMap()[key] || 0;
   }
 
+  // Image Upload Handling
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.modalError.set('Por favor selecciona un archivo de imagen válido (PNG, JPG, WebP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 800;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          this.imagePreview.set(optimizedDataUrl);
+          this.productForm.patchValue({ image_url: optimizedDataUrl });
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeImage(): void {
+    this.imagePreview.set(null);
+    this.productForm.patchValue({ image_url: '' });
+  }
+
   // Modals
   openCreateModal(): void {
     this.isEditMode.set(false);
     this.editingId.set(null);
     this.modalError.set(null);
+    this.imagePreview.set(null);
     this.productForm.reset({ gender: 'UNISEX' });
     this.selectedSizeIds.set([]);
     this.selectedColorIds.set([]);
@@ -211,6 +263,7 @@ export class ProductsComponent implements OnInit {
     this.isEditMode.set(true);
     this.editingId.set(product.id);
     this.modalError.set(null);
+    this.imagePreview.set(product.image_url || null);
     this.productForm.patchValue({
       name: product.name,
       description: product.description || '',
@@ -227,6 +280,7 @@ export class ProductsComponent implements OnInit {
   closeModal(): void {
     this.isModalOpen.set(false);
     this.modalError.set(null);
+    this.imagePreview.set(null);
     this.productForm.reset();
   }
 
