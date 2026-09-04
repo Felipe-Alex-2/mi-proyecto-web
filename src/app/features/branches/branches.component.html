@@ -1,0 +1,459 @@
+<div class="branches-page-wrapper">
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link" title="Volver al Panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Panel Principal</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Gestión de Sucursales y Personal</h1>
+    </div>
+
+    <div class="navbar-right">
+      <a routerLink="/users" class="nav-link-secondary" title="Ir a Gestión de Usuarios">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+        </svg>
+        <span>Usuarios & Roles</span>
+      </a>
+      <span class="admin-badge">
+        <span class="status-dot"></span>
+        Administrador General
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+    <!-- Header Action Bar -->
+    <div class="action-bar">
+      <div class="action-bar-info">
+        <h2 class="section-title">Tiendas Físicas y Bodegas</h2>
+        <p class="section-subtitle">
+          Administra la presencia física de FashionStore por ciudad y asigna encargados y cajeros a cada sucursal.
+        </p>
+      </div>
+      <button class="btn-primary" (click)="openCreateModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        <span>Nueva Sucursal</span>
+      </button>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (successMessage()) {
+      <div class="alert-success" role="status">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-error" role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- City Filter Pills -->
+    <div class="city-filter-bar">
+      <div class="city-pills">
+        <button
+          type="button"
+          class="city-pill"
+          [class.active]="selectedCity() === ''"
+          (click)="onCityFilter('')"
+        >
+          Todas las Ciudades
+        </button>
+        @for (city of cities(); track city) {
+          <button
+            type="button"
+            class="city-pill"
+            [class.active]="selectedCity() === city"
+            (click)="onCityFilter(city)"
+          >
+            {{ city }}
+          </button>
+        }
+      </div>
+
+      <div class="status-filter-wrapper">
+        <select [value]="selectedStatus()" (change)="onStatusFilter($event)" class="filter-select">
+          <option value="">Todos los Estados</option>
+          <option value="true">Abiertas / Activas</option>
+          <option value="false">Cerradas Temporalmente</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Branches Cards Grid -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando sucursales...</span>
+      </div>
+    } @else if (branches().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.84L17.5 11H6.5L12 5.84z"/>
+          </svg>
+        </div>
+        <h3>No se encontraron sucursales</h3>
+        <p>No hay tiendas registradas con los filtros seleccionados. Registra la primera con el botón "Nueva Sucursal".</p>
+      </div>
+    } @else {
+      <div class="branches-grid">
+        @for (branch of branches(); track branch.id) {
+          <div class="branch-card" [class.card-inactive]="!branch.is_active">
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="branch-title-group">
+                <span class="city-tag">{{ branch.city }}</span>
+                <h3 class="branch-name">{{ branch.name }}</h3>
+              </div>
+              <span class="status-badge" [class.active]="branch.is_active">
+                <span class="badge-dot"></span>
+                {{ branch.is_active ? 'Abierta' : 'Cerrada Temporalmente' }}
+              </span>
+            </div>
+
+            <!-- Card Info -->
+            <div class="card-details">
+              <div class="detail-item">
+                <svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                </svg>
+                <span>{{ branch.address }}</span>
+              </div>
+
+              @if (branch.phone) {
+                <div class="detail-item">
+                  <svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                  </svg>
+                  <span>{{ branch.phone }}</span>
+                </div>
+              }
+
+              @if (branch.opening_hours) {
+                <div class="detail-item">
+                  <svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                  </svg>
+                  <span>{{ branch.opening_hours }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Staff Box -->
+            <div class="staff-section">
+              <div class="staff-header">
+                <span class="staff-section-title">Personal Asignado ({{ branch.staff_count }})</span>
+                <button class="btn-manage-staff" (click)="openStaffModal(branch)" title="Gestionar personal de la sucursal">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                  <span>Gestionar</span>
+                </button>
+              </div>
+
+              <!-- Manager Info -->
+              <div class="manager-badge">
+                <span class="manager-label">Encargado:</span>
+                @if (branch.manager) {
+                  <span class="manager-name">👤 {{ branch.manager.full_name }}</span>
+                } @else {
+                  <span class="manager-unassigned">⚠️ Sin Encargado</span>
+                }
+              </div>
+
+              <!-- Cashiers Info -->
+              <div class="cashiers-list">
+                <span class="cashiers-label">Cajeros:</span>
+                @if (branch.cashiers.length > 0) {
+                  <div class="cashier-chips">
+                    @for (cashier of branch.cashiers; track cashier.id) {
+                      <span class="cashier-chip">{{ cashier.full_name }}</span>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-subtle">Ninguno asignado</span>
+                }
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions">
+              <button class="btn-card-action edit" (click)="openEditModal(branch)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                <span>Editar</span>
+              </button>
+              <button
+                class="btn-card-action"
+                [ngClass]="branch.is_active ? 'btn-close-temp' : 'btn-reopen'"
+                (click)="toggleBranchStatus(branch)"
+              >
+                @if (branch.is_active) {
+                  <span>Cierre Temporal</span>
+                } @else {
+                  <span>Reabrir</span>
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  <!-- Modal Create / Edit Branch -->
+  @if (isBranchModalOpen()) {
+    <div class="modal-backdrop" (click)="closeBranchModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">{{ isEditMode() ? 'Editar Sucursal' : 'Nueva Sucursal' }}</h3>
+            <p class="modal-subtitle">
+              {{ isEditMode() ? 'Modifica los datos de la sucursal' : 'Registra una nueva tienda física o bodega' }}
+            </p>
+          </div>
+          <button class="btn-close" (click)="closeBranchModal()" type="button">&times;</button>
+        </div>
+
+        @if (modalError()) {
+          <div class="alert-error modal-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ modalError() }}</span>
+          </div>
+        }
+
+        <form [formGroup]="branchForm" (ngSubmit)="saveBranch()" class="modal-form">
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label for="branch-name">Nombre de la Sucursal</label>
+              <input
+                id="branch-name"
+                type="text"
+                class="form-input"
+                formControlName="name"
+                placeholder="Ej: Sucursal Calacoto"
+              />
+              @if (branchForm.get('name')?.invalid && branchForm.get('name')?.touched) {
+                <span class="field-error">Ingresa un nombre válido (mínimo 2 caracteres)</span>
+              }
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="branch-city">Ciudad</label>
+              <input
+                id="branch-city"
+                type="text"
+                class="form-input"
+                formControlName="city"
+                placeholder="Ej: La Paz"
+                list="popular-cities"
+              />
+              <datalist id="popular-cities">
+                @for (c of popularCities; track c) {
+                  <option [value]="c"></option>
+                }
+              </datalist>
+              @if (branchForm.get('city')?.invalid && branchForm.get('city')?.touched) {
+                <span class="field-error">Ingresa una ciudad válida</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="branch-address">Dirección Física</label>
+            <input
+              id="branch-address"
+              type="text"
+              class="form-input"
+              formControlName="address"
+              placeholder="Ej: Av. Ballivián #1234, entre calles 18 y 19"
+            />
+            @if (branchForm.get('address')?.invalid && branchForm.get('address')?.touched) {
+              <span class="field-error">Ingresa una dirección completa (mínimo 5 caracteres)</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="branch-phone">Teléfono de Contacto (Opcional)</label>
+              <input
+                id="branch-phone"
+                type="text"
+                class="form-input"
+                formControlName="phone"
+                placeholder="+591 2 2791234"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="branch-hours">Horario de Atención</label>
+              <input
+                id="branch-hours"
+                type="text"
+                class="form-input"
+                formControlName="opening_hours"
+                placeholder="Lun - Sáb: 09:00 - 20:00"
+              />
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeBranchModal()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-small"></span>
+                <span>Guardando...</span>
+              } @else {
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Registrar Sucursal' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Manage Staff -->
+  @if (isStaffModalOpen() && activeBranch()) {
+    <div class="modal-backdrop" (click)="closeStaffModal()">
+      <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">Personal de: {{ activeBranch()?.name }}</h3>
+            <p class="modal-subtitle">
+              {{ activeBranch()?.city }} &bull; Asigna nuevos miembros o transfiere empleados de otras sucursales.
+            </p>
+          </div>
+          <button class="btn-close" (click)="closeStaffModal()" type="button">&times;</button>
+        </div>
+
+        @if (staffModalError()) {
+          <div class="alert-error modal-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ staffModalError() }}</span>
+          </div>
+        }
+
+        <!-- Add / Transfer Staff Form -->
+        <div class="assign-form-box">
+          <h4 class="box-title">Asignar o Transferir Empleado</h4>
+          <div class="assign-inputs">
+            <select
+              [value]="selectedEmployeeId()"
+              (change)="onEmployeeSelectChange($event)"
+              class="form-input flex-1"
+            >
+              <option value="">-- Selecciona un Encargado o Cajero --</option>
+              @for (emp of availableEmployees(); track emp.id) {
+                <option [value]="emp.id">
+                  {{ emp.full_name }} ({{ emp.role === 'STORE_MANAGER' ? 'Encargado' : 'Cajero' }})
+                  {{ emp.branch_id ? (emp.branch_id === activeBranch()?.id ? ' - Ya asignado a esta sucursal' : ' - Actualmente en otra sucursal (se transferirá)') : ' - Sin sucursal' }}
+                </option>
+              }
+            </select>
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="assignStaffMember()"
+              [disabled]="!selectedEmployeeId() || isAssigning()"
+            >
+              @if (isAssigning()) {
+                <span class="spinner-small"></span>
+              } @else {
+                <span>Asignar / Transferir</span>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Current Staff List -->
+        <div class="current-staff-container">
+          <h4 class="box-title">Personal Actualmente Asignado</h4>
+
+          <!-- Manager Row -->
+          <div class="staff-category-block">
+            <span class="category-header">Encargado de Sucursal</span>
+            @if (activeBranch()?.manager) {
+              <div class="staff-item-row">
+                <div class="staff-item-info">
+                  <div class="staff-item-avatar manager">
+                    {{ activeBranch()?.manager?.full_name?.charAt(0) }}
+                  </div>
+                  <div>
+                    <span class="staff-item-name">{{ activeBranch()?.manager?.full_name }}</span>
+                    <span class="staff-item-meta">{{ activeBranch()?.manager?.email }} &bull; {{ activeBranch()?.manager?.phone || 'Sin teléfono' }}</span>
+                  </div>
+                </div>
+                <button
+                  class="btn-remove-staff"
+                  (click)="removeStaffMember(activeBranch()!.manager!.id)"
+                  title="Desvincular de la sucursal"
+                >
+                  Desvincular
+                </button>
+              </div>
+            } @else {
+              <p class="unassigned-notice">⚠️ Esta sucursal no tiene un Encargado asignado.</p>
+            }
+          </div>
+
+          <!-- Cashiers Rows -->
+          <div class="staff-category-block">
+            <span class="category-header">Cajeros ({{ activeBranch()?.cashiers?.length || 0 }})</span>
+            @if (activeBranch()?.cashiers && activeBranch()!.cashiers.length > 0) {
+              <div class="staff-list-group">
+                @for (cashier of activeBranch()!.cashiers; track cashier.id) {
+                  <div class="staff-item-row">
+                    <div class="staff-item-info">
+                      <div class="staff-item-avatar cashier">
+                        {{ cashier.full_name.charAt(0) }}
+                      </div>
+                      <div>
+                        <span class="staff-item-name">{{ cashier.full_name }}</span>
+                        <span class="staff-item-meta">{{ cashier.email }} &bull; {{ cashier.phone || 'Sin teléfono' }}</span>
+                      </div>
+                    </div>
+                    <button
+                      class="btn-remove-staff"
+                      (click)="removeStaffMember(cashier.id)"
+                      title="Desvincular de la sucursal"
+                    >
+                      Desvincular
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="unassigned-notice">No hay cajeros asignados a esta sucursal.</p>
+            }
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeStaffModal()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,309 @@
+<div class="users-page-wrapper">
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link" title="Volver al Panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Panel Principal</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Gestión de Usuarios y Roles</h1>
+    </div>
+
+    <div class="navbar-right">
+      <a routerLink="/branches" class="nav-link-secondary" title="Ir a Gestión de Sucursales">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+        </svg>
+        <span>Sucursales</span>
+      </a>
+      <span class="admin-badge">
+        <span class="status-dot"></span>
+        Administrador General
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+    <!-- Header Action Bar -->
+    <div class="action-bar">
+      <div class="action-bar-info">
+        <h2 class="section-title">Personal y Clientes</h2>
+        <p class="section-subtitle">
+          Administra los accesos, asigna roles (Encargados de Sucursal, Cajeros) y activa o desactiva cuentas.
+        </p>
+      </div>
+      <button class="btn-primary" (click)="openCreateModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        <span>Nuevo Usuario</span>
+      </button>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (successMessage()) {
+      <div class="alert-success" role="status">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-error" role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Filter Controls Card -->
+    <div class="filters-card">
+      <div class="search-box">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, correo o teléfono..."
+          [value]="searchTerm()"
+          (input)="onSearch($event)"
+        />
+      </div>
+
+      <div class="filter-group">
+        <select [value]="selectedRole()" (change)="onRoleChange($event)" class="filter-select">
+          <option value="">Todos los Roles</option>
+          @for (role of rolesList; track role.value) {
+            <option [value]="role.value">{{ role.label }}</option>
+          }
+        </select>
+
+        <select [value]="selectedStatus()" (change)="onStatusChange($event)" class="filter-select">
+          <option value="">Todos los Estados</option>
+          <option value="true">Solo Activos</option>
+          <option value="false">Solo Inactivos</option>
+        </select>
+
+        <button class="btn-reload" (click)="loadUsers()" title="Actualizar lista">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Users Table Card -->
+    <div class="table-card">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <span>Cargando usuarios...</span>
+        </div>
+      } @else if (users().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+            </svg>
+          </div>
+          <h3>No se encontraron usuarios</h3>
+          <p>Prueba ajustando los filtros de búsqueda o registra un nuevo empleado.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+                <th>Fecha de Registro</th>
+                <th class="text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of users(); track user.id) {
+                <tr [class.row-inactive]="!user.is_active">
+                  <td>
+                    <div class="user-cell">
+                      <div class="user-avatar" [class.avatar-inactive]="!user.is_active">
+                        {{ user.full_name.charAt(0).toUpperCase() }}
+                      </div>
+                      <div class="user-info">
+                        <span class="user-name">{{ user.full_name }}</span>
+                        <span class="user-email">{{ user.email }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="role-badge" [ngClass]="getRoleClass(user.role)">
+                      {{ getRoleLabel(user.role) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="text-muted">{{ user.phone || 'No registrado' }}</span>
+                  </td>
+                  <td>
+                    <span class="status-indicator" [class.active]="user.is_active">
+                      <span class="indicator-dot"></span>
+                      {{ user.is_active ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="text-muted">{{ user.created_at | date:'dd/MM/yyyy' }}</span>
+                  </td>
+                  <td class="text-right">
+                    <div class="action-buttons">
+                      <button class="btn-action edit" (click)="openEditModal(user)" title="Editar usuario y rol">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                      </button>
+                      <button
+                        class="btn-action"
+                        [ngClass]="user.is_active ? 'deactivate' : 'activate'"
+                        (click)="toggleStatus(user)"
+                        [title]="user.is_active ? 'Desactivar acceso' : 'Activar acceso'"
+                      >
+                        @if (user.is_active) {
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
+                          </svg>
+                        } @else {
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                          </svg>
+                        }
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </main>
+
+  <!-- Modal Create / Edit User -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">{{ isEditMode() ? 'Editar Usuario / Empleado' : 'Nuevo Usuario / Empleado' }}</h3>
+            <p class="modal-subtitle">
+              {{ isEditMode() ? 'Actualiza los datos personales o modifica el rol asignado' : 'Registra un nuevo miembro del personal y asígnale su rol' }}
+            </p>
+          </div>
+          <button class="btn-close" (click)="closeModal()" type="button">&times;</button>
+        </div>
+
+        @if (modalError()) {
+          <div class="alert-error modal-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ modalError() }}</span>
+          </div>
+        }
+
+        <form [formGroup]="userForm" (ngSubmit)="onSubmitModal()" class="modal-form">
+          <!-- Full Name -->
+          <div class="form-group">
+            <label for="modal-fullname">Nombre Completo</label>
+            <input
+              id="modal-fullname"
+              type="text"
+              class="form-input"
+              formControlName="full_name"
+              placeholder="Ej: Carlos Gómez"
+            />
+            @if (userForm.get('full_name')?.invalid && userForm.get('full_name')?.touched) {
+              <span class="field-error">Ingresa un nombre válido (mínimo 2 caracteres)</span>
+            }
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="modal-email">Correo Electrónico</label>
+            <input
+              id="modal-email"
+              type="email"
+              class="form-input"
+              formControlName="email"
+              placeholder="carlos@fashionstore.com"
+            />
+            @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
+              <span class="field-error">Ingresa un correo electrónico válido</span>
+            }
+          </div>
+
+          <!-- Phone & Role Row -->
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="modal-phone">Teléfono (Opcional)</label>
+              <input
+                id="modal-phone"
+                type="text"
+                class="form-input"
+                formControlName="phone"
+                placeholder="+591 70012345"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="modal-role">Rol en el Sistema</label>
+              <select id="modal-role" class="form-input select-input" formControlName="role">
+                @for (role of rolesList; track role.value) {
+                  <option [value]="role.value">{{ role.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="modal-password">
+              Contraseña
+              @if (isEditMode()) {
+                <span class="optional-hint">(Dejar en blanco para mantener la actual)</span>
+              }
+            </label>
+            <input
+              id="modal-password"
+              type="password"
+              class="form-input"
+              formControlName="password"
+              placeholder="••••••••"
+            />
+            @if (userForm.get('password')?.invalid && userForm.get('password')?.touched) {
+              <span class="field-error">La contraseña debe tener al menos 8 caracteres</span>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-small"></span>
+                <span>Guardando...</span>
+              } @else {
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Usuario' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

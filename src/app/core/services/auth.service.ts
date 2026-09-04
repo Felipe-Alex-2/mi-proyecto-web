@@ -11,6 +11,8 @@ import {
   TokenResponse,
   MessageResponse,
   RefreshTokenRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
 } from '../models/auth.model';
 
 @Injectable({
@@ -77,6 +79,28 @@ export class AuthService {
   updateProfile(payload: UserUpdate): Observable<User> {
     return this.http.put<User>(`${this.baseUrl}/users/me`, payload).pipe(
       tap((updated) => this.currentUserSignal.set(updated))
+    );
+  }
+
+  forgotPassword(email: string): Observable<MessageResponse> {
+    this.isLoadingSignal.set(true);
+    return this.http.post<MessageResponse>(`${this.baseUrl}/auth/forgot-password`, { email }).pipe(
+      tap(() => this.isLoadingSignal.set(false)),
+      catchError((error) => {
+        this.isLoadingSignal.set(false);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  resetPassword(payload: ResetPasswordRequest): Observable<MessageResponse> {
+    this.isLoadingSignal.set(true);
+    return this.http.post<MessageResponse>(`${this.baseUrl}/auth/reset-password`, payload).pipe(
+      tap(() => this.isLoadingSignal.set(false)),
+      catchError((error) => {
+        this.isLoadingSignal.set(false);
+        return throwError(() => error);
+      })
     );
   }
 
