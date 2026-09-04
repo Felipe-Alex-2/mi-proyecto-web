@@ -1,0 +1,572 @@
+<div class="products-page-wrapper">
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link" title="Volver al Panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Panel Principal</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Catálogo de Prendas y Stock</h1>
+    </div>
+
+    <div class="navbar-right">
+      <a routerLink="/catalog-attributes" class="nav-link-secondary" title="Ir a Atributos">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        <span>Atributos (Tallas/Colores)</span>
+      </a>
+      <a routerLink="/seasons" class="nav-link-secondary" title="Ir a Temporadas">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+        </svg>
+        <span>Temporadas</span>
+      </a>
+      <a routerLink="/suppliers" class="nav-link-secondary" title="Ir a Proveedores">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+          <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+        </svg>
+        <span>Proveedores</span>
+      </a>
+      <span class="admin-badge">
+        <span class="status-dot"></span>
+        Administrador General
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <div class="action-bar-info">
+        <h2 class="section-title">Prendas de Vestir y Disponibilidad</h2>
+        <p class="section-subtitle">
+          Catálogo digital de modelos, variantes de color y talla, y control de existencias en tiendas físicas.
+        </p>
+      </div>
+
+      <div class="action-bar-controls">
+        <!-- Search Input -->
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar por prenda..."
+            [value]="searchQuery()"
+            (input)="onSearch($event)"
+            class="search-input"
+          />
+        </div>
+
+        <!-- Category Dropdown -->
+        <select class="category-select" [value]="selectedCategory()" (change)="onCategoryFilter($event)">
+          <option value="">Todas las Categorías</option>
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+
+        <!-- New Product Button -->
+        <button class="btn-primary" (click)="openCreateModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          <span>Nueva Prenda</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (successMessage()) {
+      <div class="alert-success" role="status">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-error" role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando catálogo de prendas...</span>
+      </div>
+    } @else if (products().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">👗</div>
+        <h3>No se encontraron prendas</h3>
+        <p>Registra tu primera prenda de vestir seleccionando sus tallas, colores y existencias por tienda.</p>
+        <button class="btn-primary mt-3" (click)="openCreateModal()">Crear Prenda Ahora</button>
+      </div>
+    } @else {
+      <!-- Products Grid -->
+      <div class="products-grid">
+        @for (product of products(); track product.id) {
+          <div class="product-card" [class.card-inactive]="!product.is_active">
+            <!-- Image / Visual Banner -->
+            <div class="card-media">
+              @if (product.image_url) {
+                <img [src]="product.image_url" [alt]="product.name" class="product-img" />
+              } @else {
+                <div class="product-placeholder-icon">
+                  <span>👗</span>
+                </div>
+              }
+              <div class="media-badges">
+                <span class="category-chip">{{ product.category_name || 'Sin Categoría' }}</span>
+                <span class="gender-chip">{{ product.gender }}</span>
+              </div>
+              <span class="price-chip">${{ product.price | number:'1.2-2' }}</span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body">
+              <div class="product-header-line">
+                <h3 class="product-name" [title]="product.name">{{ product.name }}</h3>
+                <span class="status-badge" [class.active]="product.is_active">
+                  <span class="badge-dot"></span>
+                  {{ product.is_active ? 'Activo' : 'Inactivo' }}
+                </span>
+              </div>
+
+              @if (product.description) {
+                <p class="product-desc">{{ product.description }}</p>
+              }
+
+              <!-- Season & Supplier Metadata -->
+              <div class="meta-row">
+                @if (product.season_name) {
+                  <span class="meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    {{ product.season_name }}
+                  </span>
+                }
+                @if (product.supplier_name) {
+                  <span class="meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                    </svg>
+                    {{ product.supplier_name }}
+                  </span>
+                }
+              </div>
+
+              <!-- Available Colors and Sizes Swatches -->
+              <div class="variants-summary">
+                <div class="swatches-box">
+                  <span class="attr-title">Colores:</span>
+                  <div class="color-dots-list">
+                    @for (v of product.variants; track v.id) {
+                      @if (v.color_hex) {
+                        <span
+                          class="color-dot"
+                          [style.background-color]="v.color_hex"
+                          [title]="v.color_name + ' (' + v.sku + ')'"
+                        ></span>
+                      }
+                    }
+                  </div>
+                </div>
+
+                <div class="sizes-box">
+                  <span class="attr-title">Tallas:</span>
+                  <div class="size-chips-list">
+                    @for (v of product.variants; track v.id) {
+                      <span class="size-chip-item">{{ v.size_code || v.size_name }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stock Inventory Indicator -->
+              <div class="stock-indicator-box">
+                <span class="stock-label">Stock Total:</span>
+                <span
+                  class="stock-badge"
+                  [ngClass]="{
+                    'stock-ok': product.total_stock > 10,
+                    'stock-low': product.total_stock > 0 && product.total_stock <= 10,
+                    'stock-out': product.total_stock === 0
+                  }"
+                >
+                  {{ product.total_stock }} unid. disponibles
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions">
+              <button class="btn-card-action edit" (click)="openEditModal(product)" title="Editar Información">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                <span>Editar</span>
+              </button>
+
+              <button class="btn-card-action stock" (click)="openStockModal(product)" title="Gestionar Stock por Tienda">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                  <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Stock</span>
+              </button>
+
+              <button
+                class="btn-card-action"
+                [ngClass]="product.is_active ? 'btn-deactivate' : 'btn-activate'"
+                (click)="toggleProductStatus(product)"
+                [title]="product.is_active ? 'Desactivar Prenda' : 'Activar Prenda'"
+              >
+                <span>{{ product.is_active ? 'Desactivar' : 'Activar' }}</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  <!-- MODAL: Create / Edit Product -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">{{ isEditMode() ? 'Editar Prenda' : 'Nueva Prenda de Vestir' }}</h3>
+            <p class="modal-subtitle">
+              {{ isEditMode() ? 'Modifica los datos principales del modelo' : 'Define el modelo, genera sus variantes de talla/color y asigna el stock a cada sucursal' }}
+            </p>
+          </div>
+          <button class="btn-close" (click)="closeModal()" type="button">&times;</button>
+        </div>
+
+        @if (modalError()) {
+          <div class="alert-error modal-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ modalError() }}</span>
+          </div>
+        }
+
+        <form [formGroup]="productForm" (ngSubmit)="saveProduct()" class="modal-form">
+          <!-- Step 1: Basic Info -->
+          <div class="form-section-title">1. Información del Modelo</div>
+
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label for="p-name">Nombre de la Prenda *</label>
+              <input
+                id="p-name"
+                type="text"
+                class="form-input"
+                formControlName="name"
+                placeholder="Ej: Polera Oversize Graphic, Jeans Slim Denim..."
+              />
+              @if (productForm.get('name')?.invalid && productForm.get('name')?.touched) {
+                <span class="field-error">El nombre es requerido (mínimo 2 caracteres)</span>
+              }
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="p-price">Precio Base ($) *</label>
+              <input
+                id="p-price"
+                type="number"
+                step="0.01"
+                class="form-input"
+                formControlName="price"
+                placeholder="0.00"
+              />
+              @if (productForm.get('price')?.invalid && productForm.get('price')?.touched) {
+                <span class="field-error">Ingresa un precio válido mayor a 0</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="p-cat">Categoría *</label>
+              <select id="p-cat" class="form-input" formControlName="category_id">
+                <option value="">Selecciona Categoría</option>
+                @for (cat of categories(); track cat.id) {
+                  <option [value]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+              @if (productForm.get('category_id')?.invalid && productForm.get('category_id')?.touched) {
+                <span class="field-error">Selecciona una categoría</span>
+              }
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="p-gender">Género *</label>
+              <select id="p-gender" class="form-input" formControlName="gender">
+                <option value="UNISEX">Unisex</option>
+                <option value="HOMBRE">Hombre</option>
+                <option value="MUJER">Mujer</option>
+                <option value="NIÑOS">Niños</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="p-season">Temporada / Campaña</label>
+              <select id="p-season" class="form-input" formControlName="season_id">
+                <option value="">Ninguna / Todo el año</option>
+                @for (seas of seasons(); track seas.id) {
+                  <option [value]="seas.id">{{ seas.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="p-sup">Proveedor / Fabricante</label>
+              <select id="p-sup" class="form-input" formControlName="supplier_id">
+                <option value="">Sin proveedor asignado</option>
+                @for (sup of suppliers(); track sup.id) {
+                  <option [value]="sup.id">{{ sup.company_name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="p-img">URL Imagen del Producto (Opcional)</label>
+            <input
+              id="p-img"
+              type="url"
+              class="form-input"
+              formControlName="image_url"
+              placeholder="https://ejemplo.com/fotos/polera.jpg"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="p-desc">Descripción (Opcional)</label>
+            <textarea
+              id="p-desc"
+              rows="2"
+              class="form-input"
+              formControlName="description"
+              placeholder="Detalles sobre tela, lavado, calce y estilo..."
+            ></textarea>
+          </div>
+
+          <!-- Step 2: Variants Selection (Only on Creation) -->
+          @if (!isEditMode()) {
+            <div class="form-section-title">2. Selecciona las Tallas y Colores disponibles</div>
+
+            <!-- Sizes Selection -->
+            <div class="variants-selector-box">
+              <span class="sub-label">Tallas que aplican a esta prenda:</span>
+              <div class="chip-selector-grid">
+                @for (size of sizes(); track size.id) {
+                  <button
+                    type="button"
+                    class="chip-select-btn"
+                    [class.selected]="selectedSizeIds().includes(size.id)"
+                    (click)="toggleSize(size.id)"
+                  >
+                    {{ size.name }} ({{ size.code }})
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Colors Selection -->
+            <div class="variants-selector-box">
+              <span class="sub-label">Colores que aplican a esta prenda:</span>
+              <div class="chip-selector-grid">
+                @for (color of colors(); track color.id) {
+                  <button
+                    type="button"
+                    class="chip-select-btn color-chip-btn"
+                    [class.selected]="selectedColorIds().includes(color.id)"
+                    (click)="toggleColor(color.id)"
+                  >
+                    <span class="swatch-sample" [style.background-color]="color.hex_code"></span>
+                    <span>{{ color.name }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Step 3: Initial Stock Distribution -->
+            @if (selectedSizeIds().length > 0 && selectedColorIds().length > 0 && branches().length > 0) {
+              <div class="form-section-title">3. Stock Inicial por Sucursal</div>
+              <div class="stock-matrix-box">
+                <p class="stock-matrix-hint">Ingresa las cantidades que se distribuirán en cada tienda:</p>
+                <div class="table-responsive">
+                  <table class="stock-table">
+                    <thead>
+                      <tr>
+                        <th>Variante (Talla / Color)</th>
+                        @for (branch of branches(); track branch.id) {
+                          <th>{{ branch.name }} ({{ branch.city }})</th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (sId of selectedSizeIds(); track sId) {
+                        @for (cId of selectedColorIds(); track cId) {
+                          <tr>
+                            <td class="variant-label-cell">
+                              <span class="swatch-mini" [style.background-color]="getColorObj(cId)?.hex_code"></span>
+                              <strong>{{ getSizeName(sId) }}</strong> — {{ getColorObj(cId)?.name }}
+                            </td>
+                            @for (b of branches(); track b.id) {
+                              <td>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  class="stock-table-input"
+                                  [value]="getInitialStockVal(sId, cId, b.id)"
+                                  (input)="setInitialStock(sId, cId, b.id, $event)"
+                                />
+                              </td>
+                            }
+                          </tr>
+                        }
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Modal Actions -->
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-small"></span>
+                <span>Guardando...</span>
+              } @else {
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Prenda y Variantes' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: Branch Stock Inventory Adjustment -->
+  @if (isStockModalOpen() && selectedProductForStock()) {
+    <div class="modal-backdrop" (click)="closeStockModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">Gestión de Stock por Sucursal</h3>
+            <p class="modal-subtitle">
+              Prenda: <strong>{{ selectedProductForStock()?.name }}</strong>
+            </p>
+          </div>
+          <button class="btn-close" (click)="closeStockModal()" type="button">&times;</button>
+        </div>
+
+        @if (stockModalError()) {
+          <div class="alert-error modal-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ stockModalError() }}</span>
+          </div>
+        }
+
+        <div class="modal-body-pad">
+          <!-- Branch Selector -->
+          <div class="form-group mb-3">
+            <label for="stock-branch-sel">Seleccionar Sucursal:</label>
+            <select
+              id="stock-branch-sel"
+              class="form-input"
+              [value]="selectedBranchForStock()"
+              (change)="onStockBranchChange($any($event.target).value)"
+            >
+              @for (branch of branches(); track branch.id) {
+                <option [value]="branch.id">{{ branch.name }} — {{ branch.city }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Variants Stock Table -->
+          <div class="table-responsive">
+            <table class="stock-table">
+              <thead>
+                <tr>
+                  <th>Variante</th>
+                  <th>SKU</th>
+                  <th>Cantidad en Tienda</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (v of selectedProductForStock()?.variants; track v.id) {
+                  <tr>
+                    <td>
+                      <div class="cell-variant">
+                        @if (v.color_hex) {
+                          <span class="swatch-mini" [style.background-color]="v.color_hex"></span>
+                        }
+                        <span>{{ v.size_code || v.size_name }} / {{ v.color_name }}</span>
+                      </div>
+                    </td>
+                    <td><span class="sku-tag">{{ v.sku }}</span></td>
+                    <td>
+                      <input
+                        type="number"
+                        min="0"
+                        class="stock-table-input"
+                        [value]="stockUpdateMap()[v.id] || 0"
+                        (input)="onStockQtyInput(v.id, $event)"
+                      />
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeStockModal()">Cerrar</button>
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="saveBranchStock()"
+            [disabled]="isUpdatingStock()"
+          >
+            @if (isUpdatingStock()) {
+              <span class="spinner-small"></span>
+              <span>Actualizando...</span>
+            } @else {
+              <span>Guardar Existencias</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

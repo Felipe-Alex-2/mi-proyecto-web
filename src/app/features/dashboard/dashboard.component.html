@@ -164,8 +164,8 @@
           </div>
           <div>
             <div class="module-title-row">
-              <h3 class="module-title">Módulo 2: Administración de Catálogo y Proveedores</h3>
-              <span class="badge-status-completed">✓ 100% Completado (3/3 Casos de Uso)</span>
+              <h3 class="module-title">Módulo 2: Catálogo de Prendas, Variantes y Stock</h3>
+              <span class="badge-status-completed">✓ 100% Completado (4/4 Casos de Uso)</span>
             </div>
             <p class="module-desc">Categorías maestras, tallas con código, colores con muestras visuales, temporadas y colecciones con vigencia y empresas proveedoras.</p>
           </div>
@@ -182,6 +182,28 @@
       @if (module2Expanded()) {
         <div class="module-card-body">
           <div class="use-cases-grid">
+            <!-- CU08: Prendas de Vestir y Stock por Sucursal -->
+            <div class="use-case-box">
+              <div class="uc-header">
+                <div class="uc-icon" style="background: rgba(236, 72, 153, 0.15); color: #f472b6;">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <span class="uc-code">CU08</span>
+                  <h4 class="uc-title">Prendas y Stock por Sucursal</h4>
+                </div>
+              </div>
+              <p class="uc-text">Ficha de productos con fotos, precios, generación automática de variantes (talla + color), y control físico de existencias por cada tienda.</p>
+              <div class="uc-action">
+                <a routerLink="/products" class="btn-uc-link highlight-btn">
+                  <span>Gestionar Prendas y Stock</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                </a>
+              </div>
+            </div>
+
             <!-- CU05: Gestionar Categorías, Tallas y Colores -->
             <div class="use-case-box">
               <div class="uc-header">

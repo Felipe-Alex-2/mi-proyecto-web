@@ -67,6 +67,14 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'products',
+        loadComponent: () =>
+          import('./features/products/products.component').then(
+            (m) => m.ProductsComponent
+          ),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'catalog-attributes',
         loadComponent: () =>
           import('./features/catalog-attributes/catalog-attributes.component').then(
