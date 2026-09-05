@@ -126,7 +126,27 @@
             @for (cat of categories(); track cat.id) {
               <div class="item-card" [class.card-inactive]="!cat.is_active">
                 <div class="item-card-header">
-                  <div class="item-icon cat-icon">👗</div>
+                  <div class="item-icon cat-icon" title="Categoría">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="2.5" r="0.8" fill="currentColor" />
+                      <line x1="12" y1="3.3" x2="12" y2="19.5" />
+                      <path d="M7.5 6.5C7.5 5 9 4.5 12 5.5" />
+                      <circle cx="7.5" cy="6.5" r="0.75" fill="currentColor" />
+                      <path d="M16.5 6.5C16.5 5 15 4.5 12 5.5" />
+                      <circle cx="16.5" cy="6.5" r="0.75" fill="currentColor" />
+                      <path d="M8.5 11C8.5 9.8 10 9.5 12 10.3" />
+                      <circle cx="8.5" cy="11" r="0.75" fill="currentColor" />
+                      <path d="M15.5 11C15.5 9.8 14 9.5 12 10.3" />
+                      <circle cx="15.5" cy="11" r="0.75" fill="currentColor" />
+                      <path d="M9.5 15C9.5 14.2 10.5 14 12 14.5" />
+                      <circle cx="9.5" cy="15" r="0.65" fill="currentColor" />
+                      <path d="M14.5 15C14.5 14.2 13.5 14 12 14.5" />
+                      <circle cx="14.5" cy="15" r="0.65" fill="currentColor" />
+                      <path d="M12 19.5L6.5 22.5" />
+                      <path d="M12 19.5L17.5 22.5" />
+                      <line x1="12" y1="19.5" x2="12" y2="23" />
+                    </svg>
+                  </div>
                   <div class="item-info">
                     <h3 class="item-name">{{ cat.name }}</h3>
                     @if (cat.description) {
