@@ -20,10 +20,23 @@ html, body {
   font-family: var(--font-family);
   background-color: var(--bg-primary);
   color: var(--color-text-primary);
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 button, input, select, textarea {
   font-family: inherit;
+  color-scheme: light;
 }
+
+select {
+  background-color: #FAF7F2;
+  color: #2C1810;
+}
+
+option {
+  background-color: #FFFFFF;
+  color: #2C1810;
+}
+

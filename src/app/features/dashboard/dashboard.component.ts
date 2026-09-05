@@ -1,14 +1,13 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
@@ -17,9 +16,6 @@ export class DashboardComponent implements OnInit {
   editForm: FormGroup;
   updateSuccess = signal<string | null>(null);
   updateError = signal<string | null>(null);
-
-  module1Expanded = signal<boolean>(true);
-  module2Expanded = signal<boolean>(false);
 
   constructor(
     private fb: FormBuilder,
@@ -38,14 +34,6 @@ export class DashboardComponent implements OnInit {
         this.populateForm(user);
       }
     });
-  }
-
-  toggleModule1(): void {
-    this.module1Expanded.update((v) => !v);
-  }
-
-  toggleModule2(): void {
-    this.module2Expanded.update((v) => !v);
   }
 
   populateForm(user: User): void {

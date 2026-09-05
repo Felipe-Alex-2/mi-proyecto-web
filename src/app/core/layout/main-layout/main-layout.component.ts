@@ -14,7 +14,6 @@ export class MainLayoutComponent implements OnInit {
   isSidebarCollapsed = signal<boolean>(false);
   module1Open = signal<boolean>(true);  // Default open so user sees it right away
   module2Open = signal<boolean>(false);
-  module3Open = signal<boolean>(false);
 
   constructor(public authService: AuthService) {}
 
@@ -33,10 +32,6 @@ export class MainLayoutComponent implements OnInit {
 
   toggleModule2(): void {
     this.module2Open.update((val) => !val);
-  }
-
-  toggleModule3(): void {
-    this.module3Open.update((val) => !val);
   }
 
   logout(): void {

@@ -69,7 +69,6 @@
             </div>
           </div>
           <div class="accordion-right">
-            <span class="badge-status-completed">Listo</span>
             <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
@@ -117,7 +116,6 @@
             </div>
           </div>
           <div class="accordion-right">
-            <span class="badge-status-completed">Listo</span>
             <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
@@ -166,41 +164,6 @@
               </span>
               <span class="sub-nav-text">Gestión de Proveedores</span>
             </a>
-          </div>
-        }
-      </div>
-
-      <!-- ACCORDION: MÓDULO 3 -->
-      <div class="accordion-item" [class.is-open]="module3Open()">
-        <button type="button" class="accordion-header" (click)="toggleModule3()">
-          <div class="accordion-title-box">
-            <div class="accordion-icon module3-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
-                <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="accordion-text">
-              <span class="accordion-main-title">Módulo 3</span>
-              <span class="accordion-sub-title">Vestidores Virtuales AR</span>
-            </div>
-          </div>
-          <div class="accordion-right">
-            <span class="badge-status-upcoming">AR</span>
-            <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-          </div>
-        </button>
-
-        @if (module3Open()) {
-          <div class="accordion-body">
-            <div class="sub-nav-item disabled-item" title="Próximamente">
-              <div class="sub-nav-dot"></div>
-              <span class="sub-nav-icon">🪞</span>
-              <span class="sub-nav-text">Probador Virtual</span>
-              <span class="mini-tag">AR</span>
-            </div>
           </div>
         }
       </div>

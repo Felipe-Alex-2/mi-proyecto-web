@@ -1,4 +1,4 @@
-﻿.products-page-wrapper {
+.products-page-wrapper {
   min-height: 100vh;
   background-color: #F5F0E8;
   color: #2C1810;
@@ -166,13 +166,13 @@
 
 .search-input:focus {
   border-color: #8B4513;
-  background: rgba(30, 41, 59, 0.8);
+  background: #FFFFFF;
   box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
 }
 
 .category-select {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(139, 69, 19, 0.12);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.15);
   border-radius: 10px;
   padding: 0.65rem 1rem;
   color: #2C1810;
@@ -184,10 +184,12 @@
 
 .category-select:focus {
   border-color: #8B4513;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
 }
 
 .category-select option {
-  background: #0f172a;
+  background: #FFFFFF;
   color: #2C1810;
 }
 
@@ -196,7 +198,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
   color: #ffffff;
   border: none;
   padding: 0.65rem 1.25rem;
@@ -205,13 +207,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 14px rgba(139, 69, 19, 0.25);
   white-space: nowrap;
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+  box-shadow: 0 6px 20px rgba(139, 69, 19, 0.35);
 }
 
 .btn-primary:disabled {
@@ -257,8 +259,8 @@
   align-items: center;
   justify-content: center;
   padding: 4rem 2rem;
-  background: rgba(30, 41, 59, 0.2);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed rgba(139, 69, 19, 0.15);
   border-radius: 16px;
   text-align: center;
   color: #8B7355;
@@ -268,7 +270,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid rgba(139, 69, 19, 0.1);
-  border-top-color: #6366f1;
+  border-top-color: #8B4513;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 1rem;
@@ -314,7 +316,7 @@
 .card-media {
   position: relative;
   height: 180px;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #FAF7F2 0%, #EDE6DC 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -463,8 +465,8 @@
 
 /* Swatches & Sizes Summary */
 .variants-summary {
-  background: rgba(30, 41, 59, 0.35);
-  border: 1px solid rgba(139, 69, 19, 0.08);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.12);
   border-radius: 8px;
   padding: 0.65rem 0.85rem;
   display: flex;
@@ -635,12 +637,12 @@
 }
 
 .modal-card {
-  background: #0f172a;
+  background: #FFFFFF;
   border: 1px solid rgba(139, 69, 19, 0.15);
   border-radius: 16px;
   width: 100%;
   max-width: 580px;
-  box-shadow: 0 25px 50px -12px rgba(44, 24, 16, 0.45);
+  box-shadow: 0 25px 50px -12px rgba(139, 69, 19, 0.15);
   overflow: hidden;
   animation: scaleUp 0.25s ease;
   max-height: 90vh;
@@ -732,8 +734,8 @@
 }
 
 .form-input {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(139, 69, 19, 0.12);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.15);
   border-radius: 8px;
   padding: 0.65rem 0.85rem;
   color: #2C1810;
@@ -744,12 +746,12 @@
 
 .form-input:focus {
   border-color: #8B4513;
-  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
-  background: rgba(30, 41, 59, 0.9);
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+  background: #FFFFFF;
 }
 
 .form-input option {
-  background: #0f172a;
+  background: #FFFFFF;
   color: #2C1810;
 }
 
@@ -769,7 +771,7 @@
   border: 2px dashed rgba(139, 69, 19, 0.25);
   border-radius: 12px;
   padding: 1.25rem 1rem;
-  background: rgba(30, 41, 59, 0.35);
+  background: #FAF7F2;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -781,7 +783,7 @@
 
 .upload-dropzone:hover {
   border-color: #8B4513;
-  background: rgba(99, 102, 241, 0.1);
+  background: #F5EFEB;
   transform: translateY(-1px);
 }
 
@@ -866,7 +868,7 @@
 
 .btn-preview-change:hover {
   background: rgba(139, 69, 19, 0.12);
-  color: #fff;
+  color: #2C1810;
 }
 
 .btn-preview-remove {
@@ -906,8 +908,8 @@
 
 /* Variant Selector Chips */
 .variants-selector-box {
-  background: rgba(30, 41, 59, 0.3);
-  border: 1px solid rgba(139, 69, 19, 0.08);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.12);
   border-radius: 10px;
   padding: 0.85rem 1rem;
   display: flex;
@@ -944,14 +946,14 @@
 
 .chip-select-btn:hover {
   background: rgba(139, 69, 19, 0.08);
-  color: #fff;
+  color: #2C1810;
 }
 
 .chip-select-btn.selected {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.3) 0%, rgba(124, 58, 237, 0.3) 100%);
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
   border-color: #8B4513;
   color: #ffffff;
-  box-shadow: 0 0 10px rgba(139, 69, 19, 0.2);
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.25);
 }
 
 .swatch-sample {
@@ -963,8 +965,8 @@
 
 /* Stock Matrix Table */
 .stock-matrix-box {
-  background: rgba(30, 41, 59, 0.3);
-  border: 1px solid rgba(139, 69, 19, 0.08);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.12);
   border-radius: 10px;
   padding: 1rem;
 }
@@ -995,7 +997,7 @@
 
 .stock-table td {
   padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(139, 69, 19, 0.08);
   color: #5C4033;
 }
 
@@ -1031,17 +1033,18 @@
 
 .stock-table-input {
   width: 80px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(139, 69, 19, 0.15);
+  background: #FFFFFF;
+  border: 1px solid rgba(139, 69, 19, 0.2);
   border-radius: 6px;
   padding: 0.35rem 0.5rem;
-  color: #ffffff;
+  color: #2C1810;
   font-weight: 700;
   text-align: center;
 }
 
 .stock-table-input:focus {
   border-color: #8B4513;
+  box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.15);
   outline: none;
 }
 
@@ -1067,7 +1070,7 @@
 }
 .btn-cancel:hover {
   background: rgba(139, 69, 19, 0.08);
-  color: #fff;
+  color: #2C1810;
 }
 
 .spinner-small {

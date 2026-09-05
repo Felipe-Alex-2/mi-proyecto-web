@@ -1,4 +1,4 @@
-﻿.catalog-page-wrapper {
+.catalog-page-wrapper {
   min-height: 100vh;
   background-color: #F5F0E8;
   color: #2C1810;
@@ -420,8 +420,8 @@
 }
 
 .btn-deactivate:hover {
-  background: rgba(192, 57, 43, 0.1);
-  color: #fff;
+  background: rgba(192, 57, 43, 0.15);
+  color: #C0392B;
 }
 
 .btn-activate {
@@ -431,8 +431,8 @@
 }
 
 .btn-activate:hover {
-  background: rgba(45, 125, 70, 0.12);
-  color: #fff;
+  background: rgba(45, 125, 70, 0.15);
+  color: #2D7D46;
 }
 
 /* Loading & Empty States */
@@ -569,6 +569,12 @@
 .form-input:focus {
   border-color: #8B4513;
   box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+  background: #FFFFFF;
+}
+
+.form-input option {
+  background: #FFFFFF;
+  color: #2C1810;
 }
 
 .field-error { font-size: 0.75rem; color: #C0392B; margin-top: 0.15rem; }
@@ -594,7 +600,7 @@
   transition: all 0.15s ease;
 }
 
-.btn-cancel:hover { background: rgba(139, 69, 19, 0.08); color: #fff; }
+.btn-cancel:hover { background: rgba(139, 69, 19, 0.08); color: #2C1810; }
 
 .spinner-small {
   width: 16px;
@@ -651,8 +657,8 @@
   align-items: center;
   gap: 0.85rem;
   padding: 0.85rem 1rem;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(139, 69, 19, 0.08);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.12);
   border-radius: 12px;
 }
 

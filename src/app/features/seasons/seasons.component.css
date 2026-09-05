@@ -1,4 +1,4 @@
-﻿.seasons-page-wrapper {
+.seasons-page-wrapper {
   min-height: 100vh;
   background-color: #F5F0E8;
   color: #2C1810;
@@ -79,7 +79,7 @@
 
 .nav-link-secondary:hover {
   background: rgba(139, 69, 19, 0.08);
-  color: #fff;
+  color: #2C1810;
 }
 
 .nav-link-secondary svg {
@@ -144,7 +144,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
   color: #ffffff;
   border: none;
   padding: 0.65rem 1.25rem;
@@ -153,12 +153,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 14px rgba(139, 69, 19, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+  box-shadow: 0 6px 20px rgba(139, 69, 19, 0.35);
 }
 
 .btn-primary:disabled {
@@ -211,8 +211,8 @@
   align-items: center;
   justify-content: center;
   padding: 4rem 2rem;
-  background: rgba(30, 41, 59, 0.2);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed rgba(139, 69, 19, 0.15);
   border-radius: 16px;
   text-align: center;
   color: #8B7355;
@@ -222,7 +222,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid rgba(139, 69, 19, 0.1);
-  border-top-color: #6366f1;
+  border-top-color: #8B4513;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 1rem;
@@ -370,8 +370,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(30, 41, 59, 0.35);
-  border: 1px solid rgba(139, 69, 19, 0.08);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.12);
   border-radius: 10px;
   padding: 0.85rem 1rem;
   margin-bottom: 1.5rem;
@@ -439,34 +439,34 @@
 .btn-card-action.edit {
   background: rgba(139, 69, 19, 0.04);
   color: #5C4033;
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(139, 69, 19, 0.15);
 }
 
 .btn-card-action.edit:hover {
   background: rgba(139, 69, 19, 0.08);
-  color: #fff;
+  color: #2C1810;
 }
 
 .btn-deactivate {
   background: rgba(192, 57, 43, 0.08);
   color: #C0392B;
-  border-color: rgba(192, 57, 43, 0.1);
+  border-color: rgba(192, 57, 43, 0.15);
 }
 
 .btn-deactivate:hover {
-  background: rgba(192, 57, 43, 0.1);
-  color: #fff;
+  background: rgba(192, 57, 43, 0.15);
+  color: #C0392B;
 }
 
 .btn-activate {
   background: rgba(16, 185, 129, 0.1);
   color: #2D7D46;
-  border-color: rgba(45, 125, 70, 0.12);
+  border-color: rgba(45, 125, 70, 0.15);
 }
 
 .btn-activate:hover {
-  background: rgba(45, 125, 70, 0.12);
-  color: #fff;
+  background: rgba(45, 125, 70, 0.15);
+  color: #2D7D46;
 }
 
 /* Modal */
@@ -484,7 +484,7 @@
 }
 
 .modal-card {
-  background: #0f172a;
+  background: #FFFFFF;
   border: 1px solid rgba(139, 69, 19, 0.15);
   border-radius: 16px;
   width: 100%;
@@ -563,8 +563,8 @@
 }
 
 .form-input {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(139, 69, 19, 0.12);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.15);
   border-radius: 8px;
   padding: 0.65rem 0.85rem;
   color: #2C1810;
@@ -575,8 +575,13 @@
 
 .form-input:focus {
   border-color: #8B4513;
-  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
-  background: rgba(30, 41, 59, 0.9);
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+  background: #FFFFFF;
+}
+
+.form-input option {
+  background: #FFFFFF;
+  color: #2C1810;
 }
 
 .field-error {
@@ -607,7 +612,7 @@
 
 .btn-cancel:hover {
   background: rgba(139, 69, 19, 0.08);
-  color: #fff;
+  color: #2C1810;
 }
 
 .spinner-small {
