@@ -6,7 +6,7 @@
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(circle at top center, #131b2e 0%, #090d16 100%);
+  background: radial-gradient(circle at top center, #FAF7F2 0%, #F5F0E8 100%);
 }
 
 .glow {
@@ -14,13 +14,13 @@
   border-radius: 50%;
   filter: blur(120px);
   pointer-events: none;
-  opacity: 0.45;
+  opacity: 0.35;
 }
 
 .glow-1 {
   width: 400px;
   height: 400px;
-  background: #6366f1;
+  background: #D4A574;
   top: -60px;
   right: 20%;
 }
@@ -28,7 +28,7 @@
 .glow-2 {
   width: 350px;
   height: 350px;
-  background: #3b82f6;
+  background: #C4956A;
   bottom: -50px;
   left: 20%;
 }
@@ -38,14 +38,14 @@
   z-index: 10;
   width: 100%;
   max-width: 460px;
-  background: rgba(18, 24, 38, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(139, 69, 19, 0.12);
   border-radius: 24px;
   padding: 2.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-              0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(139, 69, 19, 0.1),
+              0 0 0 1px rgba(139, 69, 19, 0.05);
   animation: fadeInScale 0.4s ease-out;
 }
 
@@ -71,11 +71,11 @@
   justify-content: center;
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: linear-gradient(135deg, #A0522D, #C4956A);
   border-radius: 14px;
   color: #fff;
   margin-bottom: 1rem;
-  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 8px 16px rgba(139, 69, 19, 0.25);
 }
 
 .brand-icon svg {
@@ -86,13 +86,13 @@
 .auth-title {
   font-size: 1.65rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #2C1810;
   margin-bottom: 0.4rem;
   letter-spacing: -0.02em;
 }
 
 .auth-subtitle {
-  color: #94a3b8;
+  color: #8B7355;
   font-size: 0.9rem;
   margin: 0;
 }
@@ -101,9 +101,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: rgba(192, 57, 43, 0.1);
+  border: 1px solid rgba(192, 57, 43, 0.25);
+  color: #C0392B;
   padding: 0.85rem 1rem;
   border-radius: 12px;
   font-size: 0.875rem;
@@ -120,9 +120,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #86efac;
+  background: rgba(45, 125, 70, 0.1);
+  border: 1px solid rgba(45, 125, 70, 0.25);
+  color: #2D7D46;
   padding: 0.85rem 1rem;
   border-radius: 12px;
   font-size: 0.875rem;
@@ -150,34 +150,34 @@
 .form-group label {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #cbd5e1;
+  color: #5C4033;
 }
 
 .input-container {
   display: flex;
   align-items: center;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.15);
   border-radius: 12px;
   padding: 0 0.85rem;
   transition: all 0.2s ease;
 }
 
 .input-container:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-  background: rgba(15, 23, 42, 1);
+  border-color: #8B4513;
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
+  background: #FFFFFF;
 }
 
 .input-container.has-error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  border-color: #C0392B;
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.12);
 }
 
 .input-icon {
   width: 20px;
   height: 20px;
-  color: #64748b;
+  color: #A08060;
   margin-right: 0.5rem;
 }
 
@@ -185,7 +185,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: #f1f5f9;
+  color: #2C1810;
   padding: 0.8rem 0;
   font-size: 0.95rem;
   outline: none;
@@ -193,13 +193,13 @@
 }
 
 .input-container input::placeholder {
-  color: #475569;
+  color: #BDA98E;
 }
 
 .btn-eye {
   background: transparent;
   border: none;
-  color: #64748b;
+  color: #A08060;
   cursor: pointer;
   padding: 0.25rem;
   display: flex;
@@ -209,7 +209,7 @@
 }
 
 .btn-eye:hover {
-  color: #94a3b8;
+  color: #5C4033;
 }
 
 .btn-eye svg {
@@ -219,13 +219,13 @@
 
 .error-text {
   font-size: 0.775rem;
-  color: #f87171;
+  color: #C0392B;
   margin-top: 0.2rem;
 }
 
 .btn-primary {
   margin-top: 0.5rem;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #A0522D 0%, #C4956A 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -238,12 +238,12 @@
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.25s ease;
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 20px rgba(139, 69, 19, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.45);
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  box-shadow: 0 10px 25px rgba(139, 69, 19, 0.35);
   transform: translateY(-1px);
 }
 
@@ -283,19 +283,19 @@
   margin-top: 1.75rem;
   text-align: center;
   font-size: 0.875rem;
-  color: #94a3b8;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8B7355;
+  border-top: 1px solid rgba(139, 69, 19, 0.1);
   padding-top: 1.25rem;
 }
 
 .link-highlight {
-  color: #818cf8;
+  color: #8B4513;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .link-highlight:hover {
-  color: #a5b4fc;
+  color: #6B3410;
   text-decoration: underline;
 }

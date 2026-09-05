@@ -6,7 +6,7 @@
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(circle at top center, #131b2e 0%, #090d16 100%);
+  background: radial-gradient(circle at top center, #FAF7F2 0%, #F5F0E8 100%);
 }
 
 .glow {
@@ -14,13 +14,13 @@
   border-radius: 50%;
   filter: blur(120px);
   pointer-events: none;
-  opacity: 0.45;
+  opacity: 0.35;
 }
 
 .glow-1 {
   width: 380px;
   height: 380px;
-  background: #3b82f6;
+  background: #C4956A;
   top: -50px;
   left: 20%;
 }
@@ -28,7 +28,7 @@
 .glow-2 {
   width: 320px;
   height: 320px;
-  background: #8b5cf6;
+  background: #D4A574;
   bottom: -40px;
   right: 25%;
 }
@@ -38,14 +38,14 @@
   z-index: 10;
   width: 100%;
   max-width: 440px;
-  background: rgba(18, 24, 38, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(139, 69, 19, 0.12);
   border-radius: 24px;
   padding: 2.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-              0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(139, 69, 19, 0.1),
+              0 0 0 1px rgba(139, 69, 19, 0.05);
   animation: fadeInScale 0.4s ease-out;
 }
 
@@ -71,11 +71,11 @@
   justify-content: center;
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, #8B4513, #C4956A);
   border-radius: 14px;
   color: #fff;
   margin-bottom: 1rem;
-  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 8px 16px rgba(139, 69, 19, 0.25);
 }
 
 .brand-icon svg {
@@ -86,13 +86,13 @@
 .auth-title {
   font-size: 1.65rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #2C1810;
   margin-bottom: 0.4rem;
   letter-spacing: -0.02em;
 }
 
 .auth-subtitle {
-  color: #94a3b8;
+  color: #8B7355;
   font-size: 0.9rem;
   margin: 0;
 }
@@ -101,9 +101,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: rgba(192, 57, 43, 0.1);
+  border: 1px solid rgba(192, 57, 43, 0.25);
+  color: #C0392B;
   padding: 0.85rem 1rem;
   border-radius: 12px;
   font-size: 0.875rem;
@@ -137,7 +137,7 @@
 .form-group label {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #cbd5e1;
+  color: #5C4033;
 }
 
 .label-row {
@@ -148,41 +148,41 @@
 
 .forgot-link {
   font-size: 0.8rem;
-  color: #60a5fa;
+  color: #8B4513;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .forgot-link:hover {
-  color: #93c5fd;
+  color: #6B3410;
   text-decoration: underline;
 }
 
 .input-container {
   display: flex;
   align-items: center;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #FAF7F2;
+  border: 1px solid rgba(139, 69, 19, 0.15);
   border-radius: 12px;
   padding: 0 0.85rem;
   transition: all 0.2s ease;
 }
 
 .input-container:focus-within {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-  background: rgba(15, 23, 42, 1);
+  border-color: #8B4513;
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
+  background: #FFFFFF;
 }
 
 .input-container.has-error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  border-color: #C0392B;
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.12);
 }
 
 .input-icon {
   width: 20px;
   height: 20px;
-  color: #64748b;
+  color: #A08060;
   margin-right: 0.5rem;
 }
 
@@ -190,7 +190,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: #f1f5f9;
+  color: #2C1810;
   padding: 0.85rem 0;
   font-size: 0.95rem;
   outline: none;
@@ -198,13 +198,13 @@
 }
 
 .input-container input::placeholder {
-  color: #475569;
+  color: #BDA98E;
 }
 
 .btn-eye {
   background: transparent;
   border: none;
-  color: #64748b;
+  color: #A08060;
   cursor: pointer;
   padding: 0.25rem;
   display: flex;
@@ -214,7 +214,7 @@
 }
 
 .btn-eye:hover {
-  color: #94a3b8;
+  color: #5C4033;
 }
 
 .btn-eye svg {
@@ -224,13 +224,13 @@
 
 .error-text {
   font-size: 0.775rem;
-  color: #f87171;
+  color: #C0392B;
   margin-top: 0.2rem;
 }
 
 .btn-primary {
   margin-top: 0.5rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -243,12 +243,12 @@
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.25s ease;
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 20px rgba(139, 69, 19, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.45);
+  background: linear-gradient(135deg, #6B3410 0%, #8B4513 100%);
+  box-shadow: 0 10px 25px rgba(139, 69, 19, 0.35);
   transform: translateY(-1px);
 }
 
@@ -288,19 +288,19 @@
   margin-top: 2rem;
   text-align: center;
   font-size: 0.875rem;
-  color: #94a3b8;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8B7355;
+  border-top: 1px solid rgba(139, 69, 19, 0.1);
   padding-top: 1.5rem;
 }
 
 .link-highlight {
-  color: #60a5fa;
+  color: #8B4513;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .link-highlight:hover {
-  color: #93c5fd;
+  color: #6B3410;
   text-decoration: underline;
 }
