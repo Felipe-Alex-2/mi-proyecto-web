@@ -1,3 +1,4 @@
+﻿import { noWhitespaceValidator } from '../../core/validators/custom-validators';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -76,7 +77,7 @@ export class ProductsComponent implements OnInit {
     public authService: AuthService
   ) {
     this.productForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150)]],
+      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150), noWhitespaceValidator()]],
       description: [''],
       price: [null, [Validators.required, Validators.min(0.01)]],
       category_id: ['', Validators.required],
@@ -137,7 +138,7 @@ export class ProductsComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.detail || 'Error al cargar las prendas del catálogo');
+        this.errorMessage.set(err.error?.detail || 'Error al cargar las prendas del catÃ¡logo');
         this.isLoading.set(false);
       },
     });
@@ -203,7 +204,7 @@ export class ProductsComponent implements OnInit {
 
     const file = input.files[0];
     if (!file.type.startsWith('image/')) {
-      this.modalError.set('Por favor selecciona un archivo de imagen válido (PNG, JPG, WebP).');
+      this.modalError.set('Por favor selecciona un archivo de imagen vÃ¡lido (PNG, JPG, WebP).');
       return;
     }
 
@@ -321,7 +322,7 @@ export class ProductsComponent implements OnInit {
           );
           this.isSaving.set(false);
           this.closeModal();
-          this.showSuccess(`Prenda "${updated.name}" actualizada con éxito`);
+          this.showSuccess(`Prenda "${updated.name}" actualizada con Ã©xito`);
         },
         error: (err) => {
           this.modalError.set(err.error?.detail || 'Error al actualizar prenda');
@@ -383,7 +384,7 @@ export class ProductsComponent implements OnInit {
           list.map((p) => (p.id === updated.id ? updated : p))
         );
         this.showSuccess(
-          `Prenda "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'} con éxito`
+          `Prenda "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'} con Ã©xito`
         );
       },
       error: (err) => {
@@ -484,3 +485,4 @@ export class ProductsComponent implements OnInit {
     }, 4500);
   }
 }
+

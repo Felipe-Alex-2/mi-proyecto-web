@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+﻿import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -11,6 +11,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { passwordStrengthValidator, noWhitespaceValidator } from '../../../core/validators/custom-validators';
 
 export const passwordMatchValidator: ValidatorFn = (
   control: AbstractControl
@@ -46,9 +47,9 @@ export class ResetPasswordComponent implements OnInit {
   ) {
     this.resetForm = this.fb.group(
       {
-        email: ['', [Validators.required, Validators.email]],
+        email: ['', [Validators.required, Validators.email, noWhitespaceValidator()]],
         token: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-        newPassword: ['', [Validators.required, Validators.minLength(8)]],
+        newPassword: ['', [Validators.required, passwordStrengthValidator()]],
         confirmPassword: ['', [Validators.required]],
       },
       { validators: passwordMatchValidator }
@@ -81,8 +82,8 @@ export class ResetPasswordComponent implements OnInit {
 
     this.authService
       .resetPassword({
-        email: email.trim(),
-        token: token.trim(),
+        email: (email || '').trim(),
+        token: (token || '').trim(),
         new_password: newPassword,
       })
       .subscribe({

@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+﻿import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { noWhitespaceValidator, passwordStrengthValidator } from '../../../core/validators/custom-validators';
 
 @Component({
   selector: 'app-register',
@@ -23,9 +24,9 @@ export class RegisterComponent {
     private router: Router
   ) {
     this.registerForm = this.fb.group({
-      full_name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      full_name: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
+      email: ['', [Validators.required, Validators.email, noWhitespaceValidator()]],
+      password: ['', [Validators.required, passwordStrengthValidator()]],
       confirmPassword: ['', [Validators.required]],
     }, { validators: this.passwordMatchValidator });
   }
@@ -50,11 +51,15 @@ export class RegisterComponent {
     this.successMessage.set(null);
     const { email, password, full_name } = this.registerForm.value;
 
-    this.authService.register({ email, password, full_name }).subscribe({
+    this.authService.register({
+      email: (email || '').trim(),
+      password: password,
+      full_name: (full_name || '').trim(),
+    }).subscribe({
       next: () => {
         this.successMessage.set('¡Cuenta creada exitosamente! Iniciando sesión...');
         // Auto login
-        this.authService.login({ email, password }).subscribe({
+        this.authService.login({ email: (email || '').trim(), password }).subscribe({
           next: () => {
             setTimeout(() => this.router.navigate(['/dashboard']), 800);
           },
