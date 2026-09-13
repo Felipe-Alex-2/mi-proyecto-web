@@ -24,11 +24,16 @@ export class InventoryMovementsComponent implements OnInit {
   isLoading = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
   isModalOpen = signal<boolean>(false);
+  isEditModalOpen = signal<boolean>(false);
+  editingMovement = signal<InventoryMovement | null>(null);
+  isDeleteModalOpen = signal<boolean>(false);
+  deletingMovement = signal<InventoryMovement | null>(null);
 
   selectedBranchFilter = signal<string>('');
   selectedTypeFilter = signal<string>('');
   
   movementForm: FormGroup;
+  editForm: FormGroup;
   currentStock = signal<number | null>(null);
   feedbackMessage = signal<string>('');
   feedbackType = signal<'success' | 'error'>('success');
@@ -64,6 +69,11 @@ export class InventoryMovementsComponent implements OnInit {
       variant_id: ['', Validators.required],
       type: ['ENTRY', Validators.required],
       quantity: [1, [Validators.required, Validators.min(1)]],
+      reason: ['', [Validators.required, Validators.minLength(5)]],
+      reference_number: [''],
+    });
+
+    this.editForm = this.fb.group({
       reason: ['', [Validators.required, Validators.minLength(5)]],
       reference_number: [''],
     });
@@ -204,6 +214,81 @@ export class InventoryMovementsComponent implements OnInit {
           this.showToast(msg, 'error');
         },
       });
+  }
+
+  // Edit & Delete Methods
+  openEditModal(m: InventoryMovement): void {
+    this.editingMovement.set(m);
+    this.editForm.patchValue({
+      reason: m.reason || '',
+      reference_number: m.reference_number || '',
+    });
+    this.isEditModalOpen.set(true);
+  }
+
+  closeEditModal(): void {
+    this.isEditModalOpen.set(false);
+    this.editingMovement.set(null);
+  }
+
+  onSubmitEdit(): void {
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+    const m = this.editingMovement();
+    if (!m) return;
+
+    this.isSubmitting.set(true);
+    const val = this.editForm.value;
+    this.inventoryService
+      .updateMovement(m.id, {
+        reason: val.reason.trim(),
+        reference_number: val.reference_number?.trim() || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.isSubmitting.set(false);
+          this.closeEditModal();
+          this.showToast('Movimiento actualizado con éxito', 'success');
+          this.loadMovements();
+        },
+        error: (err) => {
+          this.isSubmitting.set(false);
+          const msg = err.error?.detail || 'Error al actualizar el movimiento';
+          this.showToast(msg, 'error');
+        },
+      });
+  }
+
+  openDeleteModal(m: InventoryMovement): void {
+    this.deletingMovement.set(m);
+    this.isDeleteModalOpen.set(true);
+  }
+
+  closeDeleteModal(): void {
+    this.isDeleteModalOpen.set(false);
+    this.deletingMovement.set(null);
+  }
+
+  onConfirmDelete(): void {
+    const m = this.deletingMovement();
+    if (!m) return;
+
+    this.isSubmitting.set(true);
+    this.inventoryService.deleteMovement(m.id).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        this.closeDeleteModal();
+        this.showToast('Movimiento eliminado y stock revertido correctamente', 'success');
+        this.loadMovements();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.detail || 'Error al eliminar el movimiento';
+        this.showToast(msg, 'error');
+      },
+    });
   }
 
   showToast(message: string, type: 'success' | 'error'): void {

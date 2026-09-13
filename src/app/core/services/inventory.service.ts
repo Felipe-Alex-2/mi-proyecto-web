@@ -46,6 +46,14 @@ export class InventoryService {
     return this.http.get<InventoryMovement>(`${this.inventoryUrl}/movements/${id}`);
   }
 
+  updateMovement(id: string, payload: { reason?: string; reference_number?: string }): Observable<InventoryMovement> {
+    return this.http.put<InventoryMovement>(`${this.inventoryUrl}/movements/${id}`, payload);
+  }
+
+  deleteMovement(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.inventoryUrl}/movements/${id}`);
+  }
+
   getBranchSummary(branchId: string): Observable<BranchInventorySummary> {
     return this.http.get<BranchInventorySummary>(`${this.inventoryUrl}/summary/${branchId}`);
   }

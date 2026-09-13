@@ -98,6 +98,7 @@
                 <th>Stock Post.</th>
                 <th>Motivo</th>
                 <th>Responsable</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -133,6 +134,26 @@
                     }
                   </td>
                   <td class="user-cell">{{ m.user_name || 'Admin' }}</td>
+                  <td class="actions-cell">
+                    <div class="action-buttons">
+                      <button
+                        type="button"
+                        class="btn-icon-edit"
+                        title="Editar motivo/referencia"
+                        (click)="openEditModal(m)"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-icon-delete"
+                        title="Eliminar y revertir stock"
+                        (click)="openDeleteModal(m)"
+                      >
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -276,6 +297,109 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Editar Movimiento -->
+  @if (isEditModalOpen() && editingMovement()) {
+    <div class="modal-overlay" (click)="closeEditModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Editar Movimiento de Inventario</h3>
+          <button class="btn-close" (click)="closeEditModal()">&times;</button>
+        </div>
+
+        <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()">
+          <div class="modal-body">
+            <div class="confirm-warning-box">
+              <strong>Detalle del registro:</strong>
+              <div>Prenda: <strong>{{ editingMovement()?.product_name }}</strong> ({{ editingMovement()?.sku }})</div>
+              <div>Sucursal: <strong>{{ editingMovement()?.branch_name }}</strong></div>
+              <div>Tipo: <strong>{{ getTypeLabel(editingMovement()!.type) }}</strong> · Cantidad: <strong>{{ editingMovement()?.quantity }} uds.</strong></div>
+            </div>
+
+            <!-- Motivo -->
+            <div class="form-group">
+              <label for="edit-reason">Motivo del Movimiento (mínimo 5 caracteres) *</label>
+              <input
+                id="edit-reason"
+                type="text"
+                formControlName="reason"
+                class="form-control"
+                placeholder="Ej. Corrección de motivo o descripción..."
+              />
+              @if (editForm.get('reason')?.touched && editForm.get('reason')?.hasError('required')) {
+                <span class="error-msg">El motivo es obligatorio</span>
+              }
+              @if (editForm.get('reason')?.touched && editForm.get('reason')?.hasError('minlength')) {
+                <span class="error-msg">El motivo debe tener al menos 5 caracteres</span>
+              }
+            </div>
+
+            <!-- Referencia -->
+            <div class="form-group">
+              <label for="edit-ref">Nº de Guía / Factura / Documento</label>
+              <input
+                id="edit-ref"
+                type="text"
+                formControlName="reference_number"
+                class="form-control"
+                placeholder="Ej. GUIA-8849 / FAC-2026-01"
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeEditModal()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="editForm.invalid || isSubmitting()">
+              @if (isSubmitting()) {
+                <span>Guardando...</span>
+              } @else {
+                <span>Guardar Cambios</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Confirmar Eliminación y Reversión de Stock -->
+  @if (isDeleteModalOpen() && deletingMovement()) {
+    <div class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Eliminar Movimiento de Inventario</h3>
+          <button class="btn-close" (click)="closeDeleteModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="alert-negative">
+            ⚠️ <strong>Reversión de Stock Físico:</strong> Al eliminar este movimiento, el sistema revertirá automáticamente el cambio de stock en la sucursal <strong>{{ deletingMovement()?.branch_name }}</strong>.
+          </div>
+
+          <div class="confirm-warning-box">
+            <p style="margin: 0 0 0.5rem 0;">¿Estás seguro de que deseas eliminar este movimiento?</p>
+            <ul style="margin: 0; padding-left: 1.2rem;">
+              <li><strong>Prenda:</strong> {{ deletingMovement()?.product_name }} ({{ deletingMovement()?.sku }})</li>
+              <li><strong>Tipo:</strong> {{ getTypeLabel(deletingMovement()!.type) }}</li>
+              <li><strong>Cantidad afectada:</strong> {{ deletingMovement()?.quantity }} unidades</li>
+              <li><strong>Motivo registrado:</strong> {{ deletingMovement()?.reason }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeDeleteModal()">Cancelar</button>
+          <button type="button" class="btn-danger" [disabled]="isSubmitting()" (click)="onConfirmDelete()">
+            @if (isSubmitting()) {
+              <span>Revirtiendo y eliminando...</span>
+            } @else {
+              <span>Sí, Revertir Stock y Eliminar</span>
+            }
+          </button>
+        </div>
       </div>
     </div>
   }

@@ -209,7 +209,7 @@ export class UsersComponent implements OnInit {
 
   toggleStatus(user: User): void {
     const action = user.is_active ? 'desactivar' : 'activar';
-    if (!confirm(`Â¿EstÃ¡s seguro de que deseas ${action} la cuenta de "${user.full_name}"?`)) {
+    if (!confirm(`¿Estás seguro de que deseas ${action} la cuenta de "${user.full_name}"?`)) {
       return;
     }
 
@@ -251,4 +251,4 @@ export class UsersComponent implements OnInit {
     }
   }
 }
-
+

@@ -433,3 +433,80 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Actions cell buttons */
+.actions-cell {
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-icon-edit, .btn-icon-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.btn-icon-edit {
+  background: #F0F4F8;
+  color: #1E5180;
+  border-color: #D2E3F3;
+}
+
+.btn-icon-edit:hover {
+  background: #E1ECF7;
+  color: #0F3556;
+}
+
+.btn-icon-delete {
+  background: #FDF0ED;
+  color: #C62828;
+  border-color: #F8D3CB;
+}
+
+.btn-icon-delete:hover {
+  background: #FBE2DC;
+  color: #8E1717;
+}
+
+.btn-danger {
+  background: #C62828;
+  color: #ffffff;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #9A1B1B;
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirm-warning-box {
+  background: #FFF8E1;
+  border: 1px solid #FFE082;
+  border-radius: 8px;
+  padding: 1rem;
+  color: #5D4037;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}

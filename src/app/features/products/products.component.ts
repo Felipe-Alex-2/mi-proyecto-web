@@ -138,7 +138,7 @@ export class ProductsComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.detail || 'Error al cargar las prendas del catÃ¡logo');
+        this.errorMessage.set(err.error?.detail || 'Error al cargar las prendas del catálogo');
         this.isLoading.set(false);
       },
     });
@@ -204,7 +204,7 @@ export class ProductsComponent implements OnInit {
 
     const file = input.files[0];
     if (!file.type.startsWith('image/')) {
-      this.modalError.set('Por favor selecciona un archivo de imagen vÃ¡lido (PNG, JPG, WebP).');
+      this.modalError.set('Por favor selecciona un archivo de imagen válido (PNG, JPG, WebP).');
       return;
     }
 
@@ -322,7 +322,7 @@ export class ProductsComponent implements OnInit {
           );
           this.isSaving.set(false);
           this.closeModal();
-          this.showSuccess(`Prenda "${updated.name}" actualizada con Ã©xito`);
+          this.showSuccess(`Prenda "${updated.name}" actualizada con éxito`);
         },
         error: (err) => {
           this.modalError.set(err.error?.detail || 'Error al actualizar prenda');
@@ -384,7 +384,7 @@ export class ProductsComponent implements OnInit {
           list.map((p) => (p.id === updated.id ? updated : p))
         );
         this.showSuccess(
-          `Prenda "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'} con Ã©xito`
+          `Prenda "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'} con éxito`
         );
       },
       error: (err) => {
@@ -397,11 +397,28 @@ export class ProductsComponent implements OnInit {
   openStockModal(product: Product): void {
     this.selectedProductForStock.set(product);
     this.stockModalError.set(null);
-    if (this.branches().length > 0 && !this.selectedBranchForStock()) {
-      this.selectedBranchForStock.set(this.branches()[0].id);
+    let targetBranchId = '';
+    const branchWithStock = this.branches().find((b) =>
+      product.variants?.some((v) => v.stocks?.some((s) => s.branch_id === b.id && s.quantity > 0))
+    );
+    if (branchWithStock) {
+      targetBranchId = branchWithStock.id;
+    } else if (this.branches().length > 0) {
+      targetBranchId = this.branches()[0].id;
     }
-    this.syncStockMapWithProduct(product, this.selectedBranchForStock());
+    this.selectedBranchForStock.set(targetBranchId);
+    this.syncStockMapWithProduct(product, targetBranchId);
     this.isStockModalOpen.set(true);
+  }
+
+  getProductStockInBranch(product: Product | null, branchId: string): number {
+    if (!product || !product.variants) return 0;
+    let total = 0;
+    for (const v of product.variants) {
+      const s = v.stocks?.find((item) => item.branch_id === branchId);
+      if (s) total += s.quantity;
+    }
+    return total;
   }
 
   closeStockModal(): void {
@@ -485,4 +502,5 @@ export class ProductsComponent implements OnInit {
     }, 4500);
   }
 }
+
 

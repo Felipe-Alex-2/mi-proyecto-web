@@ -53,7 +53,7 @@ export class BranchesComponent implements OnInit {
     'Sucre',
     'Oruro',
     'Tarija',
-    'PotosÃ­',
+    'Potosí',
     'Beni',
     'Pando',
   ];
@@ -69,7 +69,7 @@ export class BranchesComponent implements OnInit {
       city: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
       address: ['', [Validators.required, Validators.minLength(5), noWhitespaceValidator()]],
       phone: [''],
-      opening_hours: ['Lun - SÃ¡b: 09:00 - 20:00'],
+      opening_hours: ['Lun - Sáb: 09:00 - 20:00'],
     });
   }
 
@@ -123,7 +123,7 @@ export class BranchesComponent implements OnInit {
       city: this.selectedCity() || 'La Paz',
       address: '',
       phone: '',
-      opening_hours: 'Lun - SÃ¡b: 09:00 - 20:00',
+      opening_hours: 'Lun - Sáb: 09:00 - 20:00',
     });
     this.isBranchModalOpen.set(true);
   }
@@ -193,7 +193,7 @@ export class BranchesComponent implements OnInit {
 
   toggleBranchStatus(branch: Branch): void {
     const action = branch.is_active ? 'cerrar temporalmente' : 'reabrir';
-    if (!confirm(`Â¿EstÃ¡s seguro de que deseas ${action} la sucursal "${branch.name}"?`)) {
+    if (!confirm(`¿Estás seguro de que deseas ${action} la sucursal "${branch.name}"?`)) {
       return;
     }
 
@@ -269,7 +269,7 @@ export class BranchesComponent implements OnInit {
     const branch = this.activeBranch();
     if (!branch) return;
 
-    if (!confirm('Â¿Deseas desvincular a este empleado de la sucursal?')) {
+    if (!confirm('¿Deseas desvincular a este empleado de la sucursal?')) {
       return;
     }
 
@@ -294,4 +294,4 @@ export class BranchesComponent implements OnInit {
     }, 4000);
   }
 }
-
+
