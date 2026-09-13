@@ -1,4 +1,4 @@
-<div class="layout-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed()">
+﻿<div class="layout-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed()">
   <!-- Overlay for mobile when sidebar is open -->
   <div class="sidebar-overlay" (click)="toggleSidebar()"></div>
 
@@ -17,7 +17,7 @@
           <span class="brand-badge">PRO PLATFORM</span>
         </div>
       </div>
-      <button class="btn-close-sidebar" (click)="toggleSidebar()" title="Ocultar Menú">
+      <button class="btn-close-sidebar" (click)="toggleSidebar()" title="Ocultar MenÃº">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
@@ -40,7 +40,7 @@
 
     <!-- Navigation Area -->
     <nav class="sidebar-nav">
-      <div class="nav-section-label">NAVEGACIÓN PRINCIPAL</div>
+      <div class="nav-section-label">NAVEGACIÃ“N PRINCIPAL</div>
 
       <!-- Dashboard Link -->
       <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
@@ -52,9 +52,9 @@
         <span class="nav-label">Panel Principal</span>
       </a>
 
-      <div class="nav-section-label">MÓDULOS DE GESTIÓN</div>
+      <div class="nav-section-label">MÃ“DULOS DE GESTIÃ“N</div>
 
-      <!-- ACCORDION: MÓDULO 1 -->
+      <!-- ACCORDION: MÃ“DULO 1 -->
       <div class="accordion-item" [class.is-open]="module1Open()">
         <button type="button" class="accordion-header" (click)="toggleModule1()">
           <div class="accordion-title-box">
@@ -64,7 +64,7 @@
               </svg>
             </div>
             <div class="accordion-text">
-              <span class="accordion-main-title">Módulo 1</span>
+              <span class="accordion-main-title">MÃ³dulo 1</span>
               <span class="accordion-sub-title">Seguridad y Personal</span>
             </div>
           </div>
@@ -101,7 +101,7 @@
         }
       </div>
 
-      <!-- ACCORDION: MÓDULO 2 -->
+      <!-- ACCORDION: MÃ“DULO 2 -->
       <div class="accordion-item" [class.is-open]="module2Open()">
         <button type="button" class="accordion-header" (click)="toggleModule2()">
           <div class="accordion-title-box">
@@ -111,8 +111,8 @@
               </svg>
             </div>
             <div class="accordion-text">
-              <span class="accordion-main-title">Módulo 2</span>
-              <span class="accordion-sub-title">Catálogo y Proveedores</span>
+              <span class="accordion-main-title">MÃ³dulo 2</span>
+              <span class="accordion-sub-title">CatÃ¡logo y Proveedores</span>
             </div>
           </div>
           <div class="accordion-right">
@@ -141,7 +141,7 @@
                   <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
                 </svg>
               </span>
-              <span class="sub-nav-text">Categorías, Tallas y Colores</span>
+              <span class="sub-nav-text">CategorÃ­as, Tallas y Colores</span>
             </a>
 
             <a routerLink="/seasons" routerLinkActive="active" class="sub-nav-item">
@@ -162,7 +162,7 @@
                   <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
                 </svg>
               </span>
-              <span class="sub-nav-text">Gestión de Proveedores</span>
+              <span class="sub-nav-text">GestiÃ³n de Proveedores</span>
             </a>
           </div>
         }
@@ -175,7 +175,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
         </svg>
-        <span>Cerrar Sesión</span>
+        <span>Cerrar SesiÃ³n</span>
       </button>
     </div>
   </aside>
@@ -185,7 +185,7 @@
     <!-- Topbar Navigation -->
     <header class="topbar">
       <div class="topbar-left">
-        <button class="btn-hamburger" (click)="toggleSidebar()" title="Alternar Menú">
+        <button class="btn-hamburger" (click)="toggleSidebar()" title="Alternar MenÃº">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -208,7 +208,7 @@
           <span class="user-name-sm">{{ authService.currentUser()?.full_name }}</span>
         </div>
 
-        <button class="btn-topbar-logout" (click)="logout()" title="Cerrar sesión">
+        <button class="btn-topbar-logout" (click)="logout()" title="Cerrar sesiÃ³n">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
           </svg>
@@ -222,3 +222,4 @@
     </main>
   </div>
 </div>
+

@@ -1,0 +1,282 @@
+﻿<div class="inventory-page-wrapper">
+  <!-- Toast alert -->
+  @if (feedbackMessage()) {
+    <div class="toast-banner" [class.toast-error]="feedbackType() === 'error'">
+      <span>{{ feedbackMessage() }}</span>
+    </div>
+  }
+
+  <!-- Header / Breadcrumb -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        <span>Inicio</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Movimientos de Inventario (CU09)</h1>
+    </div>
+
+    <div class="navbar-right">
+      <button class="btn-primary" (click)="openRegisterModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        <span>Registrar Movimiento</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Filter bar -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <label for="filter-branch">Sucursal:</label>
+        <select
+          id="filter-branch"
+          class="filter-select"
+          [value]="selectedBranchFilter()"
+          (change)="selectedBranchFilter.set($any($event.target).value); onFilterChange()"
+        >
+          <option value="">Todas las sucursales</option>
+          @for (b of branches(); track b.id) {
+            <option [value]="b.id">{{ b.name }} ({{ b.city }})</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-type">Tipo de Movimiento:</label>
+        <select
+          id="filter-type"
+          class="filter-select"
+          [value]="selectedTypeFilter()"
+          (change)="selectedTypeFilter.set($any($event.target).value); onFilterChange()"
+        >
+          <option value="">Todos los tipos</option>
+          <option value="ENTRY">Entrada (ENTRY)</option>
+          <option value="EXIT">Salida (EXIT)</option>
+          <option value="ADJUSTMENT">Ajuste Físico (ADJUSTMENT)</option>
+          <option value="RETURN">Devolución (RETURN)</option>
+        </select>
+      </div>
+
+      <div class="filter-count">
+        Total registrados: <strong>{{ movements().length }}</strong>
+      </div>
+    </div>
+
+    <!-- Movements Table -->
+    <div class="table-card">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando historial de movimientos...</p>
+        </div>
+      } @else if (movements().length === 0) {
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <p>No se encontraron movimientos registrados con los filtros seleccionados.</p>
+          <button class="btn-secondary" (click)="openRegisterModal()">Registrar Primer Movimiento</button>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha / Hora</th>
+                <th>Sucursal</th>
+                <th>Prenda / Variante</th>
+                <th>SKU</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Stock Ant.</th>
+                <th>Stock Post.</th>
+                <th>Motivo</th>
+                <th>Responsable</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of movements(); track m.id) {
+                <tr>
+                  <td class="date-cell">
+                    {{ m.created_at | date:'dd/MM/yyyy HH:mm' }}
+                  </td>
+                  <td class="branch-cell">
+                    <span class="branch-pill">{{ m.branch_name || 'Sucursal' }}</span>
+                  </td>
+                  <td>
+                    <strong>{{ m.product_name }}</strong>
+                    <div class="variant-meta">Talla: {{ m.size_name }} · Color: {{ m.color_name }}</div>
+                  </td>
+                  <td><code>{{ m.sku }}</code></td>
+                  <td>
+                    <span class="badge" [ngClass]="getTypeBadgeClass(m.type)">
+                      {{ getTypeLabel(m.type) }}
+                    </span>
+                  </td>
+                  <td class="qty-cell">
+                    <span [class.text-green]="m.type === 'ENTRY' || m.type === 'RETURN'" [class.text-red]="m.type === 'EXIT'">
+                      {{ m.type === 'ENTRY' || m.type === 'RETURN' ? '+' : (m.type === 'EXIT' ? '-' : '') }}{{ m.quantity }}
+                    </span>
+                  </td>
+                  <td class="stock-num">{{ m.previous_stock }}</td>
+                  <td class="stock-num"><strong>{{ m.new_stock }}</strong></td>
+                  <td class="reason-cell">
+                    <span>{{ m.reason }}</span>
+                    @if (m.reference_number) {
+                      <div class="ref-badge">Ref: {{ m.reference_number }}</div>
+                    }
+                  </td>
+                  <td class="user-cell">{{ m.user_name || 'Admin' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Modal Registrar Movimiento -->
+  @if (isModalOpen()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Registrar Movimiento de Inventario</h3>
+          <button class="btn-close" (click)="closeModal()">&times;</button>
+        </div>
+
+        <form [formGroup]="movementForm" (ngSubmit)="onSubmitMovement()">
+          <div class="modal-body">
+            <!-- Sucursal -->
+            <div class="form-group">
+              <label for="m-branch">Sucursal *</label>
+              <select id="m-branch" formControlName="branch_id" class="form-control">
+                <option value="">Selecciona sucursal</option>
+                @for (b of branches(); track b.id) {
+                  <option [value]="b.id">{{ b.name }} ({{ b.city }})</option>
+                }
+              </select>
+              @if (movementForm.get('branch_id')?.touched && movementForm.get('branch_id')?.hasError('required')) {
+                <span class="error-msg">La sucursal es requerida</span>
+              }
+            </div>
+
+            <!-- Variante de Prenda -->
+            <div class="form-group">
+              <label for="m-variant">Prenda / Variante *</label>
+              <select id="m-variant" formControlName="variant_id" class="form-control">
+                <option value="">Selecciona una prenda y variante</option>
+                @for (item of allVariants(); track item.id) {
+                  <option [value]="item.id">{{ item.label }}</option>
+                }
+              </select>
+              @if (movementForm.get('variant_id')?.touched && movementForm.get('variant_id')?.hasError('required')) {
+                <span class="error-msg">Debes seleccionar una variante</span>
+              }
+            </div>
+
+            <!-- Tipo de Movimiento -->
+            <div class="form-group">
+              <label for="m-type">Tipo de Movimiento *</label>
+              <select id="m-type" formControlName="type" class="form-control">
+                <option value="ENTRY">Entrada (+ Suma stock por reposición/compra)</option>
+                <option value="EXIT">Salida (- Resta stock por venta/merma)</option>
+                <option value="ADJUSTMENT">Ajuste Directo (= Fija nuevo conteo físico)</option>
+                <option value="RETURN">Devolución (+ Suma stock devuelto por cliente)</option>
+              </select>
+            </div>
+
+            <!-- Cantidad -->
+            <div class="form-group">
+              <label for="m-qty">Cantidad a Mover (unidades) *</label>
+              <input
+                id="m-qty"
+                type="number"
+                min="1"
+                formControlName="quantity"
+                class="form-control"
+                placeholder="Ej. 10"
+              />
+              @if (movementForm.get('quantity')?.touched && movementForm.get('quantity')?.invalid) {
+                <span class="error-msg">Ingresa una cantidad mayor a 0</span>
+              }
+            </div>
+
+            <!-- Live Stock Preview Card -->
+            @if (currentStock() !== null) {
+              <div class="stock-preview-box" [class.preview-alert]="calculatedNewStock! < 0">
+                <div class="preview-item">
+                  <span class="preview-label">Stock Actual:</span>
+                  <span class="preview-val">{{ currentStock() }} uds.</span>
+                </div>
+                <div class="preview-arrow">➔</div>
+                <div class="preview-item">
+                  <span class="preview-label">Stock Resultante:</span>
+                  <span class="preview-val" [class.text-red]="calculatedNewStock! < 0" [class.text-green]="calculatedNewStock! >= 0">
+                    {{ calculatedNewStock }} uds.
+                  </span>
+                </div>
+              </div>
+              @if (calculatedNewStock! < 0) {
+                <div class="alert-negative">
+                  ⚠️ Atención: La cantidad a retirar supera el stock actual disponible. Operación bloqueada.
+                </div>
+              }
+            }
+
+            <!-- Motivo -->
+            <div class="form-group">
+              <label for="m-reason">Motivo del Movimiento (mínimo 5 caracteres) *</label>
+              <input
+                id="m-reason"
+                type="text"
+                formControlName="reason"
+                class="form-control"
+                placeholder="Ej. Recepción de lote TextilCo, ajuste por inventario físico..."
+              />
+              @if (movementForm.get('reason')?.touched && movementForm.get('reason')?.hasError('required')) {
+                <span class="error-msg">El motivo es obligatorio</span>
+              }
+              @if (movementForm.get('reason')?.touched && movementForm.get('reason')?.hasError('minlength')) {
+                <span class="error-msg">El motivo debe tener al menos 5 caracteres</span>
+              }
+            </div>
+
+            <!-- Referencia -->
+            <div class="form-group">
+              <label for="m-ref">Nº de Guía / Factura / Documento (Opcional)</label>
+              <input
+                id="m-ref"
+                type="text"
+                formControlName="reference_number"
+                class="form-control"
+                placeholder="Ej. GUIA-8849 / FAC-2026-01"
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeModal()">Cancelar</button>
+            <button
+              type="submit"
+              class="btn-primary"
+              [disabled]="movementForm.invalid || isSubmitting() || (calculatedNewStock !== null && calculatedNewStock! < 0)"
+            >
+              @if (isSubmitting()) {
+                <span>Guardando...</span>
+              } @else {
+                <span>Confirmar Movimiento</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

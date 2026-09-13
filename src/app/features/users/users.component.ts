@@ -1,3 +1,4 @@
+﻿import { noWhitespaceValidator } from '../../core/validators/custom-validators';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -51,8 +52,8 @@ export class UsersComponent implements OnInit {
     public authService: AuthService
   ) {
     this.userForm = this.fb.group({
-      full_name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
+      full_name: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
+      email: ['', [Validators.required, Validators.email, noWhitespaceValidator()]],
       phone: [''],
       role: ['CASHIER', [Validators.required]],
       password: ['', [Validators.minLength(8)]],
@@ -208,7 +209,7 @@ export class UsersComponent implements OnInit {
 
   toggleStatus(user: User): void {
     const action = user.is_active ? 'desactivar' : 'activar';
-    if (!confirm(`¿Estás seguro de que deseas ${action} la cuenta de "${user.full_name}"?`)) {
+    if (!confirm(`Â¿EstÃ¡s seguro de que deseas ${action} la cuenta de "${user.full_name}"?`)) {
       return;
     }
 
@@ -250,3 +251,4 @@ export class UsersComponent implements OnInit {
     }
   }
 }
+

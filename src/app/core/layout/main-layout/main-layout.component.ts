@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+﻿import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -12,13 +12,13 @@ import { AuthService } from '../../services/auth.service';
 })
 export class MainLayoutComponent implements OnInit {
   isSidebarCollapsed = signal<boolean>(false);
-  module1Open = signal<boolean>(true);  // Default open so user sees it right away
+  module1Open = signal<boolean>(false);
   module2Open = signal<boolean>(false);
+  module3Open = signal<boolean>(true);  // Default open for Paquete 3
 
   constructor(public authService: AuthService) {}
 
   ngOnInit(): void {
-    // Refresh current user data from backend so permissions/roles are always up to date
     this.authService.loadCurrentUser().subscribe();
   }
 
@@ -32,6 +32,10 @@ export class MainLayoutComponent implements OnInit {
 
   toggleModule2(): void {
     this.module2Open.update((val) => !val);
+  }
+
+  toggleModule3(): void {
+    this.module3Open.update((val) => !val);
   }
 
   logout(): void {

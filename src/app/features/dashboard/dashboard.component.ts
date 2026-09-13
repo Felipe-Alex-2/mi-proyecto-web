@@ -1,8 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+﻿import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../core/models/user.model';
+import { noWhitespaceValidator } from '../../core/validators/custom-validators';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,8 +23,8 @@ export class DashboardComponent implements OnInit {
     public authService: AuthService
   ) {
     this.editForm = this.fb.group({
-      full_name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
+      full_name: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
+      email: ['', [Validators.required, Validators.email, noWhitespaceValidator()]],
     });
   }
 
@@ -62,7 +63,12 @@ export class DashboardComponent implements OnInit {
     this.updateSuccess.set(null);
     this.updateError.set(null);
 
-    this.authService.updateProfile(this.editForm.value).subscribe({
+    const payload = {
+      full_name: (this.editForm.value.full_name || '').trim(),
+      email: (this.editForm.value.email || '').trim(),
+    };
+
+    this.authService.updateProfile(payload).subscribe({
       next: () => {
         this.updateSuccess.set('¡Perfil actualizado correctamente!');
         this.isEditing.set(false);
