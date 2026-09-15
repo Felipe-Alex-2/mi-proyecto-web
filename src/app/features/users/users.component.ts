@@ -1,3 +1,4 @@
+﻿import { noWhitespaceValidator } from '../../core/validators/custom-validators';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -51,8 +52,8 @@ export class UsersComponent implements OnInit {
     public authService: AuthService
   ) {
     this.userForm = this.fb.group({
-      full_name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
+      full_name: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
+      email: ['', [Validators.required, Validators.email, noWhitespaceValidator()]],
       phone: [''],
       role: ['CASHIER', [Validators.required]],
       password: ['', [Validators.minLength(8)]],
@@ -250,3 +251,4 @@ export class UsersComponent implements OnInit {
     }
   }
 }
+

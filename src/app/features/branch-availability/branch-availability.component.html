@@ -1,0 +1,134 @@
+﻿<div class="availability-page-wrapper">
+  <!-- Header / Breadcrumb -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        <span>Inicio</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Disponibilidad Cruzada por Sucursal (CU10)</h1>
+    </div>
+
+    <div class="navbar-right">
+      <a routerLink="/inventory-movements" class="btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+        </svg>
+        <span>Ver Historial de Movimientos</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Branch Summary Cards -->
+    <div class="summary-grid">
+      @for (b of branches(); track b.id) {
+        <div class="branch-card">
+          <div class="branch-card-header">
+            <h4>{{ b.name }}</h4>
+            <span class="city-pill">{{ b.city }}</span>
+          </div>
+          <div class="branch-address">{{ b.address }}</div>
+
+          <div class="branch-stats">
+            <div class="stat-col">
+              <span class="stat-val">{{ branchSummaries()[b.id]?.total_units ?? '...' }}</span>
+              <span class="stat-lbl">Unidades Totales</span>
+            </div>
+            <div class="stat-col text-warning">
+              <span class="stat-val">{{ branchSummaries()[b.id]?.low_stock_count ?? '0' }}</span>
+              <span class="stat-lbl">Stock Bajo</span>
+            </div>
+            <div class="stat-col text-danger">
+              <span class="stat-val">{{ branchSummaries()[b.id]?.out_of_stock_count ?? '0' }}</span>
+              <span class="stat-lbl">Agotados</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Search / Filter Bar -->
+    <div class="filter-bar">
+      <div class="search-input-box">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por prenda, SKU, talla o color..."
+          [value]="searchTerm()"
+          (input)="searchTerm.set($any($event.target).value)"
+        />
+      </div>
+      <div class="global-count">
+        Total variantes en catálogo: <strong>{{ filteredRows().length }}</strong> · Unidades globales: <strong>{{ totalInventoryUnits() }}</strong>
+      </div>
+    </div>
+
+    <!-- Availability Matrix Table -->
+    <div class="table-card">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Consultando disponibilidad en todas las sucursales...</p>
+        </div>
+      } @else if (filteredRows().length === 0) {
+        <div class="empty-state">
+          <p>No se encontraron prendas coincidentes con la búsqueda.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Prenda</th>
+                <th>SKU</th>
+                <th>Talla</th>
+                <th>Color</th>
+                <th>Precio (Bs)</th>
+                <th>Stock Global</th>
+                @for (b of branches(); track b.id) {
+                  <th>{{ b.name }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of filteredRows(); track row.variant_id) {
+                <tr>
+                  <td class="product-cell">
+                    <strong>{{ row.product_name }}</strong>
+                  </td>
+                  <td><code>{{ row.sku }}</code></td>
+                  <td>{{ row.size_name }} ({{ row.size_code }})</td>
+                  <td>
+                    <div class="color-cell">
+                      <span class="color-dot" [style.background-color]="row.color_hex"></span>
+                      <span>{{ row.color_name }}</span>
+                    </div>
+                  </td>
+                  <td class="price-cell">
+                    Bs {{ row.price | number:'1.2-2' }}
+                  </td>
+                  <td class="global-stock-cell">
+                    <strong>{{ row.total_quantity }} uds.</strong>
+                  </td>
+                  @for (b of branches(); track b.id) {
+                    <td class="branch-stock-cell">
+                      <span class="stock-badge" [ngClass]="getStockBadgeClass(row.branches[b.id] || 0)">
+                        {{ getStockLabel(row.branches[b.id] || 0) }}
+                      </span>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>

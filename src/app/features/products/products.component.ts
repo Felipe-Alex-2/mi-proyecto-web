@@ -1,3 +1,4 @@
+﻿import { noWhitespaceValidator } from '../../core/validators/custom-validators';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -76,7 +77,7 @@ export class ProductsComponent implements OnInit {
     public authService: AuthService
   ) {
     this.productForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150)]],
+      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150), noWhitespaceValidator()]],
       description: [''],
       price: [null, [Validators.required, Validators.min(0.01)]],
       category_id: ['', Validators.required],
@@ -396,11 +397,28 @@ export class ProductsComponent implements OnInit {
   openStockModal(product: Product): void {
     this.selectedProductForStock.set(product);
     this.stockModalError.set(null);
-    if (this.branches().length > 0 && !this.selectedBranchForStock()) {
-      this.selectedBranchForStock.set(this.branches()[0].id);
+    let targetBranchId = '';
+    const branchWithStock = this.branches().find((b) =>
+      product.variants?.some((v) => v.stocks?.some((s) => s.branch_id === b.id && s.quantity > 0))
+    );
+    if (branchWithStock) {
+      targetBranchId = branchWithStock.id;
+    } else if (this.branches().length > 0) {
+      targetBranchId = this.branches()[0].id;
     }
-    this.syncStockMapWithProduct(product, this.selectedBranchForStock());
+    this.selectedBranchForStock.set(targetBranchId);
+    this.syncStockMapWithProduct(product, targetBranchId);
     this.isStockModalOpen.set(true);
+  }
+
+  getProductStockInBranch(product: Product | null, branchId: string): number {
+    if (!product || !product.variants) return 0;
+    let total = 0;
+    for (const v of product.variants) {
+      const s = v.stocks?.find((item) => item.branch_id === branchId);
+      if (s) total += s.quantity;
+    }
+    return total;
   }
 
   closeStockModal(): void {
@@ -484,3 +502,5 @@ export class ProductsComponent implements OnInit {
     }, 4500);
   }
 }
+
+

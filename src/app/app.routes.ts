@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
 import { authGuard, guestGuard, adminGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -97,6 +97,28 @@ export const routes: Routes = [
             (m) => m.SuppliersComponent
           ),
         canActivate: [adminGuard],
+      },
+      // Paquete 3: Inventario, Catálogo Digital y Reservas
+      {
+        path: 'inventory-movements',
+        loadComponent: () =>
+          import('./features/inventory-movements/inventory-movements.component').then(
+            (m) => m.InventoryMovementsComponent
+          ),
+      },
+      {
+        path: 'branch-availability',
+        loadComponent: () =>
+          import('./features/branch-availability/branch-availability.component').then(
+            (m) => m.BranchAvailabilityComponent
+          ),
+      },
+      {
+        path: 'reservations',
+        loadComponent: () =>
+          import('./features/reservations-admin/reservations-admin.component').then(
+            (m) => m.ReservationsAdminComponent
+          ),
       },
     ],
   },

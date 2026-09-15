@@ -1,0 +1,242 @@
+﻿<div class="reservations-page-wrapper">
+  <!-- Toast alert -->
+  @if (feedbackMessage()) {
+    <div class="toast-banner" [class.toast-error]="feedbackType() === 'error'">
+      <span>{{ feedbackMessage() }}</span>
+    </div>
+  }
+
+  <!-- Header / Breadcrumb -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        <span>Inicio</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Gestión de Reservas de Prueba (CU13)</h1>
+    </div>
+
+    <div class="navbar-right">
+      <button class="btn-secondary" (click)="loadReservations()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+        </svg>
+        <span>Actualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Stats Cards -->
+    @if (stats(); as s) {
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-number">{{ s.total }}</span>
+          <span class="stat-title">Total Reservas</span>
+        </div>
+        <div class="stat-card stat-pending">
+          <span class="stat-number">{{ s.pending }}</span>
+          <span class="stat-title">⏳ Pendientes</span>
+        </div>
+        <div class="stat-card stat-confirmed">
+          <span class="stat-number">{{ s.confirmed }}</span>
+          <span class="stat-title">🔹 Confirmadas</span>
+        </div>
+        <div class="stat-card stat-completed">
+          <span class="stat-number">{{ s.completed }}</span>
+          <span class="stat-title">✓ Completadas</span>
+        </div>
+        <div class="stat-card stat-rate">
+          <span class="stat-number">{{ s.conversion_rate }}%</span>
+          <span class="stat-title">Conversión en Tienda</span>
+        </div>
+      </div>
+    }
+
+    <!-- Filter Bar -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <label for="res-branch">Sucursal:</label>
+        <select
+          id="res-branch"
+          class="filter-select"
+          [value]="selectedBranchFilter()"
+          (change)="selectedBranchFilter.set($any($event.target).value); onFilterChange()"
+        >
+          <option value="">Todas las sucursales</option>
+          @for (b of branches(); track b.id) {
+            <option [value]="b.id">{{ b.name }} ({{ b.city }})</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="res-status">Estado:</label>
+        <select
+          id="res-status"
+          class="filter-select"
+          [value]="selectedStatusFilter()"
+          (change)="selectedStatusFilter.set($any($event.target).value); onFilterChange()"
+        >
+          <option value="">Todos los estados</option>
+          <option value="PENDING">Pendientes</option>
+          <option value="CONFIRMED">Confirmadas</option>
+          <option value="COMPLETED">Completadas</option>
+          <option value="CANCELLED">Canceladas</option>
+          <option value="EXPIRED">Vencidas</option>
+        </select>
+      </div>
+
+      <div class="filter-count">
+        Reservas encontradas: <strong>{{ reservations().length }}</strong>
+      </div>
+    </div>
+
+    <!-- Reservations List -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando reservas de clientes...</p>
+      </div>
+    } @else if (reservations().length === 0) {
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p>No se encontraron reservas con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="reservations-grid">
+        @for (r of reservations(); track r.id) {
+          <div class="reservation-card" [class.border-pending]="r.status === 'PENDING'">
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="code-box">
+                <span class="code-pill">{{ r.reservation_code }}</span>
+                <span class="badge" [ngClass]="getStatusBadgeClass(r.status)">
+                  {{ getStatusLabel(r.status) }}
+                </span>
+              </div>
+              <div class="time-meta">
+                <span>Creada: {{ r.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span class="expiry-text">Vence: {{ r.expires_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+            </div>
+
+            <!-- Customer & Branch Info -->
+            <div class="card-info-row">
+              <div class="info-block">
+                <span class="info-lbl">Cliente:</span>
+                <strong>{{ r.customer_name || 'Cliente' }}</strong>
+                <div class="contact-sub">{{ r.customer_phone || r.customer_email || 'Sin contacto' }}</div>
+              </div>
+              <div class="info-block">
+                <span class="info-lbl">Sucursal de Prueba:</span>
+                <strong>{{ r.branch_name }}</strong>
+                <div class="contact-sub">{{ r.branch_address }}</div>
+              </div>
+            </div>
+
+            <!-- Items Table in Reservation -->
+            <div class="items-box">
+              <div class="items-title">Prendas a probar ({{ r.total_items }} unidades):</div>
+              <div class="items-list">
+                @for (it of r.items; track it.id) {
+                  <div class="item-row">
+                    <span class="item-qty">{{ it.quantity }}x</span>
+                    <span class="item-name">{{ it.product_name }}</span>
+                    <span class="item-meta">Talla: {{ it.size_name }} · Color: {{ it.color_name }}</span>
+                    <span class="item-price">Bs {{ it.price | number:'1.2-2' }}</span>
+                  </div>
+                }
+              </div>
+              <div class="total-estimated">
+                Total estimado: <strong>Bs {{ r.total_estimated_amount | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+
+            <!-- Notes Section -->
+            @if (r.customer_notes) {
+              <div class="notes-box customer-note">
+                <strong>Nota del cliente:</strong> {{ r.customer_notes }}
+              </div>
+            }
+            @if (r.staff_notes) {
+              <div class="notes-box staff-note">
+                <strong>Nota del personal:</strong> {{ r.staff_notes }}
+              </div>
+            }
+
+            <!-- Action buttons for staff -->
+            <div class="card-actions">
+              @if (r.status === 'PENDING') {
+                <button class="btn-action btn-confirm" (click)="quickConfirm(r)">
+                  🔹 Confirmar
+                </button>
+              }
+              @if (r.status === 'PENDING' || r.status === 'CONFIRMED') {
+                <button class="btn-action btn-complete" (click)="openStatusModal(r, 'COMPLETED')">
+                  ✓ Completar / Entregar
+                </button>
+                <button class="btn-action btn-cancel" (click)="openStatusModal(r, 'CANCELLED')">
+                  ✕ Cancelar
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Status Update Modal -->
+  @if (isStatusModalOpen()) {
+    <div class="modal-overlay" (click)="closeStatusModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            Actualizar Reserva {{ selectedReservation()?.reservation_code }}
+          </h3>
+          <button class="btn-close" (click)="closeStatusModal()">&times;</button>
+        </div>
+
+        <form [formGroup]="statusForm" (ngSubmit)="onSubmitStatus()">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="modal-status">Nuevo Estado *</label>
+              <select id="modal-status" formControlName="status" class="form-control">
+                <option value="CONFIRMED">🔹 CONFIRMED - Confirmar reserva de prendas</option>
+                <option value="COMPLETED">✓ COMPLETED - Cliente asistió y finalizó prueba</option>
+                <option value="CANCELLED">✕ CANCELLED - Cancelar reserva</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="modal-notes">Nota de atención del personal (mínimo 5 caracteres) *</label>
+              <textarea
+                id="modal-notes"
+                rows="3"
+                formControlName="staff_notes"
+                class="form-control"
+                placeholder="Ej. El cliente asistió, se probó la prenda y realizó la compra de 2 unidades..."
+              ></textarea>
+              @if (statusForm.get('staff_notes')?.touched && statusForm.get('staff_notes')?.invalid) {
+                <span class="error-msg">Ingresa una nota descriptiva de al menos 5 caracteres</span>
+              }
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeStatusModal()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="statusForm.invalid || isSubmitting()">
+              Guardar Cambio
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+﻿import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { noWhitespaceValidator } from '../../../core/validators/custom-validators';
 
 @Component({
   selector: 'app-login',
@@ -22,8 +23,8 @@ export class LoginComponent {
     private router: Router
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      email: ['', [Validators.required, Validators.email, noWhitespaceValidator()]],
+      password: ['', [Validators.required, noWhitespaceValidator()]],
     });
   }
 
@@ -40,7 +41,7 @@ export class LoginComponent {
     this.errorMessage.set(null);
     const { email, password } = this.loginForm.value;
 
-    this.authService.login({ email, password }).subscribe({
+    this.authService.login({ email: (email || '').trim(), password: (password || '').trim() }).subscribe({
       next: () => {
         this.router.navigate(['/dashboard']);
       },

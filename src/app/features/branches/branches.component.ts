@@ -1,3 +1,4 @@
+﻿import { noWhitespaceValidator } from '../../core/validators/custom-validators';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -64,9 +65,9 @@ export class BranchesComponent implements OnInit {
     public authService: AuthService
   ) {
     this.branchForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-      city: ['', [Validators.required, Validators.minLength(2)]],
-      address: ['', [Validators.required, Validators.minLength(5)]],
+      name: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
+      city: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
+      address: ['', [Validators.required, Validators.minLength(5), noWhitespaceValidator()]],
       phone: [''],
       opening_hours: ['Lun - Sáb: 09:00 - 20:00'],
     });
@@ -293,3 +294,4 @@ export class BranchesComponent implements OnInit {
     }, 4000);
   }
 }
+

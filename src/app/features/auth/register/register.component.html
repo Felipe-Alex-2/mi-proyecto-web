@@ -1,4 +1,4 @@
-<div class="auth-wrapper">
+﻿<div class="auth-wrapper">
   <div class="glow glow-1"></div>
   <div class="glow glow-2"></div>
 
@@ -102,7 +102,7 @@
           </button>
         </div>
         @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
-          <span class="error-text">La contraseña debe contener al menos 8 caracteres</span>
+          <span class="error-text">La contraseña debe tener al menos 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo especial</span>
         }
       </div>
 
@@ -145,3 +145,4 @@
     </div>
   </div>
 </div>
+

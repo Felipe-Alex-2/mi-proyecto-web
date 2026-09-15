@@ -1,4 +1,4 @@
-.dashboard-wrapper {
+﻿.dashboard-wrapper {
   min-height: 100vh;
   background-color: #F5F0E8;
   color: #2C1810;
@@ -750,4 +750,25 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Validation error styles */
+.input-styled.has-error {
+  border-color: #C0392B !important;
+  background-color: #FFF5F5 !important;
+}
+
+.error-text {
+  color: #C0392B;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 0.35rem;
+  display: block;
+}
+
+.btn-save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
 }
