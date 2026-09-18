@@ -15,6 +15,7 @@ export class MainLayoutComponent implements OnInit {
   module1Open = signal<boolean>(false);
   module2Open = signal<boolean>(false);
   module3Open = signal<boolean>(true);  // Default open for Paquete 3
+  module5Open = signal<boolean>(true);
 
   constructor(public authService: AuthService) {}
 
@@ -36,6 +37,10 @@ export class MainLayoutComponent implements OnInit {
 
   toggleModule3(): void {
     this.module3Open.update((val) => !val);
+  }
+
+  toggleModule5(): void {
+    this.module5Open.update((val) => !val);
   }
 
   logout(): void {

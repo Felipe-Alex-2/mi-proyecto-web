@@ -1,0 +1,75 @@
+<main class="reports-page">
+  <header class="reports-header">
+    <div>
+      <a routerLink="/dashboard" class="back-link">← Panel principal</a>
+      <p class="eyebrow">MÓDULO 5 · INTEGRACIONES TECNOLÓGICAS Y PLATAFORMA AVANZADA</p>
+      <h1>CU19: Generar Dashboards y Reportes Empresariales</h1>
+      <p class="intro">Consulta inventario, reservas, proveedores y clientes con filtros manuales o mediante lenguaje natural.</p>
+    </div>
+    <div class="header-mark">CU<br /><strong>19</strong></div>
+  </header>
+
+  <section class="control-grid">
+    <article class="control-panel manual-panel">
+      <div class="panel-heading">
+        <span class="panel-index">01</span>
+        <div><p class="eyebrow">MODO TRADICIONAL</p><h2>Reporte manual</h2></div>
+      </div>
+      <p class="panel-description">Elige un reporte y aplica filtros para consultar datos exactos del sistema.</p>
+      <label>Tipo de reporte
+        <select [(ngModel)]="reportType">
+          @for (type of reportTypes; track type.value) { <option [value]="type.value">{{ type.label }}</option> }
+        </select>
+      </label>
+      <div class="field-row">
+        <label>Estado de reserva
+          <select [(ngModel)]="status">
+            <option value="">Todos</option><option value="PENDING">Pendiente</option><option value="CONFIRMED">Confirmada</option><option value="COMPLETED">Completada</option><option value="CANCELLED">Cancelada</option>
+          </select>
+        </label>
+        <label>Umbral de stock
+          <input type="number" min="0" [(ngModel)]="threshold" />
+        </label>
+      </div>
+      <label>Buscar producto
+        <input [(ngModel)]="search" placeholder="Opcional" (keyup.enter)="generateManual()" />
+      </label>
+      <button class="primary-button" type="button" (click)="generateManual()" [disabled]="loading()">{{ loading() ? 'Generando...' : 'Generar reporte' }}</button>
+    </article>
+
+    <article class="control-panel voice-panel">
+      <div class="panel-heading">
+        <span class="panel-index voice-index">02</span>
+        <div><p class="eyebrow">GEMINI · LENGUAJE NATURAL</p><h2>Reporte por voz</h2></div>
+      </div>
+      <p class="panel-description">Dicta una consulta. El navegador convierte la voz a texto y Gemini identifica el reporte y sus filtros.</p>
+      <div class="voice-orb" [class.is-listening]="listening()" aria-hidden="true"><span>◉</span></div>
+      <p class="voice-status">{{ listening() ? 'Escuchando...' : 'Presiona el micrófono para comenzar' }}</p>
+      <textarea [(ngModel)]="transcript" placeholder="Ej.: Muéstrame las alertas de stock bajo"></textarea>
+      <div class="voice-actions">
+        @if (listening()) { <button class="stop-button" type="button" (click)="stopVoice()">Detener</button> }
+        @else { <button class="voice-button" type="button" (click)="startVoice()" aria-label="Iniciar dictado">● <span>Hablar</span></button> }
+        <button class="text-button" type="button" (click)="sendVoiceReport()" [disabled]="!transcript.trim() || loading()">Procesar texto</button>
+      </div>
+    </article>
+  </section>
+
+  @if (error()) { <div class="alert" role="alert">{{ error() }}</div> }
+
+  @if (report(); as current) {
+    <section class="result-panel">
+      <header class="result-header">
+        <div><p class="eyebrow">{{ current.generated_by === 'voice_gemini' ? 'GENERADO CON GEMINI' : 'CONSULTA MANUAL' }}</p><h2>{{ current.title }}</h2></div>
+        <button class="export-button" type="button" (click)="exportCsv()">↓ Exportar CSV</button>
+      </header>
+      <div class="summary-grid">
+        @for (item of (current.summary | keyvalue); track item.key) { <div class="summary-item"><span>{{ item.key }}</span><strong>{{ item.value }}</strong></div> }
+      </div>
+      @if (current.rows.length) {
+        <div class="table-wrap"><table><thead><tr>@for (column of current.columns; track column) { <th>{{ column }}</th> }</tr></thead><tbody>@for (row of current.rows; track $index) { <tr>@for (column of current.columns; track column) { <td>{{ row[column] ?? '—' }}</td> }</tr> }</tbody></table></div>
+      } @else { <div class="empty-result">No hay registros para los filtros seleccionados.</div> }
+    </section>
+  } @else {
+    <section class="empty-result first-state"><span class="empty-number">CU19</span><h2>Tu tablero comienza aquí</h2><p>Selecciona un reporte manual o dicta una pregunta para consultar la operación empresarial.</p></section>
+  }
+</main>

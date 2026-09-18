@@ -1,0 +1,168 @@
+<main class="catalog-page">
+  <header class="catalog-header">
+    <div>
+      <a routerLink="/dashboard" class="back-link">← Panel principal</a>
+      <p class="eyebrow">CU11 · DESCUBRIMIENTO</p>
+      <h1>Catálogo digital</h1>
+      <p class="intro">Encuentra prendas por estilo, talla, color y disponibilidad en tu sucursal.</p>
+    </div>
+    <div class="catalog-mark" aria-hidden="true">FS</div>
+  </header>
+
+  <section class="filter-panel" aria-label="Filtros del catálogo">
+    <div class="search-row">
+      <label class="search-field">
+        <span>Buscar prenda</span>
+        <input [(ngModel)]="search" (keyup.enter)="applyFilters()" placeholder="Nombre, descripción o SKU" />
+      </label>
+      <label>
+        <span>Ordenar</span>
+        <select [(ngModel)]="sortBy" (change)="applyFilters()">
+          <option value="newest">Más recientes</option>
+          <option value="name_asc">Nombre A-Z</option>
+          <option value="price_asc">Precio menor</option>
+          <option value="price_desc">Precio mayor</option>
+        </select>
+      </label>
+      <button class="primary-button" type="button" (click)="applyFilters()">Buscar</button>
+      <button class="text-button" type="button" (click)="clearFilters()">Limpiar</button>
+    </div>
+
+    @if (filters(); as options) {
+      <div class="filter-grid">
+        <label>
+          <span>Categoría</span>
+          <select [(ngModel)]="categoryId" (change)="applyFilters()">
+            <option value="">Todas</option>
+            @for (category of options.categories; track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Talla</span>
+          <select [(ngModel)]="sizeId" (change)="applyFilters()">
+            <option value="">Todas</option>
+            @for (size of options.sizes; track size.id) {
+              <option [value]="size.id">{{ size.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Color</span>
+          <select [(ngModel)]="colorId" (change)="applyFilters()">
+            <option value="">Todos</option>
+            @for (color of options.colors; track color.id) {
+              <option [value]="color.id">{{ color.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Temporada</span>
+          <select [(ngModel)]="seasonId" (change)="applyFilters()">
+            <option value="">Todas</option>
+            @for (season of options.seasons; track season.id) {
+              <option [value]="season.id">{{ season.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Género</span>
+          <select [(ngModel)]="gender" (change)="applyFilters()">
+            <option value="">Todos</option>
+            @for (item of options.genders; track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Sucursal</span>
+          <select [(ngModel)]="branchId" (change)="applyFilters()">
+            <option value="">Todas</option>
+            @for (branch of options.branches; track branch.id) {
+              <option [value]="branch.id">{{ branch.name }} · {{ branch.city }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    }
+  </section>
+
+  @if (error()) {
+    <div class="alert" role="alert">{{ error() }}</div>
+  }
+
+  <section class="results-header">
+    <div>
+      <p class="eyebrow">RESULTADOS</p>
+      <h2>{{ total() }} prendas encontradas</h2>
+    </div>
+    <span class="page-indicator">Página {{ page }} de {{ pageCount }}</span>
+  </section>
+
+  @if (loading()) {
+    <div class="empty-state">Cargando prendas...</div>
+  } @else if (products().length === 0) {
+    <div class="empty-state">
+      <strong>No encontramos prendas con esos criterios.</strong>
+      <span>Prueba quitando algún filtro o buscando otro término.</span>
+    </div>
+  } @else {
+    <section class="product-grid" aria-label="Resultados de prendas">
+      @for (product of products(); track product.id) {
+        <article class="product-card" (click)="openProduct(product)" (keydown.enter)="openProduct(product)" tabindex="0">
+          <div class="product-image">
+            @if (product.image_url) {
+              <img [src]="product.image_url" [alt]="product.name" />
+            } @else {
+              <span>FASHION<br />STORE</span>
+            }
+            <span class="stock-pill" [class.out-of-stock]="product.total_stock === 0">{{ stockLabel(product.total_stock) }}</span>
+          </div>
+          <div class="product-info">
+            <div class="product-meta"><span>{{ product.category_name || 'Prenda' }}</span><span>{{ product.gender || 'Unisex' }}</span></div>
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description || 'Diseño disponible en varias combinaciones.' }}</p>
+            <strong class="price">Bs {{ product.min_price | number:'1.2-2' }}</strong>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  <nav class="pagination" aria-label="Paginación">
+    <button type="button" (click)="previousPage()" [disabled]="page === 1">Anterior</button>
+    <span>{{ page }} / {{ pageCount }}</span>
+    <button type="button" (click)="nextPage()" [disabled]="page >= pageCount">Siguiente</button>
+  </nav>
+</main>
+
+@if (selectedProduct(); as product) {
+  <div class="modal-backdrop" (click)="closeProduct()">
+    <section class="detail-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" [attr.aria-label]="product.name">
+      <button class="close-button" type="button" (click)="closeProduct()" aria-label="Cerrar detalle">×</button>
+      <div class="detail-image">
+        @if (product.image_url) {
+          <img [src]="product.image_url" [alt]="product.name" />
+        } @else {
+          <span>FASHION<br />STORE</span>
+        }
+      </div>
+      <div class="detail-content">
+        <p class="eyebrow">{{ product.category_name || 'PRENDA' }}</p>
+        <h2>{{ product.name }}</h2>
+        <p class="detail-description">{{ product.description || 'Consulta las variantes disponibles para esta prenda.' }}</p>
+        <strong class="detail-price">Bs {{ product.min_price | number:'1.2-2' }}</strong>
+        <h3>Variantes y disponibilidad</h3>
+        <div class="variant-list">
+          @for (variant of product.variants; track variant.id) {
+            <div class="variant-row">
+              <span><b>{{ variant.color_name }}</b> · Talla {{ variant.size_name }}<small>{{ variant.sku }}</small></span>
+              <strong [class.is-empty]="variant.total_stock === 0">{{ stockLabel(variant.total_stock) }}</strong>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+}
