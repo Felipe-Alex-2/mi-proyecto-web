@@ -142,6 +142,13 @@ export const routes: Routes = [
             (m) => m.ReservationsAdminComponent
           ),
       },
+      {
+        path: 'payments',
+        loadComponent: () =>
+          import('./features/payments/payments.component').then(
+            (m) => m.PaymentsComponent
+          ),
+      },
     ],
   },
   {
