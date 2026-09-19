@@ -15,6 +15,8 @@ import {
   PaymentType,
   PendingReservationOption,
 } from '../../core/models/payment.model';
+import { TokenService } from '../../core/services/token.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-payments',
@@ -60,6 +62,7 @@ export class PaymentsComponent implements OnInit {
     private paymentService: PaymentService,
     private branchService: BranchService,
     private stockService: StockService,
+    private tokenService: TokenService,
     public authService: AuthService
   ) {
     this.posForm = this.fb.group({
@@ -306,6 +309,10 @@ export class PaymentsComponent implements OnInit {
     this.paymentService.downloadInvoicePdf(p.id).subscribe({
       next: (blob) => {
         this.isDownloadingInvoice.set(null);
+        if (!blob || blob.size === 0) {
+          this.fallbackDirectInvoiceDownload(p);
+          return;
+        }
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -316,11 +323,23 @@ export class PaymentsComponent implements OnInit {
         window.URL.revokeObjectURL(url);
         this.showToast(`✓ Factura #${p.payment_code} descargada con éxito`, 'success');
       },
-      error: () => {
-        this.isDownloadingInvoice.set(null);
-        this.showToast('Error al generar o descargar la factura PDF', 'error');
+      error: (err) => {
+        console.warn('Fallo en descarga Blob, intentando descarga directa con token:', err);
+        this.fallbackDirectInvoiceDownload(p);
       },
     });
+  }
+
+  private fallbackDirectInvoiceDownload(p: Payment): void {
+    this.isDownloadingInvoice.set(null);
+    const token = this.tokenService.getAccessToken();
+    const directUrl = `${environment.apiUrl}/payments/${p.id}/invoice-pdf${token ? '?token=' + token : ''}`;
+    try {
+      window.open(directUrl, '_blank');
+      this.showToast(`✓ Abriendo Factura #${p.payment_code} en nueva pestaña`, 'success');
+    } catch {
+      this.showToast('Error al generar o descargar la factura PDF', 'error');
+    }
   }
 
   // Submit Terminal Form
