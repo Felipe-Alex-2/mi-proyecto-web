@@ -1,5 +1,5 @@
-﻿import { noWhitespaceValidator } from '../../core/validators/custom-validators';
-import { Component, OnInit, signal } from '@angular/core';
+import { noWhitespaceValidator } from '../../core/validators/custom-validators';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -37,6 +37,23 @@ export class ProductsComponent implements OnInit {
   seasons = signal<Season[]>([]);
   suppliers = signal<Supplier[]>([]);
   branches = signal<Branch[]>([]);
+
+  // Designated Branch for Stock Consultation and Management
+  designatedBranchId = signal<string>('');
+  onlyWithStockInBranch = signal<boolean>(false);
+
+  designatedBranch = computed(() => {
+    const bId = this.designatedBranchId();
+    return this.branches().find((b) => b.id === bId) || null;
+  });
+
+  filteredProducts = computed(() => {
+    const list = this.products();
+    const branchId = this.designatedBranchId();
+    const onlyStock = this.onlyWithStockInBranch();
+    if (!branchId || !onlyStock) return list;
+    return list.filter((p) => this.getProductStockInBranch(p, branchId) > 0);
+  });
 
   // Filters & State
   selectedCategory = signal<string>('');
@@ -115,6 +132,11 @@ export class ProductsComponent implements OnInit {
         this.branches.set(activeBranches);
         if (activeBranches.length > 0 && !this.selectedBranchForStock()) {
           this.selectedBranchForStock.set(activeBranches[0].id);
+        }
+        const user = this.authService.currentUser();
+        if (user && user.branch_id && !this.designatedBranchId()) {
+          this.designatedBranchId.set(user.branch_id);
+          this.selectedBranchForStock.set(user.branch_id);
         }
       },
     });
@@ -397,18 +419,50 @@ export class ProductsComponent implements OnInit {
   openStockModal(product: Product): void {
     this.selectedProductForStock.set(product);
     this.stockModalError.set(null);
-    let targetBranchId = '';
-    const branchWithStock = this.branches().find((b) =>
-      product.variants?.some((v) => v.stocks?.some((s) => s.branch_id === b.id && s.quantity > 0))
-    );
-    if (branchWithStock) {
-      targetBranchId = branchWithStock.id;
-    } else if (this.branches().length > 0) {
-      targetBranchId = this.branches()[0].id;
+    let targetBranchId = this.designatedBranchId();
+    if (!targetBranchId) {
+      const branchWithStock = this.branches().find((b) =>
+        product.variants?.some((v) => v.stocks?.some((s) => s.branch_id === b.id && s.quantity > 0))
+      );
+      if (branchWithStock) {
+        targetBranchId = branchWithStock.id;
+      } else if (this.branches().length > 0) {
+        targetBranchId = this.branches()[0].id;
+      }
     }
     this.selectedBranchForStock.set(targetBranchId);
     this.syncStockMapWithProduct(product, targetBranchId);
     this.isStockModalOpen.set(true);
+  }
+
+  onDesignateBranchChange(branchId: string): void {
+    this.designatedBranchId.set(branchId);
+    if (branchId) {
+      this.selectedBranchForStock.set(branchId);
+    } else {
+      this.onlyWithStockInBranch.set(false);
+    }
+  }
+
+  clearDesignatedBranch(): void {
+    this.designatedBranchId.set('');
+    this.onlyWithStockInBranch.set(false);
+  }
+
+  toggleOnlyWithStock(): void {
+    this.onlyWithStockInBranch.update((v) => !v);
+  }
+
+  getTotalStockInDesignatedBranch(): number {
+    const bId = this.designatedBranchId();
+    if (!bId) return 0;
+    return this.products().reduce((sum, p) => sum + this.getProductStockInBranch(p, bId), 0);
+  }
+
+  getProductsWithStockCountInDesignatedBranch(): number {
+    const bId = this.designatedBranchId();
+    if (!bId) return 0;
+    return this.products().filter((p) => this.getProductStockInBranch(p, bId) > 0).length;
   }
 
   getProductStockInBranch(product: Product | null, branchId: string): number {

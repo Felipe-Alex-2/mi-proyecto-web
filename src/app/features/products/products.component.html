@@ -1,4 +1,4 @@
-﻿<div class="products-page-wrapper">
+<div class="products-page-wrapper">
 
   <!-- Top Navigation Header -->
 
@@ -151,19 +151,92 @@
         <!-- New Product Button -->
 
         <button class="btn-primary" (click)="openCreateModal()">
-
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-
             <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-
           </svg>
-
           <span>Nueva Prenda</span>
-
         </button>
+      </div>
+    </div>
 
+    <!-- Apartado: Designar Sucursal para Consulta y Control de Stock -->
+    <div class="branch-designation-panel" [class.panel-active]="designatedBranchId()">
+      <div class="branch-panel-top">
+        <div class="branch-panel-left">
+          <div class="branch-panel-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="branch-panel-title-row">
+              <h3 class="branch-panel-title">Sucursal Designada</h3>
+              @if (designatedBranch(); as b) {
+                <span class="active-tag">Tienda Activa: {{ b.name }}</span>
+              } @else {
+                <span class="global-tag">Visión Global (Todas las tiendas)</span>
+              }
+            </div>
+            <p class="branch-panel-subtitle">
+              Designa una sucursal para consultar y gestionar directamente las existencias de esa tienda física.
+            </p>
+          </div>
+        </div>
+
+        <div class="branch-panel-controls">
+          <div class="select-container">
+            <select
+              class="designated-select"
+              [value]="designatedBranchId()"
+              (change)="onDesignateBranchChange($any($event.target).value)"
+            >
+              <option value="">🏢 Todas las Sucursales (Stock Global)</option>
+              @for (b of branches(); track b.id) {
+                <option [value]="b.id">📍 {{ b.name }} ({{ b.city }})</option>
+              }
+            </select>
+          </div>
+
+          @if (designatedBranchId()) {
+            <button
+              type="button"
+              class="btn-reset-branch"
+              (click)="clearDesignatedBranch()"
+              title="Restablecer a visión global de todas las tiendas"
+            >
+              Ver Todas
+            </button>
+          }
+        </div>
       </div>
 
+      <!-- Designated Branch Info Summary Banner -->
+      @if (designatedBranch(); as b) {
+        <div class="branch-details-bar">
+          <div class="stat-pill">
+            <span class="stat-pill-label">Ciudad / Ubicación:</span>
+            <span class="stat-pill-val">{{ b.city }} · {{ b.address }}</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-label">Modelos con Stock:</span>
+            <span class="stat-pill-val"><strong>{{ getProductsWithStockCountInDesignatedBranch() }}</strong> de {{ products().length }} prendas</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-label">Unidades en Tienda:</span>
+            <span class="stat-pill-val highlight"><strong>{{ getTotalStockInDesignatedBranch() }}</strong> uds.</span>
+          </div>
+          <div class="stat-pill filter-toggle-pill">
+            <label class="filter-check-wrap">
+              <input
+                type="checkbox"
+                [checked]="onlyWithStockInBranch()"
+                (change)="toggleOnlyWithStock()"
+              />
+              <span>Filtrar solo prendas con stock en {{ b.name }}</span>
+            </label>
+          </div>
+        </div>
+      }
     </div>
 
 
@@ -219,26 +292,23 @@
       </div>
 
     } @else if (products().length === 0) {
-
       <div class="empty-state">
-
-        <div class="empty-icon">ðŸ‘—</div>
-
+        <div class="empty-icon">👗</div>
         <h3>No se encontraron prendas</h3>
-
         <p>Registra tu primera prenda de vestir seleccionando sus tallas, colores y existencias por tienda.</p>
-
         <button class="btn-primary mt-3" (click)="openCreateModal()">Crear Prenda Ahora</button>
-
       </div>
-
+    } @else if (filteredProducts().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🏬</div>
+        <h3>Sin existencias en la sucursal</h3>
+        <p>No se encontraron prendas con stock disponible en <strong>{{ designatedBranch()?.name }}</strong>.</p>
+        <button class="btn-secondary mt-3" (click)="toggleOnlyWithStock()">Mostrar todas las prendas</button>
+      </div>
     } @else {
-
       <!-- Products Grid -->
-
       <div class="products-grid">
-
-        @for (product of products(); track product.id) {
+        @for (product of filteredProducts(); track product.id) {
 
           <div class="product-card" [class.card-inactive]="!product.is_active">
 
@@ -399,31 +469,36 @@
 
 
               <!-- Stock Inventory Indicator -->
-
               <div class="stock-indicator-box">
-
-                <span class="stock-label">Stock Total:</span>
-
-                <span
-
-                  class="stock-badge"
-
-                  [ngClass]="{
-
-                    'stock-ok': product.total_stock > 10,
-
-                    'stock-low': product.total_stock > 0 && product.total_stock <= 10,
-
-                    'stock-out': product.total_stock === 0
-
-                  }"
-
-                >
-
-                  {{ product.total_stock }} unid. disponibles
-
-                </span>
-
+                @if (designatedBranchId()) {
+                  <span class="stock-label">Stock en {{ designatedBranch()?.name }}:</span>
+                  <span
+                    class="stock-badge"
+                    [ngClass]="{
+                      'stock-ok': getProductStockInBranch(product, designatedBranchId()) > 10,
+                      'stock-low': getProductStockInBranch(product, designatedBranchId()) > 0 && getProductStockInBranch(product, designatedBranchId()) <= 10,
+                      'stock-out': getProductStockInBranch(product, designatedBranchId()) === 0
+                    }"
+                  >
+                    @if (getProductStockInBranch(product, designatedBranchId()) > 0) {
+                      {{ getProductStockInBranch(product, designatedBranchId()) }} unid. en tienda
+                    } @else {
+                      Sin stock en esta sucursal
+                    }
+                  </span>
+                } @else {
+                  <span class="stock-label">Stock Total:</span>
+                  <span
+                    class="stock-badge"
+                    [ngClass]="{
+                      'stock-ok': product.total_stock > 10,
+                      'stock-low': product.total_stock > 0 && product.total_stock <= 10,
+                      'stock-out': product.total_stock === 0
+                    }"
+                  >
+                    {{ product.total_stock }} unid. disponibles
+                  </span>
+                }
               </div>
 
             </div>

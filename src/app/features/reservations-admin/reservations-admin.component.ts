@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -126,7 +126,10 @@ export class ReservationsAdminComponent implements OnInit {
         next: () => {
           this.isSubmitting.set(false);
           this.closeStatusModal();
-          this.showToast(`Reserva ${r.reservation_code} actualizada a ${val.status}`, 'success');
+          const extraInfo = (val.status === 'CONFIRMED' || val.status === 'COMPLETED')
+            ? ' (movimiento de stock registrado automáticamente)'
+            : '';
+          this.showToast(`Reserva ${r.reservation_code} actualizada a ${val.status}${extraInfo}`, 'success');
           this.loadStats();
           this.loadReservations();
         },
@@ -145,7 +148,7 @@ export class ReservationsAdminComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.showToast(`Reserva ${r.reservation_code} confirmada`, 'success');
+          this.showToast(`Reserva ${r.reservation_code} confirmada y registrada en movimientos de stock`, 'success');
           this.loadStats();
           this.loadReservations();
         },
