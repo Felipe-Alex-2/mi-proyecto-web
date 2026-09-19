@@ -498,28 +498,42 @@
             </div>
           </div>
 
+          <div class="paypal-direct-link-box">
+            <span class="direct-link-title">Pasarela de Checkout PayPal Sandbox</span>
+            <p class="direct-link-desc">
+              Haz clic en el siguiente botón para abrir PayPal en una nueva pestaña e iniciar sesión con tu cuenta <strong>Personal de prueba (Sandbox)</strong>:
+            </p>
+            <a
+              [href]="currentPayPalOrder()?.approval_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-open-paypal-direct"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" class="paypal-hero-icon">
+                <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.29-.533 3.407-2.618 5.767-6.202 5.767H9.72l-1.37 8.683a.641.641 0 0 1-.633.541h-.641z" />
+              </svg>
+              <span>Abrir PayPal Sandbox e Iniciar Sesión</span>
+              <span class="external-arrow">↗</span>
+            </a>
+          </div>
+
           <div class="paypal-flow-steps">
             <div class="step-item">
               <div class="step-number">1</div>
               <div class="step-text">
-                Se ha abierto la ventana de PayPal Checkout. Si se bloqueó, presiona el botón de abajo:
-                <div class="reopen-btn-box">
-                  <button type="button" class="btn-reopen-paypal" (click)="reopenPayPalWindow()">
-                    🔗 Reabrir Checkout de PayPal
-                  </button>
-                </div>
+                En la nueva pestaña, inicia sesión con tu cuenta <strong>Personal de prueba</strong> (ej. <code>...&#64;personal.example.com</code>).
               </div>
             </div>
             <div class="step-item">
               <div class="step-number">2</div>
               <div class="step-text">
-                Inicia sesión con la cuenta Personal de prueba (Sandbox) y confirma el pago.
+                Revisa el monto de compra y pulsa <strong>Completar Compra / Pagar Ahora</strong> hacia la cuenta Business.
               </div>
             </div>
             <div class="step-item">
               <div class="step-number">3</div>
               <div class="step-text">
-                Una vez finalizada la autorización en PayPal, haz clic en <strong>Verificar y Capturar Pago</strong> para registrar el ingreso y asentar el movimiento de inventario en Movimientos de Stock (CU09).
+                Vuelve a esta ventana y presiona <strong>Verificar y Capturar Pago</strong>. El sistema verificará los fondos y registrará automáticamente la venta en <strong>Movimientos de Stock (CU09)</strong>.
               </div>
             </div>
           </div>

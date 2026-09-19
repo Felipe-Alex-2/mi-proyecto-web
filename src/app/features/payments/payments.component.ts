@@ -250,12 +250,18 @@ export class PaymentsComponent implements OnInit {
               this.isPayPalModalOpen.set(true);
               this.refreshAll();
 
-              // Open PayPal sandbox link in new window/tab
-              window.open(orderResp.approval_url, '_blank');
+              // Auto-open in new tab/window
+              try {
+                window.open(orderResp.approval_url, '_blank');
+              } catch (e) {
+                console.warn('Pop-up blocker intercepted automatic tab opening:', e);
+              }
+              this.showToast(`Orden PayPal #${orderResp.order_id} creada. Se ha abierto la ventana para pagar con Sandbox.`, 'success');
             },
             error: (err) => {
               this.isSubmitting.set(false);
-              this.showToast(err.error?.detail || 'Error al iniciar checkout con PayPal Sandbox', 'error');
+              const errMsg = err.error?.detail || err.message || 'Error al conectar con PayPal Sandbox';
+              this.showToast(errMsg, 'error');
               this.refreshAll();
             },
           });
@@ -308,11 +314,17 @@ export class PaymentsComponent implements OnInit {
         this.currentPayPalOrder.set(orderResp);
         this.isPayPalModalOpen.set(true);
 
-        window.open(orderResp.approval_url, '_blank');
+        try {
+          window.open(orderResp.approval_url, '_blank');
+        } catch (e) {
+          console.warn('Pop-up blocker intercepted automatic tab opening:', e);
+        }
+        this.showToast(`Orden #${orderResp.order_id} iniciada. Se abrió la ventana de PayPal Sandbox.`, 'success');
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.showToast(err.error?.detail || 'Error al iniciar checkout PayPal Sandbox', 'error');
+        const errMsg = err.error?.detail || err.message || 'Error al iniciar checkout PayPal Sandbox';
+        this.showToast(errMsg, 'error');
       },
     });
   }
