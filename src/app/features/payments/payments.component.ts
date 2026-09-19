@@ -5,9 +5,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PaymentService } from '../../core/services/payment.service';
 import { BranchService } from '../../core/services/branch.service';
 import { AuthService } from '../../core/services/auth.service';
+import { StockService } from '../../core/services/stock.service';
 import { Branch } from '../../core/models/branch.model';
+import { BranchInventoryItem } from '../../core/models/stock.model';
 import {
   Payment,
+  PaymentItem,
   PaymentStatus,
   PaymentType,
   PendingReservationOption,
@@ -25,9 +28,16 @@ export class PaymentsComponent implements OnInit {
   selectedBranchId = signal<string>('');
   payments = signal<Payment[]>([]);
   pendingReservations = signal<PendingReservationOption[]>([]);
+  branchInventory = signal<BranchInventoryItem[]>([]);
+
+  // Cart for direct POS sale
+  cartItems = signal<PaymentItem[]>([]);
+  selectedVariantId = signal<string>('');
+  selectedItemQuantity = signal<number>(1);
 
   isLoading = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
+  isDownloadingInvoice = signal<string | null>(null);
   activeFilter = signal<'ALL' | 'EFECTIVO' | 'PAYPAL' | 'PAID' | 'PENDING'>('ALL');
   searchTerm = signal<string>('');
 
@@ -43,20 +53,13 @@ export class PaymentsComponent implements OnInit {
   toastMessage = signal<string>('');
   toastType = signal<'success' | 'error'>('success');
 
-  // Quick concept templates
-  conceptTemplates = [
-    { label: 'Prenda Tienda ($25)', concept: 'Compra de Prenda en Tienda', amount: 25 },
-    { label: 'Control ($15)', concept: 'Control de Ajuste y Modistería', amount: 15 },
-    { label: 'Conjunto ($35)', concept: 'Conjunto de Colección de Temporada', amount: 35 },
-    { label: 'Paquete ($50)', concept: 'Paquete Integral de Prendas y Accesorios', amount: 50 },
-  ];
-
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private paymentService: PaymentService,
     private branchService: BranchService,
+    private stockService: StockService,
     public authService: AuthService
   ) {
     this.posForm = this.fb.group({
@@ -116,6 +119,10 @@ export class PaymentsComponent implements OnInit {
     return list;
   });
 
+  selectedBranchItem = computed(() =>
+    this.branchInventory().find((i) => i.variant_id === this.selectedVariantId())
+  );
+
   loadBranches(): void {
     this.branchService.getBranches(undefined, true).subscribe({
       next: (data) => {
@@ -136,6 +143,7 @@ export class PaymentsComponent implements OnInit {
 
   onBranchChange(branchId: string): void {
     this.selectedBranchId.set(branchId);
+    this.cartItems.set([]);
     this.refreshAll();
   }
 
@@ -161,6 +169,20 @@ export class PaymentsComponent implements OnInit {
       },
       error: () => {},
     });
+
+    this.loadBranchInventory(bId);
+  }
+
+  loadBranchInventory(branchId: string): void {
+    this.stockService.getBranchInventory(branchId).subscribe({
+      next: (items) => {
+        this.branchInventory.set(items);
+        if (items.length > 0 && (!this.selectedVariantId() || !items.some(i => i.variant_id === this.selectedVariantId()))) {
+          this.selectedVariantId.set(items[0].variant_id);
+        }
+      },
+      error: () => {},
+    });
   }
 
   setFilter(filter: 'ALL' | 'EFECTIVO' | 'PAYPAL' | 'PAID' | 'PENDING'): void {
@@ -179,6 +201,7 @@ export class PaymentsComponent implements OnInit {
     const res = this.pendingReservations().find((r) => r.reservation_id === resId);
     if (!res) return;
 
+    this.cartItems.set([]);
     this.posForm.patchValue({
       customer_name: res.customer_name,
       customer_email: res.customer_email || '',
@@ -187,10 +210,116 @@ export class PaymentsComponent implements OnInit {
     });
   }
 
-  applyTemplate(tpl: { label: string; concept: string; amount: number }): void {
+  // Cart Management for Direct Sale
+  addCartItem(): void {
+    const item = this.selectedBranchItem();
+    if (!item) {
+      this.showToast('Selecciona un producto del inventario', 'error');
+      return;
+    }
+    const qty = Number(this.selectedItemQuantity());
+    if (qty <= 0) {
+      this.showToast('La cantidad debe ser mayor a 0', 'error');
+      return;
+    }
+    if (qty > item.quantity) {
+      this.showToast(`Stock insuficiente en sucursal (Disponible: ${item.quantity})`, 'error');
+      return;
+    }
+
+    const currentCart = [...this.cartItems()];
+    const existingIndex = currentCart.findIndex((c) => c.variant_id === item.variant_id);
+
+    if (existingIndex >= 0) {
+      const newTotalQty = currentCart[existingIndex].quantity + qty;
+      if (newTotalQty > item.quantity) {
+        this.showToast(`No puedes superar el stock disponible en tienda (${item.quantity})`, 'error');
+        return;
+      }
+      currentCart[existingIndex].quantity = newTotalQty;
+      currentCart[existingIndex].subtotal = Math.round(newTotalQty * item.price * 100) / 100;
+    } else {
+      currentCart.push({
+        variant_id: item.variant_id,
+        product_name: item.product_name,
+        sku: item.sku,
+        size: item.size_code || item.size_name,
+        color: item.color_name,
+        quantity: qty,
+        unit_price: item.price,
+        subtotal: Math.round(qty * item.price * 100) / 100,
+      });
+    }
+
+    this.cartItems.set(currentCart);
+    this.updateTotalsFromCart();
+    this.selectedItemQuantity.set(1);
+    this.showToast(`✓ Agregado: ${qty}x ${item.product_name}`, 'success');
+  }
+
+  removeCartItem(index: number): void {
+    const currentCart = [...this.cartItems()];
+    currentCart.splice(index, 1);
+    this.cartItems.set(currentCart);
+    this.updateTotalsFromCart();
+  }
+
+  updateCartItemQty(index: number, delta: number): void {
+    const currentCart = [...this.cartItems()];
+    const item = currentCart[index];
+    const stockItem = this.branchInventory().find((b) => b.variant_id === item.variant_id);
+    const maxStock = stockItem ? stockItem.quantity : 999;
+
+    const newQty = item.quantity + delta;
+    if (newQty <= 0) {
+      this.removeCartItem(index);
+      return;
+    }
+    if (newQty > maxStock) {
+      this.showToast(`Stock máximo disponible alcanzado (${maxStock})`, 'error');
+      return;
+    }
+
+    item.quantity = newQty;
+    item.subtotal = Math.round(newQty * item.unit_price * 100) / 100;
+    this.cartItems.set(currentCart);
+    this.updateTotalsFromCart();
+  }
+
+  updateTotalsFromCart(): void {
+    const cart = this.cartItems();
+    if (cart.length === 0) {
+      this.posForm.patchValue({ amount: 0, concept: '' });
+      return;
+    }
+    const total = cart.reduce((acc, itm) => acc + itm.subtotal, 0);
+    const concept = cart.map((i) => `${i.quantity}x ${i.product_name}`).join(', ');
     this.posForm.patchValue({
-      concept: tpl.concept,
-      amount: tpl.amount,
+      amount: Math.round(total * 100) / 100,
+      concept: `Venta: ${concept}`,
+    });
+  }
+
+  // Invoice PDF Download
+  downloadInvoice(p: Payment): void {
+    this.isDownloadingInvoice.set(p.id);
+    this.paymentService.downloadInvoicePdf(p.id).subscribe({
+      next: (blob) => {
+        this.isDownloadingInvoice.set(null);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `factura_${p.payment_code}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.showToast(`✓ Factura #${p.payment_code} descargada con éxito`, 'success');
+      },
+      error: () => {
+        this.isDownloadingInvoice.set(null);
+        this.showToast('Error al generar o descargar la factura PDF', 'error');
+      },
     });
   }
 
@@ -220,6 +349,7 @@ export class PaymentsComponent implements OnInit {
       amount: parseFloat(formVal.amount),
       currency: 'USD',
       payment_type: paymentType,
+      items: this.cartItems().length > 0 ? this.cartItems() : undefined,
       notes: formVal.notes ? formVal.notes.trim() : undefined,
     };
 
@@ -334,6 +464,8 @@ export class PaymentsComponent implements OnInit {
       amount: 0,
       notes: '',
     });
+    this.cartItems.set([]);
+    this.selectedItemQuantity.set(1);
     this.selectedPaymentType.set('EFECTIVO');
   }
 

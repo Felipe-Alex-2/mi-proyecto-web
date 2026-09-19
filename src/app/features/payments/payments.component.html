@@ -130,29 +130,107 @@
             />
           </div>
 
-          <!-- Concept with quick pills -->
-          <div class="form-group">
-            <div class="concept-header">
-              <label class="form-label">CONCEPTO / DETALLE DEL COBRO <span class="required">*</span></label>
-              <span class="quick-pill-label">Plantillas rápidas:</span>
+          <!-- Product / Stock selection for direct sale -->
+          <div class="form-group stock-selection-box">
+            <div class="stock-box-header">
+              <label class="form-label mb-0">AGREGAR PRENDAS DEL STOCK DE LA SUCURSAL</label>
+              <span class="stock-badge-count">{{ branchInventory().length }} en inventario</span>
             </div>
 
-            <div class="quick-pills-row">
-              @for (tpl of conceptTemplates; track tpl.label) {
-                <button
-                  type="button"
-                  class="pill-btn"
-                  (click)="applyTemplate(tpl)"
+            <div class="stock-controls-row">
+              <div class="stock-select-wrapper">
+                <select
+                  class="form-select product-stock-select"
+                  [value]="selectedVariantId()"
+                  (change)="selectedVariantId.set($any($event.target).value)"
                 >
-                  {{ tpl.label }}
-                </button>
-              }
+                  <option value="" disabled>-- Selecciona un producto en stock --</option>
+                  @for (inv of branchInventory(); track inv.variant_id) {
+                    <option [value]="inv.variant_id" [disabled]="inv.quantity <= 0">
+                      {{ inv.product_name }} - {{ inv.color_name }} / {{ inv.size_code || inv.size_name }} (Stock: {{ inv.quantity }} un. | ${{ inv.price.toFixed(2) }} USD)
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <div class="stock-qty-control">
+                <label class="qty-label">Cant:</label>
+                <input
+                  type="number"
+                  min="1"
+                  [max]="selectedBranchItem()?.quantity || 999"
+                  [value]="selectedItemQuantity()"
+                  (input)="selectedItemQuantity.set(+$any($event.target).value)"
+                  class="qty-field"
+                />
+              </div>
+
+              <button
+                type="button"
+                class="btn-add-item"
+                (click)="addCartItem()"
+                [disabled]="!selectedVariantId() || (selectedBranchItem()?.quantity || 0) <= 0"
+              >
+                + Agregar
+              </button>
             </div>
 
+            @if (selectedBranchItem()) {
+              <div class="stock-status-pill" [class.stock-warning]="(selectedBranchItem()?.quantity || 0) <= 5">
+                <span>Stock disponible: <strong>{{ selectedBranchItem()?.quantity }} unidades</strong></span>
+                <span>•</span>
+                <span>Precio: <strong>${{ selectedBranchItem()?.price?.toFixed(2) }} USD</strong></span>
+                <span>•</span>
+                <span>SKU: {{ selectedBranchItem()?.sku }}</span>
+              </div>
+            }
+
+            <!-- Cart Table if items added -->
+            @if (cartItems().length > 0) {
+              <div class="cart-items-container">
+                <table class="cart-table">
+                  <thead>
+                    <tr>
+                      <th>Prenda</th>
+                      <th>Detalle</th>
+                      <th>Cant.</th>
+                      <th>P. Unit</th>
+                      <th>Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of cartItems(); track item.variant_id; let idx = $index) {
+                      <tr>
+                        <td class="cart-prod-name">{{ item.product_name }}</td>
+                        <td class="cart-prod-var">{{ item.color }} / {{ item.size }}</td>
+                        <td class="cart-prod-qty">
+                          <div class="qty-btn-group">
+                            <button type="button" class="btn-qty-mini" (click)="updateCartItemQty(idx, -1)">-</button>
+                            <span class="qty-display">{{ item.quantity }}</span>
+                            <button type="button" class="btn-qty-mini" (click)="updateCartItemQty(idx, 1)">+</button>
+                          </div>
+                        </td>
+                        <td class="cart-prod-price">${{ item.unit_price.toFixed(2) }}</td>
+                        <td class="cart-prod-subtotal"><strong>${{ item.subtotal.toFixed(2) }}</strong></td>
+                        <td class="cart-prod-actions">
+                          <button type="button" class="btn-remove-item" (click)="removeCartItem(idx)" title="Quitar prenda">✕</button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+
+          <!-- Concept / Details -->
+          <div class="form-group">
+            <label class="form-label">CONCEPTO / DETALLE DEL COBRO <span class="required">*</span></label>
             <input
               type="text"
               formControlName="concept"
-              placeholder="Ej. Compra de prendas de vestir, modistería..."
+              placeholder="Ej. Venta de prendas de vestir..."
               class="form-input"
               [class.input-invalid]="posForm.get('concept')?.touched && posForm.get('concept')?.invalid"
             />
@@ -160,7 +238,12 @@
 
           <!-- Amount -->
           <div class="form-group">
-            <label class="form-label">TOTAL A COBRAR (USD) <span class="required">*</span></label>
+            <div class="amount-label-row">
+              <label class="form-label mb-0">TOTAL A COBRAR (USD) <span class="required">*</span></label>
+              @if (cartItems().length > 0) {
+                <span class="auto-calc-tag">⚡ Calculado automáticamente del stock</span>
+              }
+            </div>
             <div class="amount-input-box">
               <span class="currency-symbol">$</span>
               <input
@@ -364,6 +447,7 @@
                   <th>TIPO</th>
                   <th>ESTADO</th>
                   <th>REFERENCIA</th>
+                  <th>FACTURA</th>
                   <th>ACCIÓN</th>
                 </tr>
               </thead>
@@ -429,6 +513,31 @@
                     <!-- Referencia -->
                     <td class="cell-ref">
                       <span class="ref-code">{{ p.reference || p.paypal_order_id || 'Caja Local' }}</span>
+                    </td>
+
+                    <!-- Factura PDF -->
+                    <td class="cell-invoice">
+                      @if (p.status === 'PAID') {
+                        <button
+                          type="button"
+                          class="btn-download-invoice"
+                          (click)="downloadInvoice(p)"
+                          [disabled]="isDownloadingInvoice() === p.id"
+                          title="Descargar Factura de Compra en PDF"
+                        >
+                          @if (isDownloadingInvoice() === p.id) {
+                            <span class="spinner-inline-small"></span>
+                            <span>PDF...</span>
+                          } @else {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 2l3 3h-3V4zm-1 9a1 1 0 01-1-1v-2.586l-.293.293a1 1 0 01-1.414-1.414l2-2a1 1 0 011.414 0l2 2a1 1 0 01-1.414 1.414L11 9.414V12a1 1 0 01-1 1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Factura PDF</span>
+                          }
+                        </button>
+                      } @else {
+                        <span class="badge-pending-invoice" title="Disponible cuando el cobro esté pagado">Pendiente</span>
+                      }
                     </td>
 
                     <!-- Accion -->

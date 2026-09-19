@@ -1,6 +1,17 @@
 export type PaymentStatus = 'PENDING' | 'PAID' | 'CANCELLED';
 export type PaymentType = 'EFECTIVO' | 'PAYPAL';
 
+export interface PaymentItem {
+  variant_id: string;
+  product_name: string;
+  sku?: string;
+  size?: string;
+  color?: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+}
+
 export interface Payment {
   id: string;
   payment_code: string;
@@ -21,6 +32,8 @@ export interface Payment {
   paypal_capture_id?: string;
   cashier_id?: string;
   cashier_name?: string;
+  items_detail?: string;
+  items?: PaymentItem[];
   notes?: string;
   created_at: string;
   paid_at?: string;
@@ -35,6 +48,7 @@ export interface PaymentCreate {
   payment_type: PaymentType;
   branch_id: string;
   reservation_id?: string;
+  items?: PaymentItem[];
   notes?: string;
 }
 

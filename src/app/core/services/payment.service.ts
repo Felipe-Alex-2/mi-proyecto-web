@@ -71,5 +71,11 @@ export class PaymentService {
     let params = new HttpParams().set('order_id', orderId);
     return this.http.post<Payment>(`${this.baseUrl}/public-capture`, null, { params });
   }
+
+  downloadInvoicePdf(paymentId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${paymentId}/invoice-pdf`, {
+      responseType: 'blob',
+    });
+  }
 }
 
