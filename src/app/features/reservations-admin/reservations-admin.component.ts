@@ -42,6 +42,8 @@ export class ReservationsAdminComponent implements OnInit {
     this.statusForm = this.fb.group({
       status: ['CONFIRMED', Validators.required],
       staff_notes: ['', [Validators.required, Validators.minLength(5)]],
+      payment_method: ['EFECTIVO', Validators.required],
+      payment_status: ['PENDING', Validators.required],
     });
   }
 
@@ -96,6 +98,8 @@ export class ReservationsAdminComponent implements OnInit {
     this.statusForm.reset({
       status: targetStatus,
       staff_notes: '',
+      payment_method: r.payment_method || 'EFECTIVO',
+      payment_status: r.payment_status || (targetStatus === 'COMPLETED' ? 'PAID' : 'PENDING'),
     });
     this.isStatusModalOpen.set(true);
   }
@@ -121,6 +125,8 @@ export class ReservationsAdminComponent implements OnInit {
       .updateStatus(r.id, {
         status: val.status as ReservationStatus,
         staff_notes: val.staff_notes.trim(),
+        payment_method: val.payment_method,
+        payment_status: val.payment_status,
       })
       .subscribe({
         next: () => {
@@ -196,5 +202,14 @@ export class ReservationsAdminComponent implements OnInit {
       default:
         return status;
     }
+  }
+
+  getPaymentBadgeClass(paymentStatus?: string): string {
+    return paymentStatus === 'PAID' ? 'badge-paid' : 'badge-pending-pay';
+  }
+
+  getPaymentLabel(r: Reservation): string {
+    const method = r.payment_method === 'PAYPAL' ? 'PayPal' : 'Efectivo';
+    return r.payment_status === 'PAID' ? `✓ Pagado (${method})` : `⏳ Pendiente (${method})`;
   }
 }

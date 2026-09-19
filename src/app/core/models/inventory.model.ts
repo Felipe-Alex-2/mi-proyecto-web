@@ -1,4 +1,4 @@
-﻿export type MovementType = 'ENTRY' | 'EXIT' | 'ADJUSTMENT' | 'RETURN';
+export type MovementType = 'ENTRY' | 'EXIT' | 'ADJUSTMENT' | 'RETURN';
 
 export interface InventoryMovementCreate {
   variant_id: string;
@@ -7,6 +7,9 @@ export interface InventoryMovementCreate {
   quantity: number;
   reason: string;
   reference_number?: string;
+  payment_method?: 'EFECTIVO' | 'PAYPAL' | string;
+  payment_status?: 'PENDING' | 'PAID' | string;
+  amount?: number;
 }
 
 export interface InventoryMovement {
@@ -21,6 +24,11 @@ export interface InventoryMovement {
   new_stock: number;
   user_id?: string;
   created_at: string;
+  payment_method?: 'EFECTIVO' | 'PAYPAL' | string;
+  payment_status?: 'PENDING' | 'PAID' | string;
+  amount?: number;
+  paypal_order_id?: string;
+  paypal_capture_id?: string;
   product_id?: string;
   product_name?: string;
   sku?: string;
