@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PaymentService } from '../../core/services/payment.service';
 import { BranchService } from '../../core/services/branch.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,7 +11,6 @@ import {
   PaymentStatus,
   PaymentType,
   PendingReservationOption,
-  PaymentPayPalOrderResponse,
 } from '../../core/models/payment.model';
 
 @Component({
@@ -35,13 +35,7 @@ export class PaymentsComponent implements OnInit {
   posForm: FormGroup;
   selectedPaymentType = signal<PaymentType>('EFECTIVO');
 
-  // PayPal checkout modal state
-  isPayPalModalOpen = signal<boolean>(false);
-  currentPayPalOrder = signal<PaymentPayPalOrderResponse | null>(null);
-  activePaymentForPayPal = signal<Payment | null>(null);
-  isCapturingPayPal = signal<boolean>(false);
-
-  // Cash quick confirm modal / state
+  // Cash quick confirm modal
   isCashConfirmModalOpen = signal<boolean>(false);
   pendingPaymentToCash = signal<Payment | null>(null);
 
@@ -59,6 +53,8 @@ export class PaymentsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private router: Router,
     private paymentService: PaymentService,
     private branchService: BranchService,
     public authService: AuthService
@@ -74,6 +70,10 @@ export class PaymentsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Si la URL contiene un token de PayPal anterior, limpiarlo para evitar errores
+    if (this.route.snapshot.queryParamMap.has('token')) {
+      this.router.navigate([], { replaceUrl: true, queryParams: {} });
+    }
     this.loadBranches();
   }
 
@@ -241,22 +241,20 @@ export class PaymentsComponent implements OnInit {
             },
           });
         } else {
-          // PayPal Sandbox Flow
+          // PayPal Sandbox Flow: abre checkout y queda en PENDIENTE en caja
           this.paymentService.createPayPalCheckout(payment.id).subscribe({
             next: (orderResp) => {
               this.isSubmitting.set(false);
-              this.activePaymentForPayPal.set(payment);
-              this.currentPayPalOrder.set(orderResp);
-              this.isPayPalModalOpen.set(true);
+              this.resetTerminalForm();
               this.refreshAll();
 
-              // Auto-open in new tab/window
+              // Abrir PayPal Sandbox en nueva pestaña
               try {
                 window.open(orderResp.approval_url, '_blank');
               } catch (e) {
                 console.warn('Pop-up blocker intercepted automatic tab opening:', e);
               }
-              this.showToast(`Orden PayPal #${orderResp.order_id} creada. Se ha abierto la ventana para pagar con Sandbox.`, 'success');
+              this.showToast(`✓ Orden #${payment.payment_code} enviada a PayPal Sandbox. Al completar el pago en la otra pestaña, pulsa "Actualizar Caja".`, 'success');
             },
             error: (err) => {
               this.isSubmitting.set(false);
@@ -310,16 +308,14 @@ export class PaymentsComponent implements OnInit {
     this.paymentService.createPayPalCheckout(p.id).subscribe({
       next: (orderResp) => {
         this.isSubmitting.set(false);
-        this.activePaymentForPayPal.set(p);
-        this.currentPayPalOrder.set(orderResp);
-        this.isPayPalModalOpen.set(true);
+        this.refreshAll();
 
         try {
           window.open(orderResp.approval_url, '_blank');
         } catch (e) {
           console.warn('Pop-up blocker intercepted automatic tab opening:', e);
         }
-        this.showToast(`Orden #${orderResp.order_id} iniciada. Se abrió la ventana de PayPal Sandbox.`, 'success');
+        this.showToast(`✓ Abriendo PayPal Sandbox en nueva pestaña... Al completar el pago, pulsa "Actualizar Caja".`, 'success');
       },
       error: (err) => {
         this.isSubmitting.set(false);
@@ -327,43 +323,6 @@ export class PaymentsComponent implements OnInit {
         this.showToast(errMsg, 'error');
       },
     });
-  }
-
-  reopenPayPalWindow(): void {
-    const order = this.currentPayPalOrder();
-    if (order?.approval_url) {
-      window.open(order.approval_url, '_blank');
-    }
-  }
-
-  capturePayPalPayment(): void {
-    const payment = this.activePaymentForPayPal();
-    const order = this.currentPayPalOrder();
-    if (!payment || !order) return;
-
-    this.isCapturingPayPal.set(true);
-    this.paymentService.capturePayPalPayment(payment.id, order.order_id).subscribe({
-      next: (captured) => {
-        this.isCapturingPayPal.set(false);
-        this.isPayPalModalOpen.set(false);
-        this.currentPayPalOrder.set(null);
-        this.activePaymentForPayPal.set(null);
-        this.showToast(`¡Pago #${captured.payment_code} capturado con éxito de PayPal ($${captured.amount.toFixed(2)} USD)! Movimiento de stock registrado.`, 'success');
-        this.resetTerminalForm();
-        this.refreshAll();
-      },
-      error: (err) => {
-        this.isCapturingPayPal.set(false);
-        this.showToast(err.error?.detail || 'Error o pago no aprobado aún en PayPal. Verifica que hayas completado el checkout en la ventana abierta.', 'error');
-      },
-    });
-  }
-
-  closePayPalModal(): void {
-    this.isPayPalModalOpen.set(false);
-    this.currentPayPalOrder.set(null);
-    this.activePaymentForPayPal.set(null);
-    this.refreshAll();
   }
 
   resetTerminalForm(): void {
@@ -383,7 +342,7 @@ export class PaymentsComponent implements OnInit {
     this.toastType.set(type);
     setTimeout(() => {
       this.toastMessage.set('');
-    }, 5500);
+    }, 6000);
   }
 
   formatDate(dateStr: string): string {

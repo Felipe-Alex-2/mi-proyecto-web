@@ -66,4 +66,10 @@ export class PaymentService {
     let params = new HttpParams().set('order_id', orderId);
     return this.http.post<Payment>(`${this.baseUrl}/${paymentId}/paypal-capture`, null, { params });
   }
+
+  publicCapturePayPal(orderId: string): Observable<Payment> {
+    let params = new HttpParams().set('order_id', orderId);
+    return this.http.post<Payment>(`${this.baseUrl}/public-capture`, null, { params });
+  }
 }
+
