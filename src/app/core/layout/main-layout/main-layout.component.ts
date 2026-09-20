@@ -1,7 +1,9 @@
 ﻿import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { ActivityLogService } from '../../services/activity-log.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -17,10 +19,22 @@ export class MainLayoutComponent implements OnInit {
   module3Open = signal<boolean>(true);  // Default open for Paquete 3
   module5Open = signal<boolean>(true);
 
-  constructor(public authService: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    private router: Router,
+    private activityLogService: ActivityLogService
+  ) {}
 
   ngOnInit(): void {
     this.authService.loadCurrentUser().subscribe();
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event) => {
+      const navigation = event as NavigationEnd;
+      this.activityLogService.record({
+        action: 'NAVEGACION',
+        description: `Navegación a la vista: ${navigation.urlAfterRedirects}`,
+        category: 'SISTEMA',
+      }).subscribe();
+    });
   }
 
   toggleSidebar(): void {

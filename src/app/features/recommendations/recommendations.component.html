@@ -1,0 +1,56 @@
+<main class="recommendations-page">
+  <header class="recommendations-header">
+    <div>
+      <a routerLink="/dashboard" class="back-link">← Panel principal</a>
+      <p class="eyebrow">MÓDULO 5 · INTEGRACIONES TECNOLÓGICAS Y PLATAFORMA AVANZADA</p>
+      <h1>CU22: Asistente y Recomendador IA</h1>
+      <p class="intro">Cuéntame qué te gusta y buscaré prendas reales del catálogo que coincidan con tu estilo.</p>
+    </div>
+    <div class="ai-mark">AI</div>
+  </header>
+
+  <section class="assistant-layout">
+    <article class="chat-panel">
+      <div class="assistant-heading"><span class="assistant-avatar">✦</span><div><strong>FashionStore IA</strong><small>Recomendaciones basadas en el catálogo</small></div></div>
+      <div class="assistant-message"><strong>¿Qué estás buscando?</strong><p>Puedes contarme colores, prendas, temporadas, tallas o el tipo de clima. Por ejemplo: “Me gustan los pantalones oscuros para el invierno”.</p></div>
+      <label class="message-label" for="preferences">Tus gustos</label>
+      <textarea id="preferences" [(ngModel)]="message" (keyup.enter)="askAssistant()" placeholder="Me gusta el rojo, busco algo para verano y prefiero pantalones..."></textarea>
+      <button class="ask-button" type="button" (click)="askAssistant()" [disabled]="loading() || !message.trim()">{{ loading() ? 'Analizando tus gustos...' : 'Encontrar mis recomendaciones' }} <span>→</span></button>
+      <div class="examples"><span>Prueba con:</span><button type="button" (click)="useExample('Me gustan los colores oscuros y los pantalones para el invierno')">Colores oscuros + invierno</button><button type="button" (click)="useExample('Quiero una prenda roja para verano')">Rojo + verano</button></div>
+    </article>
+
+    <aside class="how-panel">
+      <p class="eyebrow">CÓMO FUNCIONA</p>
+      <h2>Tu estilo, llevado al catálogo.</h2>
+      <div class="step"><span>01</span><p><strong>Escribes tus preferencias</strong><small>En lenguaje natural, sin formularios complicados.</small></p></div>
+      <div class="step"><span>02</span><p><strong>Gemini interpreta</strong><small>Identifica prenda, color, talla y temporada.</small></p></div>
+      <div class="step"><span>03</span><p><strong>El sistema busca coincidencias</strong><small>Solo recomienda productos que existen en tu inventario.</small></p></div>
+    </aside>
+  </section>
+
+  @if (error()) { <div class="alert" role="alert">{{ error() }}</div> }
+
+  @if (response(); as result) {
+    <section class="results-section">
+      <header class="results-header"><div><p class="eyebrow">RECOMENDACIONES PARA TI</p><h2>{{ result.message }}</h2></div><span class="result-count">{{ result.recommendations.length }} prendas</span></header>
+      @if (result.matched_filters | keyvalue; as filters) {
+        @if (filters.length) { <div class="matched-filters"><span>Coincidencias:</span>@for (filter of filters; track filter.key) { <b>{{ filter.value }}</b> }</div> }
+      }
+      @if (result.recommendations.length) {
+        <div class="recommendation-grid">
+          @for (product of result.recommendations; track product.id) {
+            <a class="recommendation-card" [routerLink]="['/catalog']" [queryParams]="{ product: product.id }">
+              <div class="product-image">
+                @if (product.image_url) { <img [src]="product.image_url" [alt]="product.name" /> } @else { <span>FASHION<br />STORE</span> }
+                <span class="stock-pill">{{ product.total_stock }} disponibles</span>
+              </div>
+              <div class="product-info"><small>{{ product.category_name || 'Prenda' }} · {{ product.gender || 'Unisex' }}</small><h3>{{ product.name }}</h3><p>{{ product.description || 'Disponible en distintas variantes.' }}</p><strong>Bs {{ product.min_price | number:'1.2-2' }}</strong></div>
+            </a>
+          }
+        </div>
+      } @else { <div class="empty-result">No encontramos coincidencias exactas. Prueba describiendo otro color, prenda o temporada.</div> }
+    </section>
+  } @else {
+    <section class="empty-result first-state"><span>CU22</span><h2>Tu próximo conjunto puede empezar con una frase.</h2><p>La recomendación se construye con los productos y atributos reales registrados en FashionStore.</p></section>
+  }
+</main>

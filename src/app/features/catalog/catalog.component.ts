@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   CatalogFilterOptions,
   CatalogProduct,
@@ -33,12 +33,24 @@ export class CatalogComponent implements OnInit {
   pageSize = 12;
   total = signal(0);
 
-  constructor(private catalogService: CatalogService) {}
+  constructor(
+    private catalogService: CatalogService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     this.catalogService.getFilterOptions().subscribe({
       next: (options) => this.filters.set(options),
       error: () => this.error.set('No se pudieron cargar los filtros del catálogo.'),
+    });
+    this.route.queryParamMap.subscribe((params) => {
+      const productId = params.get('product');
+      if (productId) {
+        this.catalogService.getProduct(productId).subscribe({
+          next: (product) => this.selectedProduct.set(product),
+          error: () => this.error.set('No se pudo cargar el detalle de la recomendación.'),
+        });
+      }
     });
     this.loadProducts();
   }

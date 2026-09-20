@@ -1,0 +1,33 @@
+<main class="activity-page">
+  <header class="activity-header">
+    <div>
+      <a routerLink="/dashboard" class="back-link">← Panel principal</a>
+      <p class="eyebrow">MÓDULO 5 · AUDITORÍA</p>
+      <h1>Bitácora de Actividades</h1>
+      <p class="intro">Historial de acciones relevantes: quién las realizó, qué ocurrió y cuándo.</p>
+    </div>
+    <div class="header-mark">LOG</div>
+  </header>
+
+  <section class="filter-panel">
+    <label>Buscar usuario o descripción<input [(ngModel)]="search" (keyup.enter)="applyFilters()" placeholder="Nombre, correo o evento" /></label>
+    <label>Acción<select [(ngModel)]="action" (change)="applyFilters()"><option value="">Todas</option><option value="NAVEGACION">Navegación</option><option value="LOGIN">Inicio de sesión</option><option value="ACCION">Acción</option></select></label>
+    <label>Categoría<select [(ngModel)]="category" (change)="applyFilters()"><option value="">Todas</option><option value="SISTEMA">Sistema</option><option value="SEGURIDAD">Seguridad</option><option value="NEGOCIO">Negocio</option></select></label>
+    <button class="primary-button" type="button" (click)="applyFilters()">Buscar</button>
+    <button class="text-button" type="button" (click)="clearFilters()">Limpiar</button>
+  </section>
+
+  @if (error()) { <div class="alert" role="alert">{{ error() }}</div> }
+
+  <section class="log-panel">
+    <header class="panel-header"><div><p class="eyebrow">HISTORIAL PERSISTENTE</p><h2>{{ total() }} eventos registrados</h2></div><span>Página {{ page }} de {{ pageCount }}</span></header>
+    @if (loading()) { <div class="empty-state">Cargando bitácora...</div> }
+    @else if (!logs().length) { <div class="empty-state">No hay eventos para los filtros seleccionados.</div> }
+    @else {
+      <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Descripción</th><th>Categoría</th><th>IP</th></tr></thead><tbody>
+        @for (log of logs(); track log.id) { <tr><td>{{ log.created_at | date:'dd/MM/yyyy HH:mm' }}</td><td><strong>{{ log.user_name }}</strong><small>{{ log.user_email }}</small></td><td><span class="action-badge">{{ log.action }}</span></td><td>{{ log.description }}</td><td>{{ log.category }}</td><td>{{ log.ip_address || 'No disponible' }}</td></tr> }
+      </tbody></table></div>
+    }
+    <nav class="pagination"><button type="button" (click)="previousPage()" [disabled]="page === 1">Anterior</button><span>{{ page }} / {{ pageCount }}</span><button type="button" (click)="nextPage()" [disabled]="page >= pageCount">Siguiente</button></nav>
+  </section>
+</main>

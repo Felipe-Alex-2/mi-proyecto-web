@@ -66,6 +66,21 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'recommendations',
+        loadComponent: () =>
+          import('./features/recommendations/recommendations.component').then(
+            (m) => m.RecommendationsComponent
+          ),
+      },
+      {
+        path: 'activity-log',
+        loadComponent: () =>
+          import('./features/activity-log/activity-log.component').then(
+            (m) => m.ActivityLogComponent
+          ),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'users',
         loadComponent: () =>
           import('./features/users/users.component').then(
