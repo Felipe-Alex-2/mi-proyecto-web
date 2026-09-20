@@ -1,4 +1,4 @@
-﻿import { Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { authGuard, guestGuard, adminGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -34,6 +34,13 @@ export const routes: Routes = [
         (m) => m.ResetPasswordComponent
       ),
     canActivate: [guestGuard],
+  },
+  {
+    path: 'paypal-return',
+    loadComponent: () =>
+      import('./features/paypal-return/paypal-return.component').then(
+        (m) => m.PaypalReturnComponent
+      ),
   },
   {
     path: '',
@@ -148,6 +155,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/reservations-admin/reservations-admin.component').then(
             (m) => m.ReservationsAdminComponent
+          ),
+      },
+      {
+        path: 'payments',
+        loadComponent: () =>
+          import('./features/payments/payments.component').then(
+            (m) => m.PaymentsComponent
           ),
       },
     ],

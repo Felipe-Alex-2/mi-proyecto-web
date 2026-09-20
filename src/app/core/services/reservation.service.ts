@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -6,6 +6,9 @@ import {
   Reservation,
   ReservationStatusUpdate,
   ReservationStats,
+  PayPalReservationOrderCreate,
+  PayPalOrderResponse,
+  PayPalCaptureResponse,
 } from '../models/reservation.model';
 
 @Injectable({
@@ -47,5 +50,15 @@ export class ReservationService {
 
   cancelReservation(id: string): Observable<Reservation> {
     return this.http.delete<Reservation>(`${this.baseUrl}/${id}`);
+  }
+
+  createPayPalOrder(payload: PayPalReservationOrderCreate): Observable<PayPalOrderResponse> {
+    return this.http.post<PayPalOrderResponse>(`${this.baseUrl}/paypal-order`, payload);
+  }
+
+  capturePayPalOrder(paypalOrderId: string): Observable<PayPalCaptureResponse> {
+    return this.http.post<PayPalCaptureResponse>(`${this.baseUrl}/paypal-capture`, {
+      paypal_order_id: paypalOrderId,
+    });
   }
 }

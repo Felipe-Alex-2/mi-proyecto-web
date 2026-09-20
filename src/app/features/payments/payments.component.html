@@ -1,0 +1,615 @@
+<div class="pos-page-wrapper">
+  <!-- Toast feedback -->
+  @if (toastMessage()) {
+    <div class="pos-toast" [class.pos-toast-error]="toastType() === 'error'">
+      <div class="toast-icon">
+        @if (toastType() === 'error') {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+        }
+      </div>
+      <div class="toast-content">{{ toastMessage() }}</div>
+    </div>
+  }
+
+  <div class="pos-container">
+    <!-- Header -->
+    <header class="pos-header">
+      <div class="header-titles">
+        <span class="eyebrow-tag">CAJA • PUNTO DE VENTA (POS) PAYPAL SANDBOX</span>
+        <h1 class="main-title">Caja y Cobros a Clientes</h1>
+        <p class="subtitle">Selecciona una sucursal, gestiona órdenes de cobro vinculadas a reservas o manuales y procesa pagos con Efectivo o PayPal Sandbox</p>
+      </div>
+      <button type="button" class="btn-refresh-caja" (click)="refreshAll()" [disabled]="isLoading()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" [class.spin]="isLoading()">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+        </svg>
+        <span>Actualizar Caja</span>
+      </button>
+    </header>
+
+    <!-- Branch Bar Card -->
+    <div class="pos-branch-card">
+      <div class="branch-selector-group">
+        <div class="branch-icon-box">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+          </svg>
+        </div>
+        <div class="branch-select-wrapper">
+          <label class="branch-label">SUCURSAL / ORGANIZACIÓN DE COBRO</label>
+          <select
+            class="branch-dropdown"
+            [value]="selectedBranchId()"
+            (change)="onBranchChange($any($event.target).value)"
+          >
+            @for (b of branches(); track b.id) {
+              <option [value]="b.id">{{ b.name }} ({{ b.city }})</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="branch-status-info">
+        <div class="status-indicator-badge">
+          <span class="status-pulse-dot"></span>
+          <span>Caja Abierta • Entorno Sandbox PayPal</span>
+        </div>
+        <div class="cashier-badge">
+          <span class="cashier-label">Cajero:</span>
+          <span class="cashier-name">{{ cashierName }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main 2-Column POS Layout -->
+    <div class="pos-main-grid">
+      <!-- LEFT COLUMN: Terminal de Cobro -->
+      <section class="pos-terminal-card">
+        <div class="card-header">
+          <div class="terminal-icon-box">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+              <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">Terminal de Cobro</h2>
+            <p class="card-subtitle">Registra cobros en efectivo o inicia el checkout con PayPal Sandbox</p>
+          </div>
+        </div>
+
+        <form [formGroup]="posForm" (ngSubmit)="onSubmitTerminal()" class="terminal-form">
+          <!-- Pending reservation selector if available -->
+          @if (pendingReservations().length > 0) {
+            <div class="form-group reservation-sync-group">
+              <label class="form-label highlight-label">
+                <span class="sync-icon">🏷️</span> VINCULAR RESERVA PENDIENTE EN TIENDA (OPCIONAL)
+              </label>
+              <select
+                formControlName="reservation_id"
+                class="form-input reservation-select"
+                (change)="onSelectPendingReservation($event)"
+              >
+                <option value="">-- Cobro manual sin vincular a reserva --</option>
+                @for (res of pendingReservations(); track res.reservation_id) {
+                  <option [value]="res.reservation_id">
+                    {{ res.reservation_code }} - {{ res.customer_name }} ({{ res.total_items }} prendas - ${{ res.total_amount.toFixed(2) }} USD)
+                  </option>
+                }
+              </select>
+              <span class="form-hint">Seleccionar una reserva autocompleta el cliente, concepto y monto total exacto.</span>
+            </div>
+          }
+
+          <!-- Customer Name -->
+          <div class="form-group">
+            <label class="form-label">NOMBRE DEL CLIENTE / PACIENTE <span class="required">*</span></label>
+            <input
+              type="text"
+              formControlName="customer_name"
+              placeholder="Ej. María Gonzales López"
+              class="form-input"
+              [class.input-invalid]="posForm.get('customer_name')?.touched && posForm.get('customer_name')?.invalid"
+            />
+          </div>
+
+          <!-- Customer Email -->
+          <div class="form-group">
+            <label class="form-label">CORREO ELECTRÓNICO DEL CLIENTE (OPCIONAL)</label>
+            <input
+              type="email"
+              formControlName="customer_email"
+              placeholder="cliente@ejemplo.com"
+              class="form-input"
+            />
+          </div>
+
+          <!-- Product / Stock selection for direct sale -->
+          <div class="form-group stock-selection-box">
+            <div class="stock-box-header">
+              <label class="form-label mb-0">AGREGAR PRENDAS DEL STOCK DE LA SUCURSAL</label>
+              <span class="stock-badge-count">{{ branchInventory().length }} en inventario</span>
+            </div>
+
+            <div class="stock-controls-row">
+              <div class="stock-select-wrapper">
+                <select
+                  class="form-select product-stock-select"
+                  [value]="selectedVariantId()"
+                  (change)="selectedVariantId.set($any($event.target).value)"
+                >
+                  <option value="" disabled>-- Selecciona un producto en stock --</option>
+                  @for (inv of branchInventory(); track inv.variant_id) {
+                    <option [value]="inv.variant_id" [disabled]="inv.quantity <= 0">
+                      {{ inv.product_name }} - {{ inv.color_name }} / {{ inv.size_code || inv.size_name }} (Stock: {{ inv.quantity }} un. | ${{ inv.price.toFixed(2) }} USD)
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <div class="stock-qty-control">
+                <label class="qty-label">Cant:</label>
+                <input
+                  type="number"
+                  min="1"
+                  [max]="selectedBranchItem()?.quantity || 999"
+                  [value]="selectedItemQuantity()"
+                  (input)="selectedItemQuantity.set(+$any($event.target).value)"
+                  class="qty-field"
+                />
+              </div>
+
+              <button
+                type="button"
+                class="btn-add-item"
+                (click)="addCartItem()"
+                [disabled]="!selectedVariantId() || (selectedBranchItem()?.quantity || 0) <= 0"
+              >
+                + Agregar
+              </button>
+            </div>
+
+            @if (selectedBranchItem()) {
+              <div class="stock-status-pill" [class.stock-warning]="(selectedBranchItem()?.quantity || 0) <= 5">
+                <span>Stock disponible: <strong>{{ selectedBranchItem()?.quantity }} unidades</strong></span>
+                <span>•</span>
+                <span>Precio: <strong>${{ selectedBranchItem()?.price?.toFixed(2) }} USD</strong></span>
+                <span>•</span>
+                <span>SKU: {{ selectedBranchItem()?.sku }}</span>
+              </div>
+            }
+
+            <!-- Cart Table if items added -->
+            @if (cartItems().length > 0) {
+              <div class="cart-items-container">
+                <table class="cart-table">
+                  <thead>
+                    <tr>
+                      <th>Prenda</th>
+                      <th>Detalle</th>
+                      <th>Cant.</th>
+                      <th>P. Unit</th>
+                      <th>Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of cartItems(); track item.variant_id; let idx = $index) {
+                      <tr>
+                        <td class="cart-prod-name">{{ item.product_name }}</td>
+                        <td class="cart-prod-var">{{ item.color }} / {{ item.size }}</td>
+                        <td class="cart-prod-qty">
+                          <div class="qty-btn-group">
+                            <button type="button" class="btn-qty-mini" (click)="updateCartItemQty(idx, -1)">-</button>
+                            <span class="qty-display">{{ item.quantity }}</span>
+                            <button type="button" class="btn-qty-mini" (click)="updateCartItemQty(idx, 1)">+</button>
+                          </div>
+                        </td>
+                        <td class="cart-prod-price">${{ item.unit_price.toFixed(2) }}</td>
+                        <td class="cart-prod-subtotal"><strong>${{ item.subtotal.toFixed(2) }}</strong></td>
+                        <td class="cart-prod-actions">
+                          <button type="button" class="btn-remove-item" (click)="removeCartItem(idx)" title="Quitar prenda">✕</button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+
+          <!-- Concept / Details -->
+          <div class="form-group">
+            <label class="form-label">CONCEPTO / DETALLE DEL COBRO <span class="required">*</span></label>
+            <input
+              type="text"
+              formControlName="concept"
+              placeholder="Ej. Venta de prendas de vestir..."
+              class="form-input"
+              [class.input-invalid]="posForm.get('concept')?.touched && posForm.get('concept')?.invalid"
+            />
+          </div>
+
+          <!-- Amount -->
+          <div class="form-group">
+            <div class="amount-label-row">
+              <label class="form-label mb-0">TOTAL A COBRAR (USD) <span class="required">*</span></label>
+              @if (cartItems().length > 0) {
+                <span class="auto-calc-tag">⚡ Calculado automáticamente del stock</span>
+              }
+            </div>
+            <div class="amount-input-box">
+              <span class="currency-symbol">$</span>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                formControlName="amount"
+                placeholder="0.00"
+                class="amount-field"
+                [class.input-invalid]="posForm.get('amount')?.touched && posForm.get('amount')?.invalid"
+              />
+              <span class="currency-code">USD</span>
+            </div>
+          </div>
+
+          <!-- Payment Type Selector Cards -->
+          <div class="form-group">
+            <label class="form-label">TIPO DE COBRO</label>
+            <div class="payment-types-grid">
+              <button
+                type="button"
+                class="payment-type-card"
+                [class.selected]="selectedPaymentType() === 'EFECTIVO'"
+                (click)="setPaymentType('EFECTIVO')"
+              >
+                <div class="type-icon-circle cash-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="type-info">
+                  <span class="type-title">Efectivo</span>
+                  <span class="type-desc">Registro inmediato en caja</span>
+                </div>
+                @if (selectedPaymentType() === 'EFECTIVO') {
+                  <div class="type-check">✓</div>
+                }
+              </button>
+
+              <button
+                type="button"
+                class="payment-type-card"
+                [class.selected]="selectedPaymentType() === 'PAYPAL'"
+                (click)="setPaymentType('PAYPAL')"
+              >
+                <div class="type-icon-circle paypal-circle">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.29-.533 3.407-2.618 5.767-6.202 5.767H9.72l-1.37 8.683a.641.641 0 0 1-.633.541h-.641z" />
+                  </svg>
+                </div>
+                <div class="type-info">
+                  <span class="type-title">PayPal</span>
+                  <span class="type-desc">Checkout Sandbox</span>
+                </div>
+                @if (selectedPaymentType() === 'PAYPAL') {
+                  <div class="type-check">✓</div>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-group">
+            <label class="form-label">NOTAS ADICIONALES (OPCIONAL)</label>
+            <textarea
+              formControlName="notes"
+              rows="2"
+              placeholder="Detalles de facturación, número de orden interno o comentarios"
+              class="form-input form-textarea"
+            ></textarea>
+          </div>
+
+          <!-- Submit Buttons -->
+          @if (selectedPaymentType() === 'EFECTIVO') {
+            <button
+              type="submit"
+              class="btn-submit-cash"
+              [disabled]="isSubmitting() || posForm.invalid"
+            >
+              @if (isSubmitting()) {
+                <span class="spinner-inline"></span> Registrando Cobro...
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                <span>Registrar Pago en Efectivo</span>
+              }
+            </button>
+          } @else {
+            <button
+              type="submit"
+              class="btn-submit-paypal"
+              [disabled]="isSubmitting() || posForm.invalid"
+            >
+              @if (isSubmitting()) {
+                <span class="spinner-inline"></span> Conectando con PayPal...
+              } @else {
+                <svg viewBox="0 0 24 24" fill="currentColor" class="paypal-btn-icon">
+                  <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.29-.533 3.407-2.618 5.767-6.202 5.767H9.72l-1.37 8.683a.641.641 0 0 1-.633.541h-.641z" />
+                </svg>
+                <span>Pagar con PayPal Sandbox</span>
+              }
+            </button>
+          }
+
+          <div class="sandbox-tip-box">
+            <span class="tip-star">⚡</span>
+            <p><strong>Tip Sandbox:</strong> Si tienes abierta tu cuenta Business en este navegador, abre el link en una Ventana de Incógnito para pagar con tu cuenta Personal de prueba.</p>
+          </div>
+        </form>
+      </section>
+
+      <!-- RIGHT COLUMN: Historial de Cobros -->
+      <section class="pos-history-card">
+        <div class="card-header history-header">
+          <div>
+            <h2 class="card-title">Historial de Cobros en Sucursal</h2>
+            <p class="card-subtitle">Transacciones procesadas en la sucursal seleccionada</p>
+          </div>
+
+          <!-- Search filter -->
+          <div class="history-search-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar cliente, código o concepto..."
+              class="history-search-input"
+              [value]="searchTerm()"
+              (input)="searchTerm.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <!-- Filter tabs bar -->
+        <div class="filter-pills-bar">
+          <button
+            type="button"
+            class="filter-tab"
+            [class.active]="activeFilter() === 'ALL'"
+            (click)="setFilter('ALL')"
+          >
+            Todos ({{ payments().length }})
+          </button>
+          <button
+            type="button"
+            class="filter-tab"
+            [class.active]="activeFilter() === 'EFECTIVO'"
+            (click)="setFilter('EFECTIVO')"
+          >
+            💵 Efectivo
+          </button>
+          <button
+            type="button"
+            class="filter-tab"
+            [class.active]="activeFilter() === 'PAYPAL'"
+            (click)="setFilter('PAYPAL')"
+          >
+            🅿 PayPal
+          </button>
+          <button
+            type="button"
+            class="filter-tab"
+            [class.active]="activeFilter() === 'PAID'"
+            (click)="setFilter('PAID')"
+          >
+            Pagados
+          </button>
+          <button
+            type="button"
+            class="filter-tab"
+            [class.active]="activeFilter() === 'PENDING'"
+            (click)="setFilter('PENDING')"
+          >
+            Pendientes
+          </button>
+        </div>
+
+        <!-- Table View -->
+        <div class="table-container">
+          @if (isLoading()) {
+            <div class="table-loading-state">
+              <div class="spinner-large"></div>
+              <span>Cargando transacciones de caja...</span>
+            </div>
+          } @else if (filteredPayments().length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">💳</div>
+              <h3>Sin transacciones registradas</h3>
+              <p>No se encontraron cobros en esta sucursal con el filtro seleccionado.</p>
+            </div>
+          } @else {
+            <table class="pos-table">
+              <thead>
+                <tr>
+                  <th>FECHA</th>
+                  <th>CLIENTE</th>
+                  <th>CONCEPTO</th>
+                  <th>TOTAL</th>
+                  <th>TIPO</th>
+                  <th>ESTADO</th>
+                  <th>REFERENCIA</th>
+                  <th>FACTURA</th>
+                  <th>ACCIÓN</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of filteredPayments(); track p.id) {
+                  <tr>
+                    <!-- Fecha -->
+                    <td class="cell-date">
+                      <span class="date-main">{{ formatDate(p.created_at) }}</span>
+                    </td>
+
+                    <!-- Cliente -->
+                    <td class="cell-customer">
+                      <div class="customer-name">{{ p.customer_name }}</div>
+                      @if (p.customer_email) {
+                        <div class="customer-sub">{{ p.customer_email }}</div>
+                      }
+                    </td>
+
+                    <!-- Concepto -->
+                    <td class="cell-concept">
+                      <span class="concept-text">{{ p.concept }}</span>
+                      @if (p.reservation_code) {
+                        <span class="res-badge">Reserva #{{ p.reservation_code }}</span>
+                      }
+                    </td>
+
+                    <!-- Total -->
+                    <td class="cell-total">
+                      <strong>${{ p.amount.toFixed(2) }} {{ p.currency }}</strong>
+                    </td>
+
+                    <!-- Tipo -->
+                    <td class="cell-type">
+                      @if (p.payment_type === 'PAYPAL') {
+                        <span class="badge-type-paypal">
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.29-.533 3.407-2.618 5.767-6.202 5.767H9.72l-1.37 8.683a.641.641 0 0 1-.633.541h-.641z" />
+                          </svg>
+                          PayPal
+                        </span>
+                      } @else {
+                        <span class="badge-type-cash">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                          </svg>
+                          Efectivo
+                        </span>
+                      }
+                    </td>
+
+                    <!-- Estado -->
+                    <td class="cell-status">
+                      @if (p.status === 'PAID') {
+                        <span class="badge-status badge-status-paid">PAGADO</span>
+                      } @else if (p.status === 'PENDING') {
+                        <span class="badge-status badge-status-pending">PENDIENTE</span>
+                      } @else {
+                        <span class="badge-status badge-status-cancelled">CANCELADO</span>
+                      }
+                    </td>
+
+                    <!-- Referencia -->
+                    <td class="cell-ref">
+                      <span class="ref-code">{{ p.reference || p.paypal_order_id || 'Caja Local' }}</span>
+                    </td>
+
+                    <!-- Factura PDF -->
+                    <td class="cell-invoice">
+                      @if (p.status === 'PAID') {
+                        <button
+                          type="button"
+                          class="btn-download-invoice"
+                          (click)="downloadInvoice(p)"
+                          [disabled]="isDownloadingInvoice() === p.id"
+                          title="Descargar Factura de Compra en PDF"
+                        >
+                          @if (isDownloadingInvoice() === p.id) {
+                            <span class="spinner-inline-small"></span>
+                            <span>PDF...</span>
+                          } @else {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 2l3 3h-3V4zm-1 9a1 1 0 01-1-1v-2.586l-.293.293a1 1 0 01-1.414-1.414l2-2a1 1 0 011.414 0l2 2a1 1 0 01-1.414 1.414L11 9.414V12a1 1 0 01-1 1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Factura PDF</span>
+                          }
+                        </button>
+                      } @else {
+                        <span class="badge-pending-invoice" title="Disponible cuando el cobro esté pagado">Pendiente</span>
+                      }
+                    </td>
+
+                    <!-- Accion -->
+                    <td class="cell-action">
+                      @if (p.status === 'PENDING') {
+                        <div class="action-buttons-group">
+                          <button
+                            type="button"
+                            class="btn-row-action btn-row-cash"
+                            title="Cobrar en Efectivo"
+                            (click)="openCashConfirm(p)"
+                          >
+                            Efectivo
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-row-action btn-row-paypal"
+                            title="Cobrar con PayPal Sandbox"
+                            (click)="initiatePayPalFromRow(p)"
+                          >
+                            PayPal
+                          </button>
+                        </div>
+                      } @else {
+                        <span class="completed-indicator">✓ Listo</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- MODAL: Quick Cash Confirm -->
+  @if (isCashConfirmModalOpen()) {
+    <div class="modal-overlay">
+      <div class="modal-content cash-confirm-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Confirmar Cobro en Efectivo</h3>
+          <button type="button" class="btn-close-modal" (click)="closeCashConfirm()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <p>¿Deseas confirmar la recepción de <strong>${{ pendingPaymentToCash()?.amount?.toFixed(2) }} USD</strong> en efectivo para el cliente <strong>{{ pendingPaymentToCash()?.customer_name }}</strong>?</p>
+          <div class="cash-confirm-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            <span>Al confirmar, el cobro pasará a <strong>PAGADO</strong> y se registrará automáticamente la salida correspondiente en Movimientos de Stock (CU09).</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" (click)="closeCashConfirm()">Cancelar</button>
+          <button
+            type="button"
+            class="btn-modal-cash-confirm"
+            [disabled]="isSubmitting()"
+            (click)="confirmCashPayment()"
+          >
+            @if (isSubmitting()) {
+              <span class="spinner-inline"></span> Procesando...
+            } @else {
+              <span>Confirmar y Cobrar</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

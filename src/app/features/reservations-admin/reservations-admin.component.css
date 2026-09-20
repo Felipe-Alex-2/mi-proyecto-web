@@ -1,4 +1,4 @@
-﻿.reservations-page-wrapper {
+.reservations-page-wrapper {
   min-height: 100vh;
   background-color: #F5F0E8;
   color: #2C1810;
@@ -331,6 +331,8 @@
 .badge-completed { background: #E8F5E9; color: #2E7D32; }
 .badge-cancelled { background: #FFEBEE; color: #C62828; }
 .badge-expired { background: #ECEFF1; color: #546E7A; }
+.badge-paid { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+.badge-pending-pay { background: #FFF9C4; color: #F57F17; border: 1px solid #FFE082; }
 
 /* Card Actions */
 .card-actions {

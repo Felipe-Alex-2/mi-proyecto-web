@@ -1,4 +1,4 @@
-﻿<div class="inventory-page-wrapper">
+<div class="inventory-page-wrapper">
   <!-- Toast alert -->
   @if (feedbackMessage()) {
     <div class="toast-banner" [class.toast-error]="feedbackType() === 'error'">
@@ -97,6 +97,7 @@
                 <th>Stock Ant.</th>
                 <th>Stock Post.</th>
                 <th>Motivo</th>
+                <th>Pago</th>
                 <th>Responsable</th>
                 <th>Acciones</th>
               </tr>
@@ -131,6 +132,15 @@
                     <span>{{ m.reason }}</span>
                     @if (m.reference_number) {
                       <div class="ref-badge">Ref: {{ m.reference_number }}</div>
+                    }
+                  </td>
+                  <td>
+                    @if (m.payment_method) {
+                      <span class="badge" [ngClass]="getPaymentBadgeClass(m.payment_status)">
+                        {{ getPaymentLabel(m) }}
+                      </span>
+                    } @else {
+                      <span style="color: #A09080; font-size: 0.85rem;">-</span>
                     }
                   </td>
                   <td class="user-cell">{{ m.user_name || 'Admin' }}</td>
@@ -280,6 +290,27 @@
                 placeholder="Ej. GUIA-8849 / FAC-2026-01"
               />
             </div>
+
+            <!-- Tipo de Pago -->
+            <div class="form-group">
+              <label for="m-pay-method">Tipo de Pago (Opcional para salidas/ventas)</label>
+              <select id="m-pay-method" formControlName="payment_method" class="form-control">
+                <option value="">Ninguno / No Aplica</option>
+                <option value="EFECTIVO">💵 Efectivo</option>
+                <option value="PAYPAL">🅿️ PayPal</option>
+              </select>
+            </div>
+
+            <!-- Estado de Pago -->
+            @if (movementForm.get('payment_method')?.value) {
+              <div class="form-group">
+                <label for="m-pay-status">Estado del Pago</label>
+                <select id="m-pay-status" formControlName="payment_status" class="form-control">
+                  <option value="PENDING">⏳ Pendiente</option>
+                  <option value="PAID">✓ Pagado</option>
+                </select>
+              </div>
+            }
           </div>
 
           <div class="modal-footer">
@@ -348,6 +379,27 @@
                 placeholder="Ej. GUIA-8849 / FAC-2026-01"
               />
             </div>
+
+            <!-- Tipo de Pago -->
+            <div class="form-group">
+              <label for="edit-pay-method">Tipo de Pago</label>
+              <select id="edit-pay-method" formControlName="payment_method" class="form-control">
+                <option value="">Ninguno / No Aplica</option>
+                <option value="EFECTIVO">💵 Efectivo</option>
+                <option value="PAYPAL">🅿️ PayPal</option>
+              </select>
+            </div>
+
+            <!-- Estado de Pago -->
+            @if (editForm.get('payment_method')?.value) {
+              <div class="form-group">
+                <label for="edit-pay-status">Estado del Pago</label>
+                <select id="edit-pay-status" formControlName="payment_status" class="form-control">
+                  <option value="PENDING">⏳ Pendiente</option>
+                  <option value="PAID">✓ Pagado</option>
+                </select>
+              </div>
+            }
           </div>
 
           <div class="modal-footer">

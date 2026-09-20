@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -71,11 +71,15 @@ export class InventoryMovementsComponent implements OnInit {
       quantity: [1, [Validators.required, Validators.min(1)]],
       reason: ['', [Validators.required, Validators.minLength(5)]],
       reference_number: [''],
+      payment_method: [''],
+      payment_status: ['PENDING'],
     });
 
     this.editForm = this.fb.group({
       reason: ['', [Validators.required, Validators.minLength(5)]],
       reference_number: [''],
+      payment_method: [''],
+      payment_status: ['PENDING'],
     });
   }
 
@@ -137,6 +141,8 @@ export class InventoryMovementsComponent implements OnInit {
       reference_number: '',
       branch_id: this.authService.currentUser()?.branch_id || (this.branches().length > 0 ? this.branches()[0].id : ''),
       variant_id: '',
+      payment_method: '',
+      payment_status: 'PENDING',
     });
     this.currentStock.set(null);
     this.isModalOpen.set(true);
@@ -200,6 +206,8 @@ export class InventoryMovementsComponent implements OnInit {
         quantity: val.quantity,
         reason: val.reason.trim(),
         reference_number: val.reference_number?.trim() || undefined,
+        payment_method: val.payment_method || undefined,
+        payment_status: val.payment_status || 'PENDING',
       })
       .subscribe({
         next: () => {
@@ -222,6 +230,8 @@ export class InventoryMovementsComponent implements OnInit {
     this.editForm.patchValue({
       reason: m.reason || '',
       reference_number: m.reference_number || '',
+      payment_method: m.payment_method || '',
+      payment_status: m.payment_status || 'PENDING',
     });
     this.isEditModalOpen.set(true);
   }
@@ -245,6 +255,8 @@ export class InventoryMovementsComponent implements OnInit {
       .updateMovement(m.id, {
         reason: val.reason.trim(),
         reference_number: val.reference_number?.trim() || undefined,
+        payment_method: val.payment_method || undefined,
+        payment_status: val.payment_status || undefined,
       })
       .subscribe({
         next: () => {
@@ -325,6 +337,16 @@ export class InventoryMovementsComponent implements OnInit {
       default:
         return type;
     }
+  }
+
+  getPaymentBadgeClass(paymentStatus?: string): string {
+    return paymentStatus === 'PAID' ? 'badge-paid' : 'badge-pending-pay';
+  }
+
+  getPaymentLabel(m: InventoryMovement): string {
+    if (!m.payment_method) return '-';
+    const method = m.payment_method === 'PAYPAL' ? 'PayPal' : 'Efectivo';
+    return m.payment_status === 'PAID' ? `✓ Pagado (${method})` : `⏳ Pendiente (${method})`;
   }
 }
 

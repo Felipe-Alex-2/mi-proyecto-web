@@ -1,4 +1,4 @@
-﻿<div class="reservations-page-wrapper">
+<div class="reservations-page-wrapper">
   <!-- Toast alert -->
   @if (feedbackMessage()) {
     <div class="toast-banner" [class.toast-error]="feedbackType() === 'error'">
@@ -119,6 +119,9 @@
                 <span class="badge" [ngClass]="getStatusBadgeClass(r.status)">
                   {{ getStatusLabel(r.status) }}
                 </span>
+                <span class="badge" [ngClass]="getPaymentBadgeClass(r.payment_status)">
+                  {{ getPaymentLabel(r) }}
+                </span>
               </div>
               <div class="time-meta">
                 <span>Creada: {{ r.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
@@ -211,6 +214,22 @@
                 <option value="CONFIRMED">🔹 CONFIRMED - Confirmar reserva de prendas</option>
                 <option value="COMPLETED">✓ COMPLETED - Cliente asistió y finalizó prueba</option>
                 <option value="CANCELLED">✕ CANCELLED - Cancelar reserva</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="modal-payment-method">Tipo de Pago *</label>
+              <select id="modal-payment-method" formControlName="payment_method" class="form-control">
+                <option value="EFECTIVO">💵 Pago en Efectivo</option>
+                <option value="PAYPAL">🅿️ Pago con PayPal</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="modal-payment-status">Estado del Pago *</label>
+              <select id="modal-payment-status" formControlName="payment_status" class="form-control">
+                <option value="PENDING">⏳ Pendiente (Cobro pendiente en tienda)</option>
+                <option value="PAID">✓ Pagado (Cobro verificado / completado)</option>
               </select>
             </div>
 
