@@ -290,6 +290,12 @@
   border: 1px solid rgba(45, 125, 70, 0.2);
 }
 
+.module4-icon {
+  background: rgba(139, 69, 19, 0.12);
+  color: #8B4513;
+  border: 1px solid rgba(139, 69, 19, 0.2);
+}
+
 .accordion-text {
   display: flex;
   flex-direction: column;

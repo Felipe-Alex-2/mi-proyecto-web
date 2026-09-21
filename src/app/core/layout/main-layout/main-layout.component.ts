@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
@@ -17,7 +17,7 @@ export class MainLayoutComponent implements OnInit {
   module1Open = signal<boolean>(false);
   module2Open = signal<boolean>(false);
   module3Open = signal<boolean>(true);  // Default open for Paquete 3
-  module5Open = signal<boolean>(true);
+  module4Open = signal<boolean>(true);
 
   constructor(
     public authService: AuthService,
@@ -53,8 +53,8 @@ export class MainLayoutComponent implements OnInit {
     this.module3Open.update((val) => !val);
   }
 
-  toggleModule5(): void {
-    this.module5Open.update((val) => !val);
+  toggleModule4(): void {
+    this.module4Open.update((val) => !val);
   }
 
   logout(): void {
