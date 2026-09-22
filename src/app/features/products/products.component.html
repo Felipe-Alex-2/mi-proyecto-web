@@ -293,14 +293,22 @@
 
     } @else if (products().length === 0) {
       <div class="empty-state">
-        <div class="empty-icon">👗</div>
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:48px;height:48px;">
+            <path d="M12 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4z"/>
+          </svg>
+        </div>
         <h3>No se encontraron prendas</h3>
         <p>Registra tu primera prenda de vestir seleccionando sus tallas, colores y existencias por tienda.</p>
         <button class="btn-primary mt-3" (click)="openCreateModal()">Crear Prenda Ahora</button>
       </div>
     } @else if (filteredProducts().length === 0) {
       <div class="empty-state">
-        <div class="empty-icon">🏬</div>
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:48px;height:48px;">
+            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd" />
+          </svg>
+        </div>
         <h3>Sin existencias en la sucursal</h3>
         <p>No se encontraron prendas con stock disponible en <strong>{{ designatedBranch()?.name }}</strong>.</p>
         <button class="btn-secondary mt-3" (click)="toggleOnlyWithStock()">Mostrar todas las prendas</button>
@@ -324,7 +332,9 @@
 
                 <div class="product-placeholder-icon">
 
-                  <span>ðŸ‘—</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:40px;height:40px;opacity:0.6;">
+                    <path d="M12 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4z"/>
+                  </svg>
 
                 </div>
 
@@ -340,7 +350,7 @@
 
               @if (product.discount_percent && product.discount_percent > 0) {
                 <span class="discount-badge-top-right" [title]="(product.promotion_name || 'Promoción') + ': ' + product.discount_percent + '% de descuento'">
-                  🏷️ -{{ product.discount_percent | number:'1.0-0' }}%
+                  -{{ product.discount_percent | number:'1.0-0' }}% OFF
                 </span>
               }
 

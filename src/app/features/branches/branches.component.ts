@@ -1,4 +1,4 @@
-﻿import { noWhitespaceValidator } from '../../core/validators/custom-validators';
+import { noWhitespaceValidator } from '../../core/validators/custom-validators';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -155,6 +155,7 @@ export class BranchesComponent implements OnInit {
 
     this.isSaving.set(true);
     this.modalError.set(null);
+    this.errorMessage.set(null);
     const formVal = this.branchForm.value;
 
     if (this.isEditMode()) {
@@ -162,9 +163,13 @@ export class BranchesComponent implements OnInit {
       this.branchService.updateBranch(id, formVal).subscribe({
         next: () => {
           this.isSaving.set(false);
-          this.closeBranchModal();
-          this.showSuccess('Sucursal actualizada correctamente');
-          this.loadBranches();
+          try {
+            this.closeBranchModal();
+            this.showSuccess('Sucursal actualizada correctamente');
+            this.loadBranches();
+          } catch (e) {
+            console.error('Error al recargar sucursales:', e);
+          }
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -177,9 +182,13 @@ export class BranchesComponent implements OnInit {
       this.branchService.createBranch(formVal).subscribe({
         next: () => {
           this.isSaving.set(false);
-          this.closeBranchModal();
-          this.showSuccess('Nueva sucursal registrada exitosamente');
-          this.loadBranches();
+          try {
+            this.closeBranchModal();
+            this.showSuccess('Nueva sucursal registrada exitosamente');
+            this.loadBranches();
+          } catch (e) {
+            console.error('Error al recargar sucursales:', e);
+          }
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -197,12 +206,17 @@ export class BranchesComponent implements OnInit {
       return;
     }
 
+    this.errorMessage.set(null);
     this.branchService.toggleBranchStatus(branch.id).subscribe({
       next: (updated) => {
-        this.showSuccess(
-          `Sucursal "${updated.name}" ${updated.is_active ? 'abierta/activa' : 'cerrada temporalmente'}`
-        );
-        this.loadBranches();
+        try {
+          this.showSuccess(
+            `Sucursal "${updated.name}" ${updated.is_active ? 'abierta/activa' : 'cerrada temporalmente'}`
+          );
+          this.loadBranches();
+        } catch (e) {
+          console.error(e);
+        }
       },
       error: (err) => {
         this.errorMessage.set(err?.error?.detail || 'No se pudo cambiar el estado');
@@ -247,14 +261,19 @@ export class BranchesComponent implements OnInit {
 
     this.isAssigning.set(true);
     this.staffModalError.set(null);
+    this.errorMessage.set(null);
 
     this.branchService.assignStaff(branch.id, [empId]).subscribe({
       next: (updatedBranch) => {
         this.isAssigning.set(false);
-        this.activeBranch.set(updatedBranch);
-        this.selectedEmployeeId.set('');
-        this.showSuccess('Personal asignado/transferido exitosamente');
-        this.loadBranches();
+        try {
+          this.activeBranch.set(updatedBranch);
+          this.selectedEmployeeId.set('');
+          this.showSuccess('Personal asignado/transferido exitosamente');
+          this.loadBranches();
+        } catch (e) {
+          console.error(e);
+        }
       },
       error: (err) => {
         this.isAssigning.set(false);
@@ -273,11 +292,16 @@ export class BranchesComponent implements OnInit {
       return;
     }
 
+    this.staffModalError.set(null);
     this.branchService.removeStaff(branch.id, userId).subscribe({
       next: (updatedBranch) => {
-        this.activeBranch.set(updatedBranch);
-        this.showSuccess('Empleado desvinculado correctamente');
-        this.loadBranches();
+        try {
+          this.activeBranch.set(updatedBranch);
+          this.showSuccess('Empleado desvinculado correctamente');
+          this.loadBranches();
+        } catch (e) {
+          console.error(e);
+        }
       },
       error: (err) => {
         this.staffModalError.set(

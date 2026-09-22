@@ -93,7 +93,11 @@
       </div>
     } @else if (filteredPromotions().length === 0) {
       <div class="empty-state">
-        <div class="empty-icon">🏷️</div>
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 48px; height: 48px; opacity: 0.5;">
+            <path fill-rule="evenodd" d="M5.25 2.25a3 3 0 00-3 3v4.318a3 3 0 00.879 2.122l10.5 10.5a3 3 0 004.242 0l4.319-4.319a3 3 0 000-4.242l-10.5-10.5A3 3 0 009.568 2.25H5.25zM6 7.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" />
+          </svg>
+        </div>
         <h3>No hay promociones registradas</h3>
         <p>Crea tu primera promoción con porcentaje de descuento para destacar tus prendas en oferta.</p>
       </div>
@@ -118,9 +122,8 @@
                 }
               </div>
 
-              <!-- Discount Tag Badge (Etiqueta como la foto enviada) -->
+              <!-- Discount Tag Badge (Etiqueta con porcentaje) -->
               <div class="discount-tag">
-                <span class="tag-icon">🏷️</span>
                 <span class="tag-percent">{{ promotion.discount_percent | number:'1.0-0' }}% OFF</span>
               </div>
             </div>
@@ -156,7 +159,7 @@
                 } @else {
                   @let remaining = getDaysRemaining(promotion.end_date);
                   <span class="time-text active">
-                    ⏳ Quedan {{ remaining }} {{ remaining === 1 ? 'día' : 'días' }} de vigencia
+                    Quedan {{ remaining }} {{ remaining === 1 ? 'día' : 'días' }} de vigencia
                   </span>
                 }
               </div>

@@ -188,6 +188,7 @@ export class CatalogAttributesComponent implements OnInit {
   save(): void {
     this.isSaving.set(true);
     this.modalError.set(null);
+    this.errorMessage.set(null);
 
     if (this.activeTab() === 'categories') {
       this.saveCategory();
@@ -275,9 +276,13 @@ export class CatalogAttributesComponent implements OnInit {
 
   private onSaveSuccess(msg: string): void {
     this.isSaving.set(false);
-    this.closeModal();
-    this.showSuccess(msg);
-    this.loadData();
+    try {
+      this.closeModal();
+      this.showSuccess(msg);
+      this.loadData();
+    } catch (e) {
+      console.error('Error al recargar catálogo tras guardar:', e);
+    }
   }
 
   private onSaveError(err: any): void {
@@ -289,10 +294,15 @@ export class CatalogAttributesComponent implements OnInit {
   toggleCategoryStatus(cat: Category): void {
     const action = cat.is_active ? 'desactivar' : 'activar';
     if (!confirm(`¿Deseas ${action} la categoría "${cat.name}"?`)) return;
+    this.errorMessage.set(null);
     this.catalogService.toggleCategoryStatus(cat.id).subscribe({
       next: () => {
-        this.showSuccess(`Categoría "${cat.name}" ${cat.is_active ? 'desactivada' : 'activada'}`);
-        this.loadData();
+        try {
+          this.showSuccess(`Categoría "${cat.name}" ${cat.is_active ? 'desactivada' : 'activada'}`);
+          this.loadData();
+        } catch (e) {
+          console.error(e);
+        }
       },
       error: (err) => this.errorMessage.set(err?.error?.detail || 'Error al cambiar estado'),
     });
@@ -301,10 +311,15 @@ export class CatalogAttributesComponent implements OnInit {
   toggleSizeStatus(size: Size): void {
     const action = size.is_active ? 'desactivar' : 'activar';
     if (!confirm(`¿Deseas ${action} la talla "${size.name}"?`)) return;
+    this.errorMessage.set(null);
     this.catalogService.toggleSizeStatus(size.id).subscribe({
       next: () => {
-        this.showSuccess(`Talla "${size.name}" ${size.is_active ? 'desactivada' : 'activada'}`);
-        this.loadData();
+        try {
+          this.showSuccess(`Talla "${size.name}" ${size.is_active ? 'desactivada' : 'activada'}`);
+          this.loadData();
+        } catch (e) {
+          console.error(e);
+        }
       },
       error: (err) => this.errorMessage.set(err?.error?.detail || 'Error al cambiar estado'),
     });
@@ -313,10 +328,15 @@ export class CatalogAttributesComponent implements OnInit {
   toggleColorStatus(color: Color): void {
     const action = color.is_active ? 'desactivar' : 'activar';
     if (!confirm(`¿Deseas ${action} el color "${color.name}"?`)) return;
+    this.errorMessage.set(null);
     this.catalogService.toggleColorStatus(color.id).subscribe({
       next: () => {
-        this.showSuccess(`Color "${color.name}" ${color.is_active ? 'desactivado' : 'activado'}`);
-        this.loadData();
+        try {
+          this.showSuccess(`Color "${color.name}" ${color.is_active ? 'desactivado' : 'activado'}`);
+          this.loadData();
+        } catch (e) {
+          console.error(e);
+        }
       },
       error: (err) => this.errorMessage.set(err?.error?.detail || 'Error al cambiar estado'),
     });

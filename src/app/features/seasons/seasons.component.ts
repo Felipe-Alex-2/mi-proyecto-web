@@ -106,6 +106,7 @@ export class SeasonsComponent implements OnInit {
 
     this.isSaving.set(true);
     this.modalError.set(null);
+    this.errorMessage.set(null);
 
     const val = this.seasonForm.value;
     if (!val.description) {
@@ -115,10 +116,19 @@ export class SeasonsComponent implements OnInit {
     if (this.isEditMode()) {
       this.seasonService.updateSeason(this.editingId()!, val).subscribe({
         next: () => {
-          this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess('Temporada actualizada correctamente');
-          this.loadSeasons();
+          try {
+            this.modalError.set(null);
+            this.errorMessage.set(null);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.showSuccess('Temporada actualizada correctamente');
+            this.loadSeasons();
+          } catch (e) {
+            console.error('Error post-actualización:', e);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.loadSeasons();
+          }
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -128,10 +138,19 @@ export class SeasonsComponent implements OnInit {
     } else {
       this.seasonService.createSeason(val).subscribe({
         next: () => {
-          this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess('Temporada creada exitosamente');
-          this.loadSeasons();
+          try {
+            this.modalError.set(null);
+            this.errorMessage.set(null);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.showSuccess('Temporada creada exitosamente');
+            this.loadSeasons();
+          } catch (e) {
+            console.error('Error post-creación:', e);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.loadSeasons();
+          }
         },
         error: (err) => {
           this.isSaving.set(false);

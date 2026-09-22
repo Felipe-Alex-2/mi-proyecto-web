@@ -1,4 +1,4 @@
-﻿import { noWhitespaceValidator } from '../../core/validators/custom-validators';
+import { noWhitespaceValidator } from '../../core/validators/custom-validators';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -157,6 +157,7 @@ export class UsersComponent implements OnInit {
 
     this.isSaving.set(true);
     this.modalError.set(null);
+    this.errorMessage.set(null);
     const formVal = this.userForm.value;
 
     if (this.isEditMode()) {
@@ -174,9 +175,13 @@ export class UsersComponent implements OnInit {
       this.userService.updateUser(userId, payload).subscribe({
         next: () => {
           this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess('Usuario actualizado correctamente');
-          this.loadUsers();
+          try {
+            this.closeModal();
+            this.showSuccess('Usuario actualizado correctamente');
+            this.loadUsers();
+          } catch (e) {
+            console.error('Error al recargar usuarios:', e);
+          }
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -195,9 +200,13 @@ export class UsersComponent implements OnInit {
       this.userService.createUser(payload).subscribe({
         next: () => {
           this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess('Nuevo usuario creado exitosamente');
-          this.loadUsers();
+          try {
+            this.closeModal();
+            this.showSuccess('Nuevo usuario creado exitosamente');
+            this.loadUsers();
+          } catch (e) {
+            console.error('Error al recargar usuarios:', e);
+          }
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -213,12 +222,17 @@ export class UsersComponent implements OnInit {
       return;
     }
 
+    this.errorMessage.set(null);
     this.userService.toggleUserStatus(user.id).subscribe({
       next: (updated) => {
-        this.showSuccess(
-          `Cuenta de "${updated.full_name}" ${updated.is_active ? 'activada' : 'desactivada'} correctamente`
-        );
-        this.loadUsers();
+        try {
+          this.showSuccess(
+            `Cuenta de "${updated.full_name}" ${updated.is_active ? 'activada' : 'desactivada'} correctamente`
+          );
+          this.loadUsers();
+        } catch (e) {
+          console.error(e);
+        }
       },
       error: (err) => {
         this.errorMessage.set(err?.error?.detail || 'No se pudo cambiar el estado');

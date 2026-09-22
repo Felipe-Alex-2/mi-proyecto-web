@@ -180,14 +180,19 @@ export class PromotionsComponent implements OnInit {
 
     this.isSaving.set(true);
     this.modalError.set(null);
+    this.errorMessage.set(null);
 
     if (this.isEditMode()) {
       this.promotionService.updatePromotion(this.editingId()!, val).subscribe({
         next: () => {
           this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess('Promoción actualizada correctamente');
-          this.loadPromotions();
+          try {
+            this.closeModal();
+            this.showSuccess('Promoción actualizada correctamente');
+            this.loadPromotions();
+          } catch (e) {
+            console.error('Error al actualizar lista de promociones:', e);
+          }
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -198,9 +203,13 @@ export class PromotionsComponent implements OnInit {
       this.promotionService.createPromotion(val).subscribe({
         next: () => {
           this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess('Promoción creada exitosamente');
-          this.loadPromotions();
+          try {
+            this.closeModal();
+            this.showSuccess('Promoción creada exitosamente');
+            this.loadPromotions();
+          } catch (e) {
+            console.error('Error al actualizar lista de promociones:', e);
+          }
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -214,12 +223,17 @@ export class PromotionsComponent implements OnInit {
     const action = promotion.is_active ? 'desactivar' : 'activar';
     if (!confirm(`¿Deseas ${action} la promoción "${promotion.name}"?`)) return;
 
+    this.errorMessage.set(null);
     this.promotionService.togglePromotionStatus(promotion.id).subscribe({
       next: (updated) => {
-        this.showSuccess(
-          `Promoción "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'}`
-        );
-        this.loadPromotions();
+        try {
+          this.showSuccess(
+            `Promoción "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'}`
+          );
+          this.loadPromotions();
+        } catch (e) {
+          console.error('Error en recarga tras cambio de estado:', e);
+        }
       },
       error: (err) => {
         this.errorMessage.set(err?.error?.detail || 'Error al cambiar el estado');

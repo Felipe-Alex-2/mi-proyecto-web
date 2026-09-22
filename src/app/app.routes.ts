@@ -1,5 +1,12 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, adminGuard } from './core/guards/auth.guard';
+import {
+  authGuard,
+  guestGuard,
+  adminGuard,
+  managerGuard,
+  reportsGuard,
+  dashboardGuard,
+} from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -56,6 +63,7 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent
           ),
+        canActivate: [dashboardGuard],
       },
       {
         path: 'catalog',
@@ -70,7 +78,7 @@ export const routes: Routes = [
           import('./features/reports/reports.component').then(
             (m) => m.ReportsComponent
           ),
-        canActivate: [adminGuard],
+        canActivate: [reportsGuard],
       },
       {
         path: 'recommendations',
@@ -87,6 +95,7 @@ export const routes: Routes = [
           ),
         canActivate: [adminGuard],
       },
+      // Módulo 1: Seguridad y Personal (Solo ADMIN)
       {
         path: 'users',
         loadComponent: () =>
@@ -103,13 +112,14 @@ export const routes: Routes = [
           ),
         canActivate: [adminGuard],
       },
+      // Módulo 2: Catálogo y Proveedores (ADMIN y STORE_MANAGER)
       {
         path: 'products',
         loadComponent: () =>
           import('./features/products/products.component').then(
             (m) => m.ProductsComponent
           ),
-        canActivate: [adminGuard],
+        canActivate: [managerGuard],
       },
       {
         path: 'catalog-attributes',
@@ -117,7 +127,7 @@ export const routes: Routes = [
           import('./features/catalog-attributes/catalog-attributes.component').then(
             (m) => m.CatalogAttributesComponent
           ),
-        canActivate: [adminGuard],
+        canActivate: [managerGuard],
       },
       {
         path: 'seasons',
@@ -125,7 +135,7 @@ export const routes: Routes = [
           import('./features/seasons/seasons.component').then(
             (m) => m.SeasonsComponent
           ),
-        canActivate: [adminGuard],
+        canActivate: [managerGuard],
       },
       {
         path: 'promotions',
@@ -133,7 +143,7 @@ export const routes: Routes = [
           import('./features/promotions/promotions.component').then(
             (m) => m.PromotionsComponent
           ),
-        canActivate: [adminGuard],
+        canActivate: [managerGuard],
       },
       {
         path: 'suppliers',
@@ -141,9 +151,9 @@ export const routes: Routes = [
           import('./features/suppliers/suppliers.component').then(
             (m) => m.SuppliersComponent
           ),
-        canActivate: [adminGuard],
+        canActivate: [managerGuard],
       },
-      // Paquete 3: Inventario, Catálogo Digital y Reservas
+      // Módulo 3: Inventario, Catálogo Digital y Reservas
       {
         path: 'inventory-movements',
         loadComponent: () =>

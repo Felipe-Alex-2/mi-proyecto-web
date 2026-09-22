@@ -119,6 +119,7 @@ export class ReservationsAdminComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
+    this.feedbackMessage.set('');
     const val = this.statusForm.value;
 
     this.reservationService
@@ -131,13 +132,17 @@ export class ReservationsAdminComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
-          this.closeStatusModal();
-          const extraInfo = (val.status === 'CONFIRMED' || val.status === 'COMPLETED')
-            ? ' (movimiento de stock registrado automáticamente)'
-            : '';
-          this.showToast(`Reserva ${r.reservation_code} actualizada a ${val.status}${extraInfo}`, 'success');
-          this.loadStats();
-          this.loadReservations();
+          try {
+            this.closeStatusModal();
+            const extraInfo = (val.status === 'CONFIRMED' || val.status === 'COMPLETED')
+              ? ' (movimiento de stock registrado automáticamente)'
+              : '';
+            this.showToast(`Reserva ${r.reservation_code} actualizada a ${val.status}${extraInfo}`, 'success');
+            this.loadStats();
+            this.loadReservations();
+          } catch (e) {
+            console.error('Error al recargar reservas:', e);
+          }
         },
         error: (err) => {
           this.isSubmitting.set(false);
@@ -147,6 +152,7 @@ export class ReservationsAdminComponent implements OnInit {
   }
 
   quickConfirm(r: Reservation): void {
+    this.feedbackMessage.set('');
     this.reservationService
       .updateStatus(r.id, {
         status: 'CONFIRMED',
@@ -154,9 +160,13 @@ export class ReservationsAdminComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.showToast(`Reserva ${r.reservation_code} confirmada y registrada en movimientos de stock`, 'success');
-          this.loadStats();
-          this.loadReservations();
+          try {
+            this.showToast(`Reserva ${r.reservation_code} confirmada y registrada en movimientos de stock`, 'success');
+            this.loadStats();
+            this.loadReservations();
+          } catch (e) {
+            console.error('Error al recargar reservas tras confirmación:', e);
+          }
         },
         error: (err) => {
           this.showToast(err.error?.detail || 'Error al confirmar reserva', 'error');
@@ -190,15 +200,15 @@ export class ReservationsAdminComponent implements OnInit {
   getStatusLabel(status: string): string {
     switch (status) {
       case 'PENDING':
-        return '⏳ Pendiente';
+        return 'Pendiente';
       case 'CONFIRMED':
-        return '🔹 Confirmada';
+        return 'Confirmada';
       case 'COMPLETED':
-        return '✓ Completada';
+        return 'Completada';
       case 'CANCELLED':
-        return '✕ Cancelada';
+        return 'Cancelada';
       case 'EXPIRED':
-        return '⏱ Vencida';
+        return 'Vencida';
       default:
         return status;
     }
@@ -210,6 +220,6 @@ export class ReservationsAdminComponent implements OnInit {
 
   getPaymentLabel(r: Reservation): string {
     const method = r.payment_method === 'PAYPAL' ? 'PayPal' : 'Efectivo';
-    return r.payment_status === 'PAID' ? `✓ Pagado (${method})` : `⏳ Pendiente (${method})`;
+    return r.payment_status === 'PAID' ? `Pagado (${method})` : `Pendiente (${method})`;
   }
 }

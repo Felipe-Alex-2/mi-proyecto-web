@@ -318,6 +318,7 @@ export class ProductsComponent implements OnInit {
     this.isEditMode.set(false);
     this.editingId.set(null);
     this.modalError.set(null);
+    this.errorMessage.set(null);
     this.imagePreview.set(null);
     this.productForm.reset({ gender: 'UNISEX', promotion_id: '' });
     this.selectedSizeIds.set([]);
@@ -330,6 +331,7 @@ export class ProductsComponent implements OnInit {
     this.isEditMode.set(true);
     this.editingId.set(product.id);
     this.modalError.set(null);
+    this.errorMessage.set(null);
     this.imagePreview.set(product.image_url || null);
     this.productForm.patchValue({
       name: product.name,
@@ -374,6 +376,7 @@ export class ProductsComponent implements OnInit {
 
     this.isSaving.set(true);
     this.modalError.set(null);
+    this.errorMessage.set(null);
 
     const f = this.productForm.value;
 
@@ -392,12 +395,19 @@ export class ProductsComponent implements OnInit {
 
       this.productService.updateProduct(this.editingId()!, updatePayload).subscribe({
         next: (updated) => {
-          this.products.update((list) =>
-            list.map((p) => (p.id === updated.id ? updated : p))
-          );
-          this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess(`Prenda "${updated.name}" actualizada con éxito`);
+          try {
+            this.modalError.set(null);
+            this.errorMessage.set(null);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.showSuccess(`Prenda "${updated.name}" actualizada con éxito`);
+            this.loadProducts();
+          } catch (e) {
+            console.error('Error al procesar respuesta de actualización:', e);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.loadProducts();
+          }
         },
         error: (err) => {
           const detail = err.error?.detail || err.error?.message || 'Error al actualizar prenda';
@@ -441,10 +451,20 @@ export class ProductsComponent implements OnInit {
 
       this.productService.createProduct(createPayload).subscribe({
         next: (created) => {
-          this.products.update((list) => [created, ...list]);
-          this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess(`Prenda "${created.name}" creada con ${created.variants.length} variantes y stock inicial`);
+          try {
+            this.modalError.set(null);
+            this.errorMessage.set(null);
+            this.isSaving.set(false);
+            this.closeModal();
+            const count = created?.variants?.length || 0;
+            this.showSuccess(`Prenda "${created.name}" creada con ${count} variantes y stock inicial`);
+            this.loadProducts();
+          } catch (e) {
+            console.error('Error al procesar respuesta de creación:', e);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.loadProducts();
+          }
         },
         error: (err) => {
           const detail = err.error?.detail || err.error?.message || 'Error al crear la prenda';
@@ -606,6 +626,7 @@ export class ProductsComponent implements OnInit {
   }
 
   private showSuccess(msg: string): void {
+    this.errorMessage.set(null);
     this.successMessage.set(msg);
     setTimeout(() => {
       this.successMessage.set(null);

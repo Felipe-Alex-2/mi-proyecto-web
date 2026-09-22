@@ -198,6 +198,7 @@ export class InventoryMovementsComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
+    this.feedbackMessage.set('');
     this.inventoryService
       .createMovement({
         branch_id: val.branch_id,
@@ -212,9 +213,13 @@ export class InventoryMovementsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
-          this.closeModal();
-          this.showToast('Movimiento de inventario registrado con éxito', 'success');
-          this.loadMovements();
+          try {
+            this.closeModal();
+            this.showToast('Movimiento de inventario registrado con éxito', 'success');
+            this.loadMovements();
+          } catch (e) {
+            console.error('Error al recargar movimientos:', e);
+          }
         },
         error: (err) => {
           this.isSubmitting.set(false);
@@ -250,6 +255,7 @@ export class InventoryMovementsComponent implements OnInit {
     if (!m) return;
 
     this.isSubmitting.set(true);
+    this.feedbackMessage.set('');
     const val = this.editForm.value;
     this.inventoryService
       .updateMovement(m.id, {
@@ -261,9 +267,13 @@ export class InventoryMovementsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
-          this.closeEditModal();
-          this.showToast('Movimiento actualizado con éxito', 'success');
-          this.loadMovements();
+          try {
+            this.closeEditModal();
+            this.showToast('Movimiento actualizado con éxito', 'success');
+            this.loadMovements();
+          } catch (e) {
+            console.error('Error al recargar movimientos:', e);
+          }
         },
         error: (err) => {
           this.isSubmitting.set(false);
@@ -288,12 +298,17 @@ export class InventoryMovementsComponent implements OnInit {
     if (!m) return;
 
     this.isSubmitting.set(true);
+    this.feedbackMessage.set('');
     this.inventoryService.deleteMovement(m.id).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.closeDeleteModal();
-        this.showToast('Movimiento eliminado y stock revertido correctamente', 'success');
-        this.loadMovements();
+        try {
+          this.closeDeleteModal();
+          this.showToast('Movimiento eliminado y stock revertido correctamente', 'success');
+          this.loadMovements();
+        } catch (e) {
+          console.error('Error al recargar tras eliminar movimiento:', e);
+        }
       },
       error: (err) => {
         this.isSubmitting.set(false);

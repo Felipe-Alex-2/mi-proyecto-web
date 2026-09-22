@@ -131,6 +131,7 @@ export class SuppliersComponent implements OnInit {
 
     this.isSaving.set(true);
     this.modalError.set(null);
+    this.errorMessage.set(null);
 
     const formVal = this.supplierForm.value;
     const payload = {
@@ -145,13 +146,19 @@ export class SuppliersComponent implements OnInit {
     if (this.isEditMode() && this.editingId()) {
       this.supplierService.updateSupplier(this.editingId()!, payload).subscribe({
         next: (updated) => {
-          this.suppliers.update((list) =>
-            list.map((s) => (s.id === updated.id ? updated : s))
-          );
-          this.filterSuppliers(this.searchQuery());
           this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess('Proveedor actualizado correctamente');
+          try {
+            this.suppliers.update((list) =>
+              list.map((s) => (s.id === updated.id ? updated : s))
+            );
+            this.filterSuppliers(this.searchQuery());
+            this.closeModal();
+            this.showSuccess('Proveedor actualizado correctamente');
+          } catch (e) {
+            console.error('Error procesando actualización de proveedor:', e);
+            this.closeModal();
+            this.loadSuppliers();
+          }
         },
         error: (err) => {
           this.modalError.set(err.error?.detail || 'Error al actualizar el proveedor');
@@ -161,11 +168,17 @@ export class SuppliersComponent implements OnInit {
     } else {
       this.supplierService.createSupplier(payload).subscribe({
         next: (created) => {
-          this.suppliers.update((list) => [created, ...list]);
-          this.filterSuppliers(this.searchQuery());
           this.isSaving.set(false);
-          this.closeModal();
-          this.showSuccess('Proveedor registrado exitosamente');
+          try {
+            this.suppliers.update((list) => [created, ...list]);
+            this.filterSuppliers(this.searchQuery());
+            this.closeModal();
+            this.showSuccess('Proveedor registrado exitosamente');
+          } catch (e) {
+            console.error('Error procesando creación de proveedor:', e);
+            this.closeModal();
+            this.loadSuppliers();
+          }
         },
         error: (err) => {
           this.modalError.set(err.error?.detail || 'Error al crear el proveedor');
@@ -176,17 +189,23 @@ export class SuppliersComponent implements OnInit {
   }
 
   toggleSupplierStatus(supplier: Supplier): void {
+    this.errorMessage.set(null);
     this.supplierService.toggleSupplierStatus(supplier.id).subscribe({
       next: (updated) => {
-        this.suppliers.update((list) =>
-          list.map((s) => (s.id === updated.id ? updated : s))
-        );
-        this.filterSuppliers(this.searchQuery());
-        this.showSuccess(
-          `Proveedor "${updated.company_name}" ${
-            updated.is_active ? 'activado' : 'desactivado'
-          } correctamente`
-        );
+        try {
+          this.suppliers.update((list) =>
+            list.map((s) => (s.id === updated.id ? updated : s))
+          );
+          this.filterSuppliers(this.searchQuery());
+          this.showSuccess(
+            `Proveedor "${updated.company_name}" ${
+              updated.is_active ? 'activado' : 'desactivado'
+            } correctamente`
+          );
+        } catch (e) {
+          console.error('Error tras toggle proveedor:', e);
+          this.loadSuppliers();
+        }
       },
       error: (err) => {
         this.errorMessage.set(
