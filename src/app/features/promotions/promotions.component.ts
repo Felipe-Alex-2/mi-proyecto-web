@@ -129,7 +129,13 @@ export class PromotionsComponent implements OnInit {
   save(): void {
     if (this.promotionForm.invalid) {
       this.promotionForm.markAllAsTouched();
-      this.modalError.set('Por favor completa todos los campos requeridos con datos válidos.');
+      const invalidFields: string[] = [];
+      const c = this.promotionForm.controls;
+      if (c['name'].invalid) invalidFields.push('Nombre de la Promoción (requerido)');
+      if (c['discount_percent'].invalid) invalidFields.push('Porcentaje de Descuento (debe ser de 1 a 100%)');
+      if (c['start_date'].invalid) invalidFields.push('Fecha de Inicio (requerida)');
+      if (c['end_date'].invalid) invalidFields.push('Fecha de Fin (requerida)');
+      this.modalError.set(`No se puede guardar: Corrige los siguientes campos obligatorios:\n• ${invalidFields.join('\n• ')}`);
       return;
     }
 
@@ -137,7 +143,7 @@ export class PromotionsComponent implements OnInit {
     const cleanName = (val.name || '').trim();
 
     if (!cleanName) {
-      this.modalError.set('El nombre de la promoción no puede estar en blanco.');
+      this.modalError.set('El nombre de la promoción no puede estar en blanco ni contener solo espacios.');
       return;
     }
 
@@ -148,21 +154,21 @@ export class PromotionsComponent implements OnInit {
         p.id !== this.editingId()
     );
     if (isDuplicate) {
-      this.modalError.set(`Ya existe una promoción con el nombre "${cleanName}".`);
+      this.modalError.set(`Ya existe una promoción registrada con el nombre "${cleanName}". Por favor ingresa otro nombre.`);
       return;
     }
 
     // Validación de porcentaje
     const discount = Number(val.discount_percent);
     if (isNaN(discount) || discount <= 0 || discount > 100) {
-      this.modalError.set('El porcentaje de descuento debe ser un número entre 1 y 100.');
+      this.modalError.set('El porcentaje de descuento debe ser un valor numérico entre 1% y 100%.');
       return;
     }
     val.discount_percent = discount;
 
     // Validación de fechas
     if (val.end_date < val.start_date) {
-      this.modalError.set('La fecha de fin no puede ser anterior a la fecha de inicio.');
+      this.modalError.set('La fecha de fin no puede ser anterior a la fecha de inicio de la promoción.');
       return;
     }
 

@@ -355,12 +355,19 @@ export class ProductsComponent implements OnInit {
   saveProduct(): void {
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
+      const invalidFields: string[] = [];
+      const c = this.productForm.controls;
+      if (c['name'].invalid) invalidFields.push('Nombre de la Prenda (mínimo 2 caracteres)');
+      if (c['price'].invalid) invalidFields.push('Precio Base ($ USD, debe ser mayor a 0)');
+      if (c['category_id'].invalid) invalidFields.push('Categoría (selecciona una opción)');
+      if (c['gender'].invalid) invalidFields.push('Género');
+      this.modalError.set(`No se puede guardar: Corrige los siguientes campos obligatorios:\n• ${invalidFields.join('\n• ')}`);
       return;
     }
 
     if (!this.isEditMode()) {
       if (this.selectedSizeIds().length === 0 || this.selectedColorIds().length === 0) {
-        this.modalError.set('Debes seleccionar al menos una Talla y un Color para generar variantes');
+        this.modalError.set('No se puede guardar: Debes seleccionar al menos una Talla y un Color para generar las variantes de la prenda.');
         return;
       }
     }
@@ -393,7 +400,8 @@ export class ProductsComponent implements OnInit {
           this.showSuccess(`Prenda "${updated.name}" actualizada con éxito`);
         },
         error: (err) => {
-          this.modalError.set(err.error?.detail || 'Error al actualizar prenda');
+          const detail = err.error?.detail || err.error?.message || 'Error al actualizar prenda';
+          this.modalError.set(detail);
           this.isSaving.set(false);
         },
       });
@@ -439,7 +447,8 @@ export class ProductsComponent implements OnInit {
           this.showSuccess(`Prenda "${created.name}" creada con ${created.variants.length} variantes y stock inicial`);
         },
         error: (err) => {
-          this.modalError.set(err.error?.detail || 'Error al crear la prenda');
+          const detail = err.error?.detail || err.error?.message || 'Error al crear la prenda';
+          this.modalError.set(detail);
           this.isSaving.set(false);
         },
       });

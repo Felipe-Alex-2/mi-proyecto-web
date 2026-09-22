@@ -40,3 +40,73 @@ option {
   color: #2C1810;
 }
 
+/* ==========================================================================
+   GLOBAL NOTORIOUS FORM VALIDATION STYLES
+   ========================================================================== */
+.form-input.ng-invalid.ng-touched,
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+  border: 2px solid #EF4444 !important;
+  background-color: #FEF2F2 !important;
+  color: #991B1B !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18) !important;
+  animation: inputShake 0.3s ease-in-out;
+}
+
+.field-error,
+.error-msg,
+.text-danger {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  color: #DC2626 !important;
+  margin-top: 0.35rem !important;
+  background: #FEF2F2 !important;
+  border-left: 3px solid #DC2626 !important;
+  padding: 0.25rem 0.6rem !important;
+  border-radius: 0 6px 6px 0 !important;
+}
+
+.alert-error,
+.modal-alert {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  background: #FEF2F2 !important;
+  border: 2px solid #DC2626 !important;
+  color: #991B1B !important;
+  padding: 0.85rem 1.15rem !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  line-height: 1.45 !important;
+  margin-bottom: 1.25rem !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.14) !important;
+  white-space: pre-line !important;
+  animation: fadeInAlert 0.25s ease-out;
+}
+
+.alert-error svg,
+.modal-alert svg {
+  width: 22px !important;
+  height: 22px !important;
+  color: #DC2626 !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+
+@keyframes inputShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes fadeInAlert {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+

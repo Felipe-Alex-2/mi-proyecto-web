@@ -104,7 +104,7 @@
                   } @else {
                     @if (getDaysRemaining(season.end_date) > 0 && getDaysRemaining(season.end_date) <= 30) {
                       <span class="warning-badge">
-                        ⚠️ {{ getDaysRemaining(season.end_date) }} días restantes
+                        {{ getDaysRemaining(season.end_date) }} días restantes
                       </span>
                     }
                   }

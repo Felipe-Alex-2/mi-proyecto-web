@@ -171,9 +171,9 @@
               <div class="manager-badge">
                 <span class="manager-label">Encargado:</span>
                 @if (branch.manager) {
-                  <span class="manager-name">👤 {{ branch.manager.full_name }}</span>
+                  <span class="manager-name">{{ branch.manager.full_name }}</span>
                 } @else {
-                  <span class="manager-unassigned">⚠️ Sin Encargado</span>
+                  <span class="manager-unassigned">Sin Encargado</span>
                 }
               </div>
 
@@ -414,7 +414,7 @@
                 </button>
               </div>
             } @else {
-              <p class="unassigned-notice">⚠️ Esta sucursal no tiene un Encargado asignado.</p>
+              <p class="unassigned-notice">Esta sucursal no tiene un Encargado asignado.</p>
             }
           </div>
 

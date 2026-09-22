@@ -256,7 +256,7 @@
               </div>
               @if (calculatedNewStock! < 0) {
                 <div class="alert-negative">
-                  ⚠️ Atención: La cantidad a retirar supera el stock actual disponible. Operación bloqueada.
+                  Atención: La cantidad a retirar supera el stock actual disponible. Operación bloqueada.
                 </div>
               }
             }
@@ -428,7 +428,7 @@
 
         <div class="modal-body">
           <div class="alert-negative">
-            ⚠️ <strong>Reversión de Stock Físico:</strong> Al eliminar este movimiento, el sistema revertirá automáticamente el cambio de stock en la sucursal <strong>{{ deletingMovement()?.branch_name }}</strong>.
+            <strong>Reversión de Stock Físico:</strong> Al eliminar este movimiento, el sistema revertirá automáticamente el cambio de stock en la sucursal <strong>{{ deletingMovement()?.branch_name }}</strong>.
           </div>
 
           <div class="confirm-warning-box">

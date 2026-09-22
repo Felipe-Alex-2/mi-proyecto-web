@@ -95,6 +95,12 @@ export class SeasonsComponent implements OnInit {
   save(): void {
     if (this.seasonForm.invalid) {
       this.seasonForm.markAllAsTouched();
+      const invalidFields: string[] = [];
+      const c = this.seasonForm.controls;
+      if (c['name'].invalid) invalidFields.push('Nombre de la Temporada (requerido)');
+      if (c['start_date'].invalid) invalidFields.push('Fecha de Inicio (requerida)');
+      if (c['end_date'].invalid) invalidFields.push('Fecha de Fin (requerida)');
+      this.modalError.set(`No se puede guardar: Corrige los siguientes campos obligatorios:\n• ${invalidFields.join('\n• ')}`);
       return;
     }
 

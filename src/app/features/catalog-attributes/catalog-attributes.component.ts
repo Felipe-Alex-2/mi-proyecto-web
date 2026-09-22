@@ -201,6 +201,7 @@ export class CatalogAttributesComponent implements OnInit {
   private saveCategory(): void {
     if (this.categoryForm.invalid) {
       this.categoryForm.markAllAsTouched();
+      this.modalError.set('No se puede guardar: El nombre de la categoría es obligatorio.');
       this.isSaving.set(false);
       return;
     }
@@ -222,6 +223,10 @@ export class CatalogAttributesComponent implements OnInit {
   private saveSize(): void {
     if (this.sizeForm.invalid) {
       this.sizeForm.markAllAsTouched();
+      const missing: string[] = [];
+      if (this.sizeForm.controls['name'].invalid) missing.push('Nombre de la Talla');
+      if (this.sizeForm.controls['code'].invalid) missing.push('Código/Abreviatura');
+      this.modalError.set(`No se puede guardar: Completa los campos obligatorios (${missing.join(', ')}).`);
       this.isSaving.set(false);
       return;
     }
@@ -246,6 +251,10 @@ export class CatalogAttributesComponent implements OnInit {
   private saveColor(): void {
     if (this.colorForm.invalid) {
       this.colorForm.markAllAsTouched();
+      const missing: string[] = [];
+      if (this.colorForm.controls['name'].invalid) missing.push('Nombre del Color');
+      if (this.colorForm.controls['hex_code'].invalid) missing.push('Código Hexadecimal (ej. #FFFFFF)');
+      this.modalError.set(`No se puede guardar: Completa los campos obligatorios (${missing.join(', ')}).`);
       this.isSaving.set(false);
       return;
     }
