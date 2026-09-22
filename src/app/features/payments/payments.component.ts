@@ -305,6 +305,11 @@ export class PaymentsComponent implements OnInit {
 
   // Invoice PDF Download
   downloadInvoice(p: Payment): void {
+    if (!p || p.status !== 'PAID') {
+      this.showToast('La factura solo está disponible para transacciones pagadas', 'error');
+      return;
+    }
+
     this.isDownloadingInvoice.set(p.id);
     this.paymentService.downloadInvoicePdf(p.id).subscribe({
       next: (blob) => {
@@ -313,18 +318,27 @@ export class PaymentsComponent implements OnInit {
           this.fallbackDirectInvoiceDownload(p);
           return;
         }
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `factura_${p.payment_code}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        this.showToast(`✓ Factura #${p.payment_code} descargada con éxito`, 'success');
+        try {
+          const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(pdfBlob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `factura_${p.payment_code}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+          }, 200);
+          this.showToast(`✓ Factura #${p.payment_code} exportada en PDF exitosamente`, 'success');
+        } catch (e) {
+          console.error('Error al descargar blob:', e);
+          this.fallbackDirectInvoiceDownload(p);
+        }
       },
       error: (err) => {
-        console.warn('Fallo en descarga Blob, intentando descarga directa con token:', err);
+        console.warn('Fallo en descarga Blob, intentando descarga directa:', err);
         this.fallbackDirectInvoiceDownload(p);
       },
     });
@@ -333,10 +347,17 @@ export class PaymentsComponent implements OnInit {
   private fallbackDirectInvoiceDownload(p: Payment): void {
     this.isDownloadingInvoice.set(null);
     const token = this.tokenService.getAccessToken();
-    const directUrl = `${environment.apiUrl}/payments/${p.id}/invoice-pdf${token ? '?token=' + token : ''}`;
+    const directUrl = `${environment.apiUrl}/payments/${p.id}/invoice-pdf${token ? '?token=' + encodeURIComponent(token) : ''}`;
     try {
-      window.open(directUrl, '_blank');
-      this.showToast(`✓ Abriendo Factura #${p.payment_code} en nueva pestaña`, 'success');
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = directUrl;
+      a.download = `factura_${p.payment_code}.pdf`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => document.body.removeChild(a), 200);
+      this.showToast(`✓ Descargando Factura #${p.payment_code} en PDF...`, 'success');
     } catch {
       this.showToast('Error al generar o descargar la factura PDF', 'error');
     }
@@ -473,6 +494,8 @@ export class PaymentsComponent implements OnInit {
       },
     });
   }
+
+
 
   resetTerminalForm(): void {
     this.posForm.reset({
