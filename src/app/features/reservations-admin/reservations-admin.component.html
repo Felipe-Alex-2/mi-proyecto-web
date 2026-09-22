@@ -152,12 +152,12 @@
                     <span class="item-qty">{{ it.quantity }}x</span>
                     <span class="item-name">{{ it.product_name }}</span>
                     <span class="item-meta">Talla: {{ it.size_name }} · Color: {{ it.color_name }}</span>
-                    <span class="item-price">Bs {{ it.price | number:'1.2-2' }}</span>
+                    <span class="item-price">$ {{ it.price | number:'1.2-2' }}</span>
                   </div>
                 }
               </div>
               <div class="total-estimated">
-                Total estimado: <strong>Bs {{ r.total_estimated_amount | number:'1.2-2' }}</strong>
+                Total estimado: <strong>$ {{ r.total_estimated_amount | number:'1.2-2' }}</strong>
               </div>
             </div>
 

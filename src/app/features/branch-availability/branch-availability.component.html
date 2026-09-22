@@ -1,4 +1,4 @@
-﻿<div class="availability-page-wrapper">
+<div class="availability-page-wrapper">
   <!-- Header / Breadcrumb -->
   <header class="navbar">
     <div class="navbar-left">
@@ -89,7 +89,7 @@
                 <th>SKU</th>
                 <th>Talla</th>
                 <th>Color</th>
-                <th>Precio (Bs)</th>
+                <th>Precio ($)</th>
                 <th>Stock Global</th>
                 @for (b of branches(); track b.id) {
                   <th>{{ b.name }}</th>
@@ -111,7 +111,7 @@
                     </div>
                   </td>
                   <td class="price-cell">
-                    Bs {{ row.price | number:'1.2-2' }}
+                    $ {{ row.price | number:'1.2-2' }}
                   </td>
                   <td class="global-stock-cell">
                     <strong>{{ row.total_quantity }} uds.</strong>

@@ -338,7 +338,7 @@
 
               </div>
 
-              <span class="price-chip">Bs {{ product.price | number:'1.2-2' }}</span>
+              <span class="price-chip">$ {{ product.price | number:'1.2-2' }}</span>
 
             </div>
 
@@ -655,7 +655,7 @@
 
             <div class="form-group flex-1">
 
-              <label for="p-price">Precio Base (Bs) *</label>
+              <label for="p-price">Precio Base ($ USD) *</label>
 
               <input
 
@@ -844,6 +844,26 @@
                         Cambiar foto
 
                       </button>
+
+
+
+                      <button
+
+                        type="button"
+
+                        class="btn-preview-transparent"
+
+                        (click)="removeWhiteBackground()"
+
+                        title="Convertir fondo blanco a PNG transparente para el vestidor virtual"
+
+                      >
+
+                        ✨ Quitar fondo (PNG)
+
+                      </button>
+
+
 
                       <button
 

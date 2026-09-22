@@ -123,7 +123,7 @@
             <div class="product-meta"><span>{{ product.category_name || 'Prenda' }}</span><span>{{ product.gender || 'Unisex' }}</span></div>
             <h3>{{ product.name }}</h3>
             <p>{{ product.description || 'Diseño disponible en varias combinaciones.' }}</p>
-            <strong class="price">Bs {{ product.min_price | number:'1.2-2' }}</strong>
+            <strong class="price">$ {{ product.min_price | number:'1.2-2' }}</strong>
           </div>
         </article>
       }
@@ -152,7 +152,7 @@
         <p class="eyebrow">{{ product.category_name || 'PRENDA' }}</p>
         <h2>{{ product.name }}</h2>
         <p class="detail-description">{{ product.description || 'Consulta las variantes disponibles para esta prenda.' }}</p>
-        <strong class="detail-price">Bs {{ product.min_price | number:'1.2-2' }}</strong>
+        <strong class="detail-price">$ {{ product.min_price | number:'1.2-2' }}</strong>
         <h3>Variantes y disponibilidad</h3>
         <div class="variant-list">
           @for (variant of product.variants; track variant.id) {

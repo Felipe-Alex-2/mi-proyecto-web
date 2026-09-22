@@ -254,7 +254,8 @@ export class ProductsComponent implements OnInit {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          // Siempre exportamos en formato PNG para conservar canal alfa transparente para el vestidor virtual
+          const optimizedDataUrl = canvas.toDataURL('image/png');
           this.imagePreview.set(optimizedDataUrl);
           this.productForm.patchValue({ image_url: optimizedDataUrl });
         }
@@ -262,6 +263,41 @@ export class ProductsComponent implements OnInit {
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+  }
+
+  removeWhiteBackground(): void {
+    const currentUrl = this.imagePreview() || this.productForm.get('image_url')?.value;
+    if (!currentUrl) return;
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.drawImage(img, 0, 0);
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+
+      // Algoritmo de remoción de fondo blanco / claro (RGB > 230)
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        if (r > 230 && g > 230 && b > 230) {
+          data[i + 3] = 0; // Transparente
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+      const pngDataUrl = canvas.toDataURL('image/png');
+      this.imagePreview.set(pngDataUrl);
+      this.productForm.patchValue({ image_url: pngDataUrl });
+      this.showSuccess('¡Fondo blanco eliminado! Prenda convertida a PNG transparente.');
+    };
+    img.src = currentUrl;
   }
 
   removeImage(): void {

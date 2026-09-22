@@ -44,7 +44,7 @@
                 @if (product.image_url) { <img [src]="product.image_url" [alt]="product.name" /> } @else { <span>FASHION<br />STORE</span> }
                 <span class="stock-pill">{{ product.total_stock }} disponibles</span>
               </div>
-              <div class="product-info"><small>{{ product.category_name || 'Prenda' }} · {{ product.gender || 'Unisex' }}</small><h3>{{ product.name }}</h3><p>{{ product.description || 'Disponible en distintas variantes.' }}</p><strong>Bs {{ product.min_price | number:'1.2-2' }}</strong></div>
+              <div class="product-info"><small>{{ product.category_name || 'Prenda' }} · {{ product.gender || 'Unisex' }}</small><h3>{{ product.name }}</h3><p>{{ product.description || 'Disponible en distintas variantes.' }}</p><strong>$ {{ product.min_price | number:'1.2-2' }}</strong></div>
             </a>
           }
         </div>
