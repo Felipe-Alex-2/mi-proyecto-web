@@ -26,6 +26,8 @@ export interface BranchInventoryItem {
   color_name: string;
   color_hex: string;
   price: number;
+  original_price?: number | null;
+  discount_percent?: number | null;
   quantity: number;
   min_alert_threshold: number;
   is_low_stock: boolean;

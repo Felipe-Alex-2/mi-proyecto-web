@@ -62,6 +62,62 @@ h2 { margin: 0; font-size: 1.55rem; letter-spacing: -.03em; }
 .product-info h3 { margin: .55rem 0 .4rem; font-size: 1.05rem; }
 .product-info p { min-height: 2.8em; margin: 0 0 .85rem; color: #806b57; font-size: .8rem; line-height: 1.4; }
 .price, .detail-price { color: #8b4513; font-size: 1.15rem; }
+.catalog-discount-badge {
+  position: absolute;
+  top: .75rem;
+  right: .75rem;
+  background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 800;
+  padding: .25rem .6rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 10px rgba(230, 57, 70, 0.4);
+}
+.catalog-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  margin-top: .25rem;
+}
+.price-strikethrough {
+  text-decoration: line-through;
+  color: #a08b76;
+  font-size: .9rem;
+  font-weight: 500;
+}
+.price-discounted {
+  color: #c1121f;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.detail-price-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 1rem 0 1.5rem;
+  flex-wrap: wrap;
+}
+.detail-price-strikethrough {
+  text-decoration: line-through;
+  color: #a08b76;
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+.detail-price-discounted {
+  color: #c1121f;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+.detail-promo-chip {
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: .8rem;
+  font-weight: 700;
+  padding: .3rem .65rem;
+  border-radius: 9999px;
+  border: 1px solid #fca5a5;
+}
 .empty-state { max-width: 1380px; margin: 1rem auto; padding: 4rem 1rem; border: 1px dashed #cdb9a4; color: #806b57; text-align: center; }
 .empty-state span { display: block; margin-top: .5rem; font-size: .85rem; }
 .pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; padding-top: 2rem; color: #806b57; font-size: .85rem; }

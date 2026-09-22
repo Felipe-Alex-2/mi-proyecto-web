@@ -344,7 +344,14 @@
                 </span>
               }
 
-              <span class="price-chip">$ {{ product.price | number:'1.2-2' }}</span>
+              @if (product.discount_percent && product.discount_percent > 0) {
+                <span class="price-chip with-discount">
+                  <span class="price-original-striked">$ {{ product.price | number:'1.2-2' }}</span>
+                  <span class="price-discounted-val">$ {{ (product.price * (1 - product.discount_percent / 100)) | number:'1.2-2' }}</span>
+                </span>
+              } @else {
+                <span class="price-chip">$ {{ product.price | number:'1.2-2' }}</span>
+              }
 
             </div>
 

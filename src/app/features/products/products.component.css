@@ -383,6 +383,29 @@
   box-shadow: 0 4px 10px rgba(45, 125, 70, 0.25);
 }
 
+.price-chip.with-discount {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, #c1121f 0%, #e63946 100%);
+  box-shadow: 0 4px 12px rgba(193, 18, 31, 0.35);
+  padding: 0.25rem 0.65rem;
+}
+
+.price-original-striked {
+  text-decoration: line-through;
+  opacity: 0.75;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.price-discounted-val {
+  font-weight: 900;
+  font-size: 0.95rem;
+  color: #ffffff;
+}
+
 .discount-badge-top-right {
   position: absolute;
   top: 0.75rem;

@@ -118,12 +118,22 @@
               <span>FASHION<br />STORE</span>
             }
             <span class="stock-pill" [class.out-of-stock]="product.total_stock === 0">{{ stockLabel(product.total_stock) }}</span>
+            @if (product.discount_percent && product.discount_percent > 0) {
+              <span class="catalog-discount-badge">🏷️ -{{ product.discount_percent | number:'1.0-0' }}%</span>
+            }
           </div>
           <div class="product-info">
             <div class="product-meta"><span>{{ product.category_name || 'Prenda' }}</span><span>{{ product.gender || 'Unisex' }}</span></div>
             <h3>{{ product.name }}</h3>
             <p>{{ product.description || 'Diseño disponible en varias combinaciones.' }}</p>
-            <strong class="price">$ {{ product.min_price | number:'1.2-2' }}</strong>
+            @if (product.discount_percent && product.discount_percent > 0) {
+              <div class="catalog-price-row">
+                <span class="price-strikethrough">$ {{ product.min_price | number:'1.2-2' }}</span>
+                <strong class="price-discounted">$ {{ (product.min_price * (1 - product.discount_percent / 100)) | number:'1.2-2' }}</strong>
+              </div>
+            } @else {
+              <strong class="price">$ {{ product.min_price | number:'1.2-2' }}</strong>
+            }
           </div>
         </article>
       }
@@ -152,7 +162,15 @@
         <p class="eyebrow">{{ product.category_name || 'PRENDA' }}</p>
         <h2>{{ product.name }}</h2>
         <p class="detail-description">{{ product.description || 'Consulta las variantes disponibles para esta prenda.' }}</p>
-        <strong class="detail-price">$ {{ product.min_price | number:'1.2-2' }}</strong>
+        @if (product.discount_percent && product.discount_percent > 0) {
+          <div class="detail-price-row">
+            <span class="detail-price-strikethrough">$ {{ product.min_price | number:'1.2-2' }}</span>
+            <strong class="detail-price-discounted">$ {{ (product.min_price * (1 - product.discount_percent / 100)) | number:'1.2-2' }}</strong>
+            <span class="detail-promo-chip">🏷️ -{{ product.discount_percent | number:'1.0-0' }}% OFF</span>
+          </div>
+        } @else {
+          <strong class="detail-price">$ {{ product.min_price | number:'1.2-2' }}</strong>
+        }
         <h3>Variantes y disponibilidad</h3>
         <div class="variant-list">
           @for (variant of product.variants; track variant.id) {

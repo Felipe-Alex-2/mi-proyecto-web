@@ -58,6 +58,9 @@ export interface CatalogProduct {
   season_id?: string | null;
   season_name?: string | null;
   gender?: string | null;
+  promotion_id?: string | null;
+  promotion_name?: string | null;
+  discount_percent?: number | null;
   image_url?: string | null;
   min_price: number;
   max_price: number;
