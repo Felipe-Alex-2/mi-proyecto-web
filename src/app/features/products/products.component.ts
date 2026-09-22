@@ -12,6 +12,7 @@ import { RouterLink } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CatalogAttributeService } from '../../core/services/catalog-attribute.service';
 import { SeasonService } from '../../core/services/season.service';
+import { PromotionService } from '../../core/services/promotion.service';
 import { SupplierService } from '../../core/services/supplier.service';
 import { BranchService } from '../../core/services/branch.service';
 import { StockService } from '../../core/services/stock.service';
@@ -19,6 +20,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { Product, ProductCreate, ProductUpdate, VariantCreate } from '../../core/models/product.model';
 import { Category, Color, Size } from '../../core/models/catalog-attribute.model';
 import { Season } from '../../core/models/season.model';
+import { Promotion } from '../../core/models/promotion.model';
 import { Supplier } from '../../core/models/supplier.model';
 import { Branch } from '../../core/models/branch.model';
 
@@ -35,6 +37,7 @@ export class ProductsComponent implements OnInit {
   sizes = signal<Size[]>([]);
   colors = signal<Color[]>([]);
   seasons = signal<Season[]>([]);
+  promotions = signal<Promotion[]>([]);
   suppliers = signal<Supplier[]>([]);
   branches = signal<Branch[]>([]);
 
@@ -88,6 +91,7 @@ export class ProductsComponent implements OnInit {
     private productService: ProductService,
     private catalogService: CatalogAttributeService,
     private seasonService: SeasonService,
+    private promotionService: PromotionService,
     private supplierService: SupplierService,
     private branchService: BranchService,
     private stockService: StockService,
@@ -99,6 +103,7 @@ export class ProductsComponent implements OnInit {
       price: [null, [Validators.required, Validators.min(0.01)]],
       category_id: ['', Validators.required],
       season_id: [''],
+      promotion_id: [''],
       supplier_id: [''],
       image_url: [''],
       gender: ['UNISEX', Validators.required],
@@ -122,6 +127,9 @@ export class ProductsComponent implements OnInit {
     });
     this.seasonService.getSeasons().subscribe({
       next: (data) => this.seasons.set(data.filter((s) => s.is_active)),
+    });
+    this.promotionService.getPromotions(true).subscribe({
+      next: (data) => this.promotions.set(data),
     });
     this.supplierService.getSuppliers().subscribe({
       next: (data) => this.suppliers.set(data.filter((s) => s.is_active)),
@@ -311,7 +319,7 @@ export class ProductsComponent implements OnInit {
     this.editingId.set(null);
     this.modalError.set(null);
     this.imagePreview.set(null);
-    this.productForm.reset({ gender: 'UNISEX' });
+    this.productForm.reset({ gender: 'UNISEX', promotion_id: '' });
     this.selectedSizeIds.set([]);
     this.selectedColorIds.set([]);
     this.initialStockMap.set({});
@@ -329,6 +337,7 @@ export class ProductsComponent implements OnInit {
       price: product.price,
       category_id: product.category_id,
       season_id: product.season_id || '',
+      promotion_id: product.promotion_id || '',
       supplier_id: product.supplier_id || '',
       image_url: product.image_url || '',
       gender: product.gender,
@@ -368,6 +377,7 @@ export class ProductsComponent implements OnInit {
         price: Number(f.price),
         category_id: f.category_id,
         season_id: f.season_id || undefined,
+        promotion_id: f.promotion_id ? f.promotion_id : null,
         supplier_id: f.supplier_id || undefined,
         image_url: f.image_url?.trim() || undefined,
         gender: f.gender,
@@ -414,6 +424,7 @@ export class ProductsComponent implements OnInit {
         price: Number(f.price),
         category_id: f.category_id,
         season_id: f.season_id || undefined,
+        promotion_id: f.promotion_id ? f.promotion_id : undefined,
         supplier_id: f.supplier_id || undefined,
         image_url: f.image_url?.trim() || undefined,
         gender: f.gender,

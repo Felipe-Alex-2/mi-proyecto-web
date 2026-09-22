@@ -338,6 +338,12 @@
 
               </div>
 
+              @if (product.discount_percent && product.discount_percent > 0) {
+                <span class="discount-badge-top-right" [title]="(product.promotion_name || 'Promoción') + ': ' + product.discount_percent + '% de descuento'">
+                  🏷️ -{{ product.discount_percent | number:'1.0-0' }}%
+                </span>
+              }
+
               <span class="price-chip">$ {{ product.price | number:'1.2-2' }}</span>
 
             </div>
@@ -768,6 +774,28 @@
                 @for (sup of suppliers(); track sup.id) {
 
                   <option [value]="sup.id">{{ sup.company_name }}</option>
+
+                }
+
+              </select>
+
+            </div>
+
+          </div>
+
+          <div class="form-row">
+
+            <div class="form-group flex-1">
+
+              <label for="p-promo">🏷️ Promoción / Descuento Especial</label>
+
+              <select id="p-promo" class="form-input" formControlName="promotion_id">
+
+                <option value="">Ninguna (Sin descuento)</option>
+
+                @for (promo of promotions(); track promo.id) {
+
+                  <option [value]="promo.id">🏷️ {{ promo.name }} ({{ promo.discount_percent }}% OFF)</option>
 
                 }
 

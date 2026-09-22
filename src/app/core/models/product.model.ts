@@ -31,6 +31,7 @@ export interface ProductCreate {
   category_id: string;
   season_id?: string;
   supplier_id?: string;
+  promotion_id?: string;
   image_url?: string;
   gender?: string;
   variants: VariantCreate[];
@@ -43,6 +44,7 @@ export interface ProductUpdate {
   category_id?: string;
   season_id?: string;
   supplier_id?: string;
+  promotion_id?: string;
   image_url?: string;
   gender?: string;
   is_active?: boolean;
@@ -59,6 +61,9 @@ export interface Product {
   season_name?: string | null;
   supplier_id?: string | null;
   supplier_name?: string | null;
+  promotion_id?: string | null;
+  promotion_name?: string | null;
+  discount_percent?: number | null;
   image_url?: string | null;
   gender: string;
   is_active: boolean;

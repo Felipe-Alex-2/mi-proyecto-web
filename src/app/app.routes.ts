@@ -128,6 +128,14 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'promotions',
+        loadComponent: () =>
+          import('./features/promotions/promotions.component').then(
+            (m) => m.PromotionsComponent
+          ),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'suppliers',
         loadComponent: () =>
           import('./features/suppliers/suppliers.component').then(

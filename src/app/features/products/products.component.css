@@ -383,6 +383,31 @@
   box-shadow: 0 4px 10px rgba(45, 125, 70, 0.25);
 }
 
+.discount-badge-top-right {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.45);
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  z-index: 5;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  animation: pulse-promo 2.5s infinite ease-in-out;
+}
+
+@keyframes pulse-promo {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); box-shadow: 0 6px 16px rgba(230, 57, 70, 0.6); }
+}
+
 /* Card Body */
 .card-body {
   padding: 1.25rem;

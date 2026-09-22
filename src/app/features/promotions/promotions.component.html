@@ -1,0 +1,340 @@
+<div class="promotions-page-wrapper">
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="navbar-left">
+      <a routerLink="/dashboard" class="nav-back-link" title="Volver al Panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Panel Principal</span>
+      </a>
+      <span class="nav-separator">/</span>
+      <h1 class="page-title">Promociones y Descuentos</h1>
+    </div>
+
+    <div class="navbar-right">
+      <a routerLink="/seasons" class="nav-link-secondary" title="Ir a Temporadas">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+        </svg>
+        <span>Temporadas</span>
+      </a>
+      <a routerLink="/products" class="nav-link-secondary" title="Ir a Prendas">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+        </svg>
+        <span>Prendas</span>
+      </a>
+      <span class="admin-badge">
+        <span class="status-dot"></span>
+        Administrador General
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+    <!-- Header Action Bar -->
+    <div class="action-bar">
+      <div class="action-bar-info">
+        <h2 class="section-title">Campañas de Descuento</h2>
+        <p class="section-subtitle">
+          Configura promociones con porcentaje de descuento (%) para aplicarlas a prendas del catálogo y mostrarlas en Web y App Móvil.
+        </p>
+      </div>
+
+      <div class="action-controls">
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar promoción..."
+            [value]="searchTerm()"
+            (input)="onSearchChange($event)"
+            class="search-input"
+          />
+        </div>
+
+        <button class="btn-primary" (click)="openCreateModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          <span>Nueva Promoción</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (successMessage()) {
+      <div class="alert-success" role="status">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-error" role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Promotions Grid -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando promociones...</span>
+      </div>
+    } @else if (filteredPromotions().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🏷️</div>
+        <h3>No hay promociones registradas</h3>
+        <p>Crea tu primera promoción con porcentaje de descuento para destacar tus prendas en oferta.</p>
+      </div>
+    } @else {
+      <div class="promotions-grid">
+        @for (promotion of filteredPromotions(); track promotion.id) {
+          <div class="promotion-card" [class.card-inactive]="!promotion.is_active" [class.card-expired]="promotion.is_expired">
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="badges-row">
+                <span class="status-badge" [class.active]="promotion.is_active">
+                  <span class="badge-dot"></span>
+                  {{ promotion.is_active ? 'Activa' : 'Inactiva' }}
+                </span>
+                @if (promotion.is_expired) {
+                  <span class="expired-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    Expirada
+                  </span>
+                }
+              </div>
+
+              <!-- Discount Tag Badge (Etiqueta como la foto enviada) -->
+              <div class="discount-tag">
+                <span class="tag-icon">🏷️</span>
+                <span class="tag-percent">{{ promotion.discount_percent | number:'1.0-0' }}% OFF</span>
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body">
+              <h3 class="promotion-name">{{ promotion.name }}</h3>
+              <p class="promotion-desc">
+                {{ promotion.description || 'Sin descripción detallada para esta promoción.' }}
+              </p>
+
+              <!-- Dates Section -->
+              <div class="dates-container">
+                <div class="date-item">
+                  <span class="date-label">INICIO</span>
+                  <span class="date-value">{{ formatDate(promotion.start_date) }}</span>
+                </div>
+                <div class="date-divider">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="date-item">
+                  <span class="date-label">FIN</span>
+                  <span class="date-value">{{ formatDate(promotion.end_date) }}</span>
+                </div>
+              </div>
+
+              <!-- Status countdown / info -->
+              <div class="time-status">
+                @if (promotion.is_expired) {
+                  <span class="time-text expired">Finalizó el {{ formatDate(promotion.end_date) }}</span>
+                } @else {
+                  @let remaining = getDaysRemaining(promotion.end_date);
+                  <span class="time-text active">
+                    ⏳ Quedan {{ remaining }} {{ remaining === 1 ? 'día' : 'días' }} de vigencia
+                  </span>
+                }
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions">
+              <button
+                type="button"
+                class="btn-card edit"
+                (click)="openEditModal(promotion)"
+                title="Editar Promoción"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                <span>Editar</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-card toggle"
+                [class.activate]="!promotion.is_active"
+                [class.deactivate]="promotion.is_active"
+                (click)="togglePromotionStatus(promotion)"
+                [title]="promotion.is_active ? 'Desactivar' : 'Activar'"
+              >
+                @if (promotion.is_active) {
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Pausar</span>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Activar</span>
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  <!-- Create / Edit Modal (Diseño idéntico a Nueva Temporada con porcentaje de descuento) -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">
+              {{ isEditMode() ? 'Editar Promoción' : 'Nueva Promoción' }}
+            </h2>
+            <p class="modal-subtitle">
+              {{ isEditMode() ? 'Modifica los parámetros y descuento de la campaña' : 'Define una nueva campaña o descuento especial' }}
+            </p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeModal()" aria-label="Cerrar modal">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Alert Error -->
+        @if (modalError()) {
+          <div class="modal-alert-error" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ modalError() }}</span>
+          </div>
+        }
+
+        <!-- Form -->
+        <form [formGroup]="promotionForm" (ngSubmit)="save()" novalidate>
+          <div class="form-body">
+            <!-- Nombre de la Promoción -->
+            <div class="form-group">
+              <label for="promo-name">Nombre de la Promoción *</label>
+              <input
+                id="promo-name"
+                type="text"
+                class="form-input"
+                placeholder="Ej: Black Friday 50%, Liquidación de Fin de Temporada..."
+                formControlName="name"
+                [class.is-invalid]="promotionForm.get('name')?.invalid && promotionForm.get('name')?.touched"
+              />
+              @if (promotionForm.get('name')?.invalid && promotionForm.get('name')?.touched) {
+                <span class="field-error">El nombre es requerido (mínimo 2 caracteres).</span>
+              }
+            </div>
+
+            <!-- Porcentaje de Descuento (%) -->
+            <div class="form-group">
+              <label for="promo-discount">Porcentaje de Descuento (%) *</label>
+              <div class="discount-input-wrapper">
+                <input
+                  id="promo-discount"
+                  type="number"
+                  min="1"
+                  max="100"
+                  step="1"
+                  class="form-input"
+                  placeholder="Ej: 50"
+                  formControlName="discount_percent"
+                  [class.is-invalid]="promotionForm.get('discount_percent')?.invalid && promotionForm.get('discount_percent')?.touched"
+                />
+                <span class="discount-suffix">%</span>
+              </div>
+              @if (promotionForm.get('discount_percent')?.invalid && promotionForm.get('discount_percent')?.touched) {
+                <span class="field-error">Ingresa un porcentaje de descuento válido (entre 1% y 100%).</span>
+              }
+            </div>
+
+            <!-- Descripción -->
+            <div class="form-group">
+              <label for="promo-desc">Descripción (Opcional)</label>
+              <input
+                id="promo-desc"
+                type="text"
+                class="form-input"
+                placeholder="Descripción breve de la campaña o términos de oferta"
+                formControlName="description"
+              />
+            </div>
+
+            <!-- Fechas Inicio / Fin -->
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="promo-start">Fecha de Inicio *</label>
+                <input
+                  id="promo-start"
+                  type="date"
+                  class="form-input"
+                  formControlName="start_date"
+                  [class.is-invalid]="promotionForm.get('start_date')?.invalid && promotionForm.get('start_date')?.touched"
+                />
+                @if (promotionForm.get('start_date')?.invalid && promotionForm.get('start_date')?.touched) {
+                  <span class="field-error">Requerida</span>
+                }
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="promo-end">Fecha de Fin *</label>
+                <input
+                  id="promo-end"
+                  type="date"
+                  class="form-input"
+                  formControlName="end_date"
+                  [class.is-invalid]="promotionForm.get('end_date')?.invalid && promotionForm.get('end_date')?.touched"
+                />
+                @if (promotionForm.get('end_date')?.invalid && promotionForm.get('end_date')?.touched) {
+                  <span class="field-error">Requerida</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="isSaving()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-primary" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <div class="spinner-small"></div>
+                <span>Guardando...</span>
+              } @else {
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Promoción' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>
