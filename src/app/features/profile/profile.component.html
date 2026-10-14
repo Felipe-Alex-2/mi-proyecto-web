@@ -1,0 +1,43 @@
+<section class="profile-page">
+  <p class="eyebrow">TU ESPACIO EN VESTA</p><h1>Mi perfil</h1>
+  <p class="intro">Elige cómo quieres aparecer y mantén tus datos al día.</p>
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <section class="profile-card">
+      <div class="photo-preview"><app-user-avatar [avatarId]="selectedAvatar()" [photo]="photo()" [size]="112" />
+        <div><h2>Una imagen para tu perfil</h2><p>Escoge un avatar o utiliza tu propia foto.</p></div></div>
+      <div class="avatar-options" aria-label="Avatares disponibles">
+        @for (avatar of avatars; track avatar.id) {
+          <button type="button" [class.selected]="!photo() && selectedAvatar() === avatar.id"
+            [attr.aria-pressed]="!photo() && selectedAvatar() === avatar.id" [disabled]="saving() || processing()" (click)="chooseAvatar(avatar.id)">
+            <app-user-avatar [avatarId]="avatar.id" [size]="48" /><span>{{ avatar.name }}</span>
+          </button>
+        }
+      </div>
+      <div class="photo-actions">
+        <label class="photo-button" [class.disabled]="saving() || processing()">Subir foto<input type="file" accept="image/jpeg,image/png,image/webp" [disabled]="saving() || processing()" (change)="selectPhoto($event)" /></label>
+        <button class="photo-button" type="button" [disabled]="saving() || processing()" (click)="openCamera()">Tomar foto</button>
+      </div>
+      <p class="hint">JPG, PNG o WebP, hasta 10 MB. La imagen se optimiza al guardarla. La cámara depende del dispositivo y navegador.</p>
+      @if (processing()) { <p role="status">Preparando tu foto…</p> }
+      <div class="form-grid">
+        <label>Nombre completo<input formControlName="full_name" autocomplete="name" maxlength="100" />
+          @if (form.controls.full_name.invalid && form.controls.full_name.touched) { <span class="field-error">Escribe un nombre de entre 2 y 100 caracteres; no puede estar vacío.</span> }</label>
+        <label>Correo electrónico<input type="email" formControlName="email" autocomplete="email" />
+          @if (form.controls.email.invalid && form.controls.email.touched) { <span class="field-error">Escribe un correo electrónico válido.</span> }</label>
+      </div>
+      @if (error()) { <p class="feedback error" role="alert">{{ error() }}</p> }
+      @if (success()) { <p class="feedback success" role="status">{{ success() }}</p> }
+      <button class="save-button" type="submit" [disabled]="form.invalid || saving() || processing() || (form.pristine && !imageChanged())">{{ saving() ? 'Guardando…' : 'Guardar cambios' }}</button>
+    </section>
+  </form>
+</section>
+@if (cameraOpen()) {
+  <div class="camera-backdrop" (keydown.escape)="closeCamera()">
+    <section class="camera-dialog" role="dialog" aria-modal="true" aria-labelledby="camera-title">
+      <h2 id="camera-title">Tu foto de perfil</h2>
+      <video #cameraVideo autoplay playsinline muted aria-label="Vista previa de la cámara"></video>
+      @if (!cameraStream()) { <p role="status">Esperando el permiso de la cámara…</p> }
+      <div class="photo-actions"><button type="button" class="save-button" [disabled]="!cameraStream()" (click)="capturePhoto()">Capturar foto</button><button class="photo-button" type="button" (click)="closeCamera()">Cancelar</button></div>
+    </section>
+  </div>
+}

@@ -1,6 +1,9 @@
+export type AvatarId = 'terracotta' | 'sage' | 'sand';
 export type UserRole = 'ADMIN' | 'STORE_MANAGER' | 'CASHIER' | 'CUSTOMER';
 
 export interface User {
+  avatar_id?: AvatarId;
+  profile_photo?: string | null;
   id: string;
   email: string;
   full_name: string;
@@ -14,6 +17,8 @@ export interface User {
 }
 
 export interface UserUpdate {
+  avatar_id?: AvatarId;
+  profile_photo?: string | null;
   full_name?: string;
   email?: string;
   password?: string;

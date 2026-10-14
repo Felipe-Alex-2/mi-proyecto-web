@@ -42,7 +42,7 @@ export const guestGuard: CanActivateFn = () => {
   }
 
   return authService.loadCurrentUser().pipe(
-    map((loadedUser) => router.parseUrl(getDefaultRouteForRole(loadedUser?.role))),
+    map((loadedUser) => loadedUser ? router.parseUrl(getDefaultRouteForRole(loadedUser.role)) : true),
     catchError(() => of(true))
   );
 };
@@ -70,7 +70,7 @@ export const dashboardGuard: CanActivateFn = () => {
       if (loadedUser?.role === 'ADMIN' || loadedUser?.role === 'STORE_MANAGER') {
         return true;
       }
-      return router.parseUrl(getDefaultRouteForRole(loadedUser?.role));
+      return router.parseUrl(loadedUser ? getDefaultRouteForRole(loadedUser.role) : '/login');
     }),
     catchError(() => of(router.parseUrl('/login')))
   );
@@ -92,7 +92,7 @@ export const adminGuard: CanActivateFn = () => {
   }
 
   return authService.loadCurrentUser().pipe(
-    map((loadedUser) => loadedUser?.role === 'ADMIN' ? true : router.parseUrl(getDefaultRouteForRole(loadedUser?.role))),
+    map((loadedUser) => loadedUser?.role === 'ADMIN' ? true : router.parseUrl(loadedUser ? getDefaultRouteForRole(loadedUser.role) : '/login')),
     catchError(() => of(router.parseUrl('/login')))
   );
 };
@@ -118,7 +118,7 @@ export const managerGuard: CanActivateFn = () => {
     map((loadedUser) =>
       (loadedUser?.role === 'ADMIN' || loadedUser?.role === 'STORE_MANAGER')
         ? true
-        : router.parseUrl(getDefaultRouteForRole(loadedUser?.role))
+        : router.parseUrl(loadedUser ? getDefaultRouteForRole(loadedUser.role) : '/login')
     ),
     catchError(() => of(router.parseUrl('/login')))
   );
@@ -146,7 +146,7 @@ export const reportsGuard: CanActivateFn = () => {
     map((loadedUser) =>
       (loadedUser?.role === 'ADMIN' || loadedUser?.role === 'STORE_MANAGER' || loadedUser?.role === 'CUSTOMER')
         ? true
-        : router.parseUrl(getDefaultRouteForRole(loadedUser?.role))
+        : router.parseUrl(loadedUser ? getDefaultRouteForRole(loadedUser.role) : '/login')
     ),
     catchError(() => of(router.parseUrl('/login')))
   );

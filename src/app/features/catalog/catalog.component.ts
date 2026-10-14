@@ -1,7 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import {
   CatalogFilterOptions,
   CatalogProduct,
@@ -11,11 +13,14 @@ import { CatalogProductFilters, CatalogService } from '../../core/services/catal
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './catalog.component.html',
   styleUrls: ['./catalog.component.css'],
 })
 export class CatalogComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private productsRequest?: Subscription;
+  private detailRequest?: Subscription;
   filters = signal<CatalogFilterOptions | null>(null);
   products = signal<CatalogProduct[]>([]);
   selectedProduct = signal<CatalogProduct | null>(null);
@@ -39,17 +44,14 @@ export class CatalogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.catalogService.getFilterOptions().subscribe({
+    this.catalogService.getFilterOptions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (options) => this.filters.set(options),
       error: () => this.error.set('No se pudieron cargar los filtros del catálogo.'),
     });
-    this.route.queryParamMap.subscribe((params) => {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const productId = params.get('product');
       if (productId) {
-        this.catalogService.getProduct(productId).subscribe({
-          next: (product) => this.selectedProduct.set(product),
-          error: () => this.error.set('No se pudo cargar el detalle de la recomendación.'),
-        });
+        this.loadProductDetail(productId);
       }
     });
     this.loadProducts();
@@ -71,7 +73,9 @@ export class CatalogComponent implements OnInit {
       pageSize: this.pageSize,
     };
 
-    this.catalogService.getProducts(request).subscribe({
+    this.productsRequest?.unsubscribe();
+    this.productsRequest = this.catalogService.getProducts(request)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.products.set(response.items);
         this.total.set(response.total);
@@ -102,13 +106,20 @@ export class CatalogComponent implements OnInit {
   }
 
   openProduct(product: CatalogProduct): void {
-    this.catalogService.getProduct(product.id).subscribe({
+    this.loadProductDetail(product.id);
+  }
+
+  private loadProductDetail(id: string): void {
+    this.detailRequest?.unsubscribe();
+    this.detailRequest = this.catalogService.getProduct(id)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (detail) => this.selectedProduct.set(detail),
       error: () => this.error.set('No se pudo cargar el detalle de la prenda.'),
     });
   }
 
   closeProduct(): void {
+    this.detailRequest?.unsubscribe();
     this.selectedProduct.set(null);
   }
 

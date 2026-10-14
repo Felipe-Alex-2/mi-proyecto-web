@@ -1,7 +1,7 @@
 .pos-page-wrapper {
   min-height: 100vh;
   background-color: #F6F2EA;
-  color: #2C1810;
+  color: #2C211D;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   padding: 1.5rem 2rem 3rem 2rem;
 }
@@ -70,7 +70,7 @@
 .main-title {
   font-size: 1.95rem;
   font-weight: 800;
-  color: #2C1810;
+  color: #2C211D;
   margin: 0.2rem 0;
   letter-spacing: -0.02em;
 }
@@ -120,7 +120,7 @@
 /* Branch Bar Card */
 .pos-branch-card {
   background: #FFFFFF;
-  border: 1px solid rgba(139, 69, 19, 0.1);
+  border: 1px solid rgba(163, 79, 61, 0.1);
   border-radius: 16px;
   padding: 0.9rem 1.5rem;
   display: flex;
@@ -171,7 +171,7 @@
 .branch-dropdown {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #2C1810;
+  color: #2C211D;
   background: #FAF7F2;
   border: 1px solid #E0D7CD;
   border-radius: 8px;
@@ -183,8 +183,8 @@
 }
 
 .branch-dropdown:focus {
-  border-color: #8B4513;
-  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+  border-color: #A34F3D;
+  box-shadow: 0 0 0 3px rgba(163, 79, 61, 0.1);
 }
 
 .branch-status-info {
@@ -234,7 +234,7 @@
 
 .cashier-name {
   font-weight: 700;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 /* 2-Column Main Grid */
@@ -256,7 +256,7 @@
 .pos-history-card {
   background: #FFFFFF;
   border-radius: 16px;
-  border: 1px solid rgba(139, 69, 19, 0.1);
+  border: 1px solid rgba(163, 79, 61, 0.1);
   padding: 1.5rem;
   box-shadow: 0 4px 16px rgba(44, 24, 16, 0.03);
 }
@@ -288,7 +288,7 @@
 .card-title {
   font-size: 1.22rem;
   font-weight: 800;
-  color: #2C1810;
+  color: #2C211D;
   margin: 0;
 }
 
@@ -329,7 +329,7 @@
   border-radius: 8px;
   padding: 0.65rem 0.85rem;
   font-size: 0.92rem;
-  color: #2C1810;
+  color: #2C211D;
   background: #FCFBF9;
   outline: none;
   box-sizing: border-box;
@@ -405,7 +405,7 @@
 
 .pill-btn:hover {
   background: #EAE1D4;
-  color: #2C1810;
+  color: #2C211D;
   border-color: #BDA98E;
 }
 
@@ -430,7 +430,7 @@
 .currency-symbol {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .amount-field {
@@ -438,7 +438,7 @@
   background: transparent;
   font-size: 1.35rem;
   font-weight: 800;
-  color: #2C1810;
+  color: #2C211D;
   width: 100%;
   outline: none;
 }
@@ -523,7 +523,7 @@
 .type-title {
   font-size: 0.88rem;
   font-weight: 700;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .type-desc {
@@ -673,7 +673,7 @@
 }
 
 .history-search-input:focus {
-  border-color: #8B4513;
+  border-color: #A34F3D;
   background: #FFFFFF;
 }
 
@@ -702,9 +702,9 @@
 }
 
 .filter-tab.active {
-  background: #2C1810;
+  background: #2C211D;
   color: #FFFFFF;
-  border-color: #2C1810;
+  border-color: #2C211D;
 }
 
 /* Table View */
@@ -733,7 +733,7 @@
   padding: 0.85rem 0.65rem;
   border-bottom: 1px solid #F3EDE5;
   font-size: 0.88rem;
-  color: #2C1810;
+  color: #2C211D;
   vertical-align: middle;
 }
 
@@ -749,7 +749,7 @@
 
 .customer-name {
   font-weight: 700;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .customer-sub {
@@ -903,7 +903,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid #E0D7CD;
-  border-top-color: #8B4513;
+  border-top-color: #A34F3D;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 0.85rem;
@@ -917,7 +917,7 @@
 .empty-state h3 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #2C1810;
+  color: #2C211D;
   margin: 0.2rem 0;
 }
 
@@ -982,7 +982,7 @@
 .modal-title {
   font-size: 1.15rem;
   font-weight: 800;
-  color: #2C1810;
+  color: #2C211D;
   margin: 0;
 }
 
@@ -997,7 +997,7 @@
 }
 
 .btn-close-modal:hover {
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .modal-body {
@@ -1027,7 +1027,7 @@
 
 .summary-val {
   font-weight: 600;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .highlight-amount-row {
@@ -1283,7 +1283,7 @@
   border: 1px solid #D6C3A5;
   border-radius: 8px;
   background: #FFFFFF;
-  color: #2C1810;
+  color: #2C211D;
   cursor: pointer;
 }
 
@@ -1310,7 +1310,7 @@
   font-weight: 700;
   text-align: center;
   outline: none;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .btn-add-item {
@@ -1384,7 +1384,7 @@
 
 .cart-prod-name {
   font-weight: 600;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .cart-prod-var {
@@ -1418,7 +1418,7 @@
   padding: 0.1rem 0.45rem;
   font-weight: 700;
   font-size: 0.78rem;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .cart-prod-actions {

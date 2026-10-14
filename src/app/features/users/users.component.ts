@@ -1,4 +1,4 @@
-import { noWhitespaceValidator } from '../../core/validators/custom-validators';
+import { noWhitespaceValidator , trimmedMinLength} from '../../core/validators/custom-validators';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -52,11 +52,11 @@ export class UsersComponent implements OnInit {
     public authService: AuthService
   ) {
     this.userForm = this.fb.group({
-      full_name: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
+      full_name: ['', [Validators.required, trimmedMinLength(2), noWhitespaceValidator()]],
       email: ['', [Validators.required, Validators.email, noWhitespaceValidator()]],
       phone: [''],
       role: ['CASHIER', [Validators.required]],
-      password: ['', [Validators.minLength(8)]],
+      password: ['', [trimmedMinLength(8)]],
     });
   }
 
@@ -122,7 +122,7 @@ export class UsersComponent implements OnInit {
       role: 'CASHIER',
       password: '',
     });
-    this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
+    this.userForm.get('password')?.setValidators([Validators.required, trimmedMinLength(8)]);
     this.userForm.get('password')?.updateValueAndValidity();
     this.isModalOpen.set(true);
   }
@@ -139,7 +139,7 @@ export class UsersComponent implements OnInit {
       password: '',
     });
     // In edit mode password is optional
-    this.userForm.get('password')?.setValidators([Validators.minLength(8)]);
+    this.userForm.get('password')?.setValidators([trimmedMinLength(8)]);
     this.userForm.get('password')?.updateValueAndValidity();
     this.isModalOpen.set(true);
   }
@@ -265,4 +265,5 @@ export class UsersComponent implements OnInit {
     }
   }
 }
-
+
+

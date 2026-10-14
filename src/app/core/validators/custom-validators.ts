@@ -51,3 +51,11 @@ export function passwordStrengthValidator(): ValidatorFn {
     return null;
   };
 }
+
+/** Validate real length rather than accepting a single letter padded with spaces. */
+export function trimmedMinLength(requiredLength: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const length = String(control.value ?? '').trim().length;
+    return length && length < requiredLength ? { minlength: { requiredLength, actualLength: length } } : null;
+  };
+}

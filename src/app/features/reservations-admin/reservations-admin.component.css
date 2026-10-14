@@ -1,7 +1,7 @@
 .reservations-page-wrapper {
   min-height: 100vh;
-  background-color: #F5F0E8;
-  color: #2C1810;
+  background-color: #FAF7F2;
+  color: #2C211D;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   padding-bottom: 3rem;
 }
@@ -36,7 +36,7 @@
   align-items: center;
   padding: 1.25rem 2rem;
   background: rgba(255, 255, 255, 0.6);
-  border-bottom: 1px solid rgba(139, 69, 19, 0.08);
+  border-bottom: 1px solid rgba(163, 79, 61, 0.08);
 }
 
 .navbar-left {
@@ -49,7 +49,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: #8B7355;
+  color: #756B65;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -61,7 +61,7 @@
 .page-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #2C1810;
+  color: #2C211D;
   margin: 0;
 }
 
@@ -85,27 +85,27 @@
   padding: 1.25rem;
   text-align: center;
   box-shadow: 0 2px 8px rgba(44, 24, 16, 0.05);
-  border: 1px solid rgba(139, 69, 19, 0.06);
+  border: 1px solid rgba(163, 79, 61, 0.06);
 }
 
 .stat-number {
   display: block;
   font-size: 1.6rem;
   font-weight: 800;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .stat-title {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #8B7355;
+  color: #756B65;
   margin-top: 0.25rem;
 }
 
 .stat-pending .stat-number { color: #E65100; }
 .stat-confirmed .stat-number { color: #1565C0; }
 .stat-completed .stat-number { color: #2E7D32; }
-.stat-rate .stat-number { color: #8B4513; }
+.stat-rate .stat-number { color: #A34F3D; }
 
 /* Filter Card */
 .filter-card {
@@ -117,7 +117,7 @@
   padding: 1.25rem 1.75rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(44, 24, 16, 0.05);
-  border: 1px solid rgba(139, 69, 19, 0.06);
+  border: 1px solid rgba(163, 79, 61, 0.06);
   margin-bottom: 1.5rem;
 }
 
@@ -138,7 +138,7 @@
   border-radius: 8px;
   border: 1px solid #D6C7B2;
   background: #FAFAF7;
-  color: #2C1810;
+  color: #2C211D;
   font-size: 0.9rem;
   outline: none;
   cursor: pointer;
@@ -147,7 +147,7 @@
 .filter-count {
   margin-left: auto;
   font-size: 0.9rem;
-  color: #8B7355;
+  color: #756B65;
 }
 
 /* Reservations Grid */
@@ -162,7 +162,7 @@
   border-radius: 14px;
   padding: 1.5rem;
   box-shadow: 0 2px 10px rgba(44, 24, 16, 0.06);
-  border: 1px solid rgba(139, 69, 19, 0.08);
+  border: 1px solid rgba(163, 79, 61, 0.08);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -195,7 +195,7 @@
 .code-pill {
   font-weight: 700;
   font-size: 0.95rem;
-  color: #2C1810;
+  color: #2C211D;
   background: #EFE8DE;
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
@@ -206,7 +206,7 @@
   flex-direction: column;
   align-items: flex-end;
   font-size: 0.78rem;
-  color: #8B7355;
+  color: #756B65;
 }
 
 .expiry-text {
@@ -233,7 +233,7 @@
 .info-lbl {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #8B7355;
+  color: #756B65;
   text-transform: uppercase;
 }
 
@@ -271,19 +271,19 @@
 
 .item-qty {
   font-weight: 700;
-  color: #8B4513;
+  color: #A34F3D;
   min-width: 24px;
 }
 
 .item-name {
   font-weight: 600;
-  color: #2C1810;
+  color: #2C211D;
   flex: 1;
 }
 
 .item-meta {
   font-size: 0.78rem;
-  color: #8B7355;
+  color: #756B65;
 }
 
 .item-price {
@@ -419,14 +419,14 @@
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #2C1810;
+  color: #2C211D;
 }
 
 .btn-close {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #8B7355;
+  color: #756B65;
   cursor: pointer;
 }
 
@@ -459,7 +459,7 @@
 }
 
 .form-control:focus {
-  border-color: #8B4513;
+  border-color: #A34F3D;
   background: #ffffff;
 }
 
@@ -479,7 +479,7 @@
 }
 
 .btn-primary {
-  background: #8B4513;
+  background: #A34F3D;
   color: #ffffff;
   border: none;
   padding: 0.65rem 1.25rem;
@@ -501,14 +501,14 @@
 .loading-state, .empty-state {
   padding: 3.5rem 2rem;
   text-align: center;
-  color: #8B7355;
+  color: #756B65;
 }
 
 .spinner {
   width: 36px;
   height: 36px;
   border: 3px solid #EFEAE1;
-  border-top-color: #8B4513;
+  border-top-color: #A34F3D;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 1rem;

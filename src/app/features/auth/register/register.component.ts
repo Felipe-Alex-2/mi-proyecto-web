@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { noWhitespaceValidator, passwordStrengthValidator } from '../../../core/validators/custom-validators';
+import { noWhitespaceValidator, passwordStrengthValidator , trimmedMinLength} from '../../../core/validators/custom-validators';
 
 @Component({
   selector: 'app-register',
@@ -24,7 +24,7 @@ export class RegisterComponent {
     private router: Router
   ) {
     this.registerForm = this.fb.group({
-      full_name: ['', [Validators.required, Validators.minLength(2), noWhitespaceValidator()]],
+      full_name: ['', [Validators.required, trimmedMinLength(2), noWhitespaceValidator()]],
       email: ['', [Validators.required, Validators.email, noWhitespaceValidator()]],
       password: ['', [Validators.required, passwordStrengthValidator()]],
       confirmPassword: ['', [Validators.required]],

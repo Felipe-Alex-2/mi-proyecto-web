@@ -1,7 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, catchError, throwError, of, map } from 'rxjs';
+import { Observable, tap, catchError, throwError, of, map, finalize, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TokenService } from './token.service';
 import { User, UserUpdate } from '../models/user.model';
@@ -19,6 +19,8 @@ import {
   providedIn: 'root',
 })
 export class AuthService {
+  private userRequest$?: Observable<User | null>;
+  private userRequestToken: string | null = null;
   private readonly baseUrl = environment.apiUrl;
 
   // Modern Angular signals for reactive state
@@ -66,14 +68,31 @@ export class AuthService {
   }
 
   loadCurrentUser(): Observable<User | null> {
-    return this.http.get<User>(`${this.baseUrl}/users/me`).pipe(
-      tap((user) => this.currentUserSignal.set(user)),
-      catchError(() => {
-        this.tokenService.clearTokens();
-        this.currentUserSignal.set(null);
+    const token = this.tokenService.getAccessToken();
+    if (!token) return of(null);
+    if (this.userRequest$ && this.userRequestToken === token) return this.userRequest$;
+    const request$ = this.http.get<User>(`${this.baseUrl}/users/me`).pipe(
+      map((user) => this.tokenService.getAccessToken() === token ? user : null),
+      tap((user) => {
+        if (this.tokenService.getAccessToken() === token) this.currentUserSignal.set(user);
+      }),
+      catchError((error) => {
+        // A temporary outage must not destroy a valid session. Ignore replies
+        // belonging to a session that has already logged out or changed user.
+        if ((error.status === 401 || error.status === 403) && this.tokenService.getAccessToken() === token) {
+          this.tokenService.clearTokens();
+          this.currentUserSignal.set(null);
+        }
         return of(null);
-      })
+      }),
+      finalize(() => {
+        if (this.userRequest$ === request$) this.userRequest$ = undefined;
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
     );
+    this.userRequestToken = token;
+    this.userRequest$ = request$;
+    return request$;
   }
 
   updateProfile(payload: UserUpdate): Observable<User> {

@@ -6,7 +6,7 @@
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(circle at top center, #FAF7F2 0%, #F5F0E8 100%);
+  background: radial-gradient(circle at top center, #FAF7F2 0%, #FAF7F2 100%);
 }
 
 .glow {
@@ -20,7 +20,7 @@
 .glow-1 {
   width: 380px;
   height: 380px;
-  background: #C4956A;
+  background: #C5907E;
   top: -50px;
   left: 20%;
 }
@@ -41,11 +41,11 @@
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(139, 69, 19, 0.12);
+  border: 1px solid rgba(163, 79, 61, 0.12);
   border-radius: 24px;
   padding: 2.5rem;
-  box-shadow: 0 25px 50px -12px rgba(139, 69, 19, 0.1),
-              0 0 0 1px rgba(139, 69, 19, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(163, 79, 61, 0.1),
+              0 0 0 1px rgba(163, 79, 61, 0.05);
   animation: fadeInScale 0.4s ease-out;
 }
 
@@ -71,11 +71,11 @@
   justify-content: center;
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, #8B4513, #C4956A);
+  background: linear-gradient(135deg, #A34F3D, #C5907E);
   border-radius: 14px;
   color: #fff;
   margin-bottom: 1rem;
-  box-shadow: 0 8px 16px rgba(139, 69, 19, 0.25);
+  box-shadow: 0 8px 16px rgba(163, 79, 61, 0.25);
 }
 
 .brand-icon svg {
@@ -86,13 +86,13 @@
 .auth-title {
   font-size: 1.65rem;
   font-weight: 700;
-  color: #2C1810;
+  color: #2C211D;
   margin-bottom: 0.4rem;
   letter-spacing: -0.02em;
 }
 
 .auth-subtitle {
-  color: #8B7355;
+  color: #756B65;
   font-size: 0.9rem;
   margin: 0;
 }
@@ -148,7 +148,7 @@
 
 .forgot-link {
   font-size: 0.8rem;
-  color: #8B4513;
+  color: #A34F3D;
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -162,15 +162,15 @@
   display: flex;
   align-items: center;
   background: #FAF7F2;
-  border: 1px solid rgba(139, 69, 19, 0.15);
+  border: 1px solid rgba(163, 79, 61, 0.15);
   border-radius: 12px;
   padding: 0 0.85rem;
   transition: all 0.2s ease;
 }
 
 .input-container:focus-within {
-  border-color: #8B4513;
-  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
+  border-color: #A34F3D;
+  box-shadow: 0 0 0 3px rgba(163, 79, 61, 0.12);
   background: #FFFFFF;
 }
 
@@ -190,7 +190,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: #2C1810;
+  color: #2C211D;
   padding: 0.85rem 0;
   font-size: 0.95rem;
   outline: none;
@@ -230,7 +230,7 @@
 
 .btn-primary {
   margin-top: 0.5rem;
-  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  background: linear-gradient(135deg, #A34F3D 0%, #A0522D 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -243,12 +243,12 @@
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.25s ease;
-  box-shadow: 0 8px 20px rgba(139, 69, 19, 0.25);
+  box-shadow: 0 8px 20px rgba(163, 79, 61, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #6B3410 0%, #8B4513 100%);
-  box-shadow: 0 10px 25px rgba(139, 69, 19, 0.35);
+  background: linear-gradient(135deg, #6B3410 0%, #A34F3D 100%);
+  box-shadow: 0 10px 25px rgba(163, 79, 61, 0.35);
   transform: translateY(-1px);
 }
 
@@ -288,13 +288,13 @@
   margin-top: 2rem;
   text-align: center;
   font-size: 0.875rem;
-  color: #8B7355;
-  border-top: 1px solid rgba(139, 69, 19, 0.1);
+  color: #756B65;
+  border-top: 1px solid rgba(163, 79, 61, 0.1);
   padding-top: 1.5rem;
 }
 
 .link-highlight {
-  color: #8B4513;
+  color: #A34F3D;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;

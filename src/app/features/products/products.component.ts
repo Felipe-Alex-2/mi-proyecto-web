@@ -1,5 +1,7 @@
-import { noWhitespaceValidator } from '../../core/validators/custom-validators';
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, Subscription, debounceTime } from 'rxjs';
+import { noWhitespaceValidator , trimmedMinLength} from '../../core/validators/custom-validators';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -32,7 +34,11 @@ import { Branch } from '../../core/models/branch.model';
   styleUrls: ['./products.component.css'],
 })
 export class ProductsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly searchChanges = new Subject<void>();
+  private productsRequest?: Subscription;
   products = signal<Product[]>([]);
+  readonly heroImage = computed(() => this.products().find(product => product.image_url)?.image_url ?? null);
   categories = signal<Category[]>([]);
   sizes = signal<Size[]>([]);
   colors = signal<Color[]>([]);
@@ -98,7 +104,7 @@ export class ProductsComponent implements OnInit {
     public authService: AuthService
   ) {
     this.productForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150), noWhitespaceValidator()]],
+      name: ['', [Validators.required, trimmedMinLength(2), Validators.maxLength(150), noWhitespaceValidator()]],
       description: [''],
       price: [null, [Validators.required, Validators.min(0.01)]],
       category_id: ['', Validators.required],
@@ -111,6 +117,8 @@ export class ProductsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.searchChanges.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadProducts());
     this.loadCatalogMasters();
     this.loadProducts();
   }
@@ -162,7 +170,9 @@ export class ProductsComponent implements OnInit {
       filters.search = this.searchQuery().trim();
     }
 
-    this.productService.getProducts(filters).subscribe({
+    this.productsRequest?.unsubscribe();
+    this.productsRequest = this.productService.getProducts(filters)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.products.set(data);
         this.isLoading.set(false);
@@ -183,7 +193,7 @@ export class ProductsComponent implements OnInit {
   onSearch(event: Event): void {
     const val = (event.target as HTMLInputElement).value;
     this.searchQuery.set(val);
-    this.loadProducts();
+    this.searchChanges.next();
   }
 
   // Variant helpers
@@ -355,6 +365,7 @@ export class ProductsComponent implements OnInit {
   }
 
   saveProduct(): void {
+    if (this.isSaving()) return;
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
       const invalidFields: string[] = [];
