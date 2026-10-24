@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "VESTA · Vestidor virtual",
+  "short_name": "VESTA",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#a64e3b",
+  "description": "Tu catálogo, reservas y ventas, también sin conexión.",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

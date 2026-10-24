@@ -1,0 +1,371 @@
+<section class="saas-page">
+  <header>
+    <div>
+      <p class="eyebrow">VESTA · {{platform ? 'ADMINISTRACIÓN SAAS' : 'TU EMPRESA'}}</p>
+      <h1>{{platform ? 'Empresas' : 'Mi plan'}}</h1>
+      <p>{{platform ? 'Un espacio independiente para cada empresa, con sus propios datos y suscripción.' : 'Consulta tus límites, amplía tu negocio y administra tu suscripción.'}}</p>
+    </div>
+    @if(platform) {
+      <button (click)="showCreate.set(!showCreate())" [disabled]="busy()">
+        {{showCreate() ? 'Cerrar formulario' : '+ Crear empresa'}}
+      </button>
+    }
+    @if(!platform && auth.currentUser()?.is_saas_admin) {
+      <button type="button" (click)="showCreatePlan.set(!showCreatePlan())" [disabled]="busy()">{{showCreatePlan() ? 'Cerrar formulario' : '+ Crear suscripciones'}}</button>
+    }
+  </header>
+
+  @if(error()) { <div class="notice error" role="alert">{{error()}}</div> }
+  @if(success()) { <div class="notice success" role="status">{{success()}}</div> }
+  @if(loading()) { <p role="status">Cargando información…</p> }
+  @if(!platform && auth.currentUser()?.is_saas_admin && showCreatePlan()) {
+    <form class="panel" [formGroup]="planForm" (ngSubmit)="createPlan()" novalidate>
+      <h2>Crear plan de suscripción</h2>
+      <p>Configura un nuevo plan de pago único por un período fijo.</p>
+      <div class="fields">
+        <label>Nombre<input formControlName="name" maxlength="80" /></label>
+        <label>Precio en USD<input type="number" formControlName="price_usd" min="0.01" max="100000" step="0.01" /></label>
+        <label>Vigencia en días<input type="number" formControlName="duration_days" min="1" max="365" step="1" /></label>
+        <label>Sucursales activas permitidas<input type="number" formControlName="branch_limit" min="1" max="1000" step="1" /></label>
+        <label class="check"><input type="checkbox" formControlName="ai_reports" /> Incluir reportes con IA</label>
+      </div>
+      @if(planForm.invalid && planForm.touched) { <p class="field-error" role="alert">Completa el nombre, precio y límites con valores válidos.</p> }
+      <button type="submit" [disabled]="busy()">{{busy() ? 'Creando…' : 'Crear plan'}}</button>
+    </form>
+  }
+  <datalist id="bolivia-departments">
+    @for(department of departments; track department) { <option [value]="department"></option> }
+  </datalist>
+
+  @if(platform && showCreate()) {
+    <form class="panel" [formGroup]="form" (ngSubmit)="create()" novalidate>
+      <h2>Nueva empresa</h2>
+      <p>Se creará una cuenta de administrador exclusiva para esta empresa con el plan Básico gratuito (2 sucursales permitidas predeterminadamente), sin vencimiento. Su administrador podrá contratar Profesional desde Mi plan para ampliar hasta 10 sucursales y activar IA.</p>
+      <div class="fields">
+        <label>Nombre de la empresa<input formControlName="name" maxlength="150" /></label>
+        <label>Departamento<input formControlName="department" list="bolivia-departments" placeholder="Escribe o selecciona un departamento" autocomplete="off" maxlength="30" />
+          @if(form.controls.department.invalid && form.controls.department.touched) { <small class="field-error">Selecciona uno de los nueve departamentos de Bolivia.</small> }
+        </label>
+        <label>Identificador<input formControlName="slug" placeholder="moda-felipe" maxlength="80" /><small>Minúsculas, números y guiones; debe ser único.</small></label>
+        <label>Nombre del administrador<input formControlName="admin_name" maxlength="100" /></label>
+        <label>Correo del administrador<input formControlName="admin_email" type="email" autocomplete="off" /></label>
+        <label>Contraseña inicial<input formControlName="admin_password" type="password" autocomplete="new-password" /><small>Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</small></label>
+      </div>
+      @if(form.invalid && form.touched) { <p class="field-error" role="alert">Completa los campos obligatorios. Revisa el correo, identificador y contraseña.</p> }
+      <button type="submit" [disabled]="busy()">{{busy() ? 'Creando…' : 'Crear empresa y administrador'}}</button>
+    </form>
+  }
+
+  @if(platform) {
+    <div class="company-grid">
+      @for(company of companies(); track company.id) {
+        <article class="panel company">
+          <div class="row">
+            <span class="badge">{{company.is_root ? 'Empresa raíz' : company.plan_name}}</span>
+            <span class="status" [class.inactive]="company.status !== 'ACTIVE'">{{statusLabel(company.status)}}</span>
+          </div>
+          <h2>{{company.name}}</h2>
+          @if(company.department) {
+            <p>Departamento: <strong>{{company.department}}</strong></p>
+          } @else {
+            <label>Departamento pendiente<input #departmentInput list="bolivia-departments" placeholder="Selecciona un departamento" autocomplete="off" /></label>
+            <button type="button" class="secondary" (click)="assignDepartment(company, departmentInput.value)" [disabled]="busy()">Asignar departamento</button>
+            <small>Las sucursales existentes conservan su ubicación. Revisa las que correspondan a otro departamento.</small>
+          }
+          <p>{{company.admin_email || 'Sin administrador asignado'}}</p>
+          <p><strong>{{company.active_branches}}</strong> sucursales activas @if(!company.is_root){ de {{company.branch_limit}} }</p>
+          <p>Vencimiento: {{company.expires_at ? (company.expires_at | date:'dd/MM/yyyy') : 'Sin vencimiento'}}</p>
+          @if(!company.is_root) {
+            <div class="actions">
+              <button class="secondary" (click)="toggleCompany(company)" [disabled]="busy()">
+                {{company.is_active ? 'Suspender empresa' : 'Reactivar empresa'}}
+              </button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  } @else {
+    @if(current(); as company) {
+      <section class="panel current">
+        <div>
+          <span class="badge">{{company.name}}</span>
+          <h2>{{company.plan_name}}</h2>
+          <p>Estado: <strong>{{statusLabel(company.status)}}</strong></p>
+          <p>{{company.expires_at ? 'Vigente hasta el ' + (company.expires_at | date:'dd/MM/yyyy') : 'Sin vencimiento'}}</p>
+        </div>
+        <div>
+          <strong class="usage">{{company.active_branches}} <span>/ {{company.is_root ? 'Sin límite' : company.branch_limit}}</span></strong>
+          <p>Sucursales activas</p>
+        </div>
+      </section>
+
+      @if(company.status !== 'ACTIVE') {
+        <p class="notice error">Tu suscripción está vencida o suspendida. Puedes consultar información, pero las operaciones nuevas y la IA están restringidas. Si la empresa está suspendida, contacta a VESTA.</p>
+      }
+
+      <div class="plan-grid">
+        @for(plan of plans(); track plan.code) {
+          <article class="panel plan" [class.featured]="plan.code === 'PRO'" [class.max-plan]="plan.code === 'MAX'">
+            <div class="plan-top-row">
+              <span class="badge">{{plan.code === 'BASIC' ? 'Lo esencial' : plan.code === 'MAX' ? 'Más capacidad' : 'Más posibilidades'}}</span>
+              @if(plan.code === 'PRO') {
+                <div class="billing-toggle" role="group" aria-label="Frecuencia de facturación">
+                  <button type="button" class="toggle-btn" [class.active]="billingCycle() === 'monthly'" (click)="billingCycle.set('monthly')">
+                    Mensual
+                  </button>
+                  <button type="button" class="toggle-btn" [class.active]="billingCycle() === 'annual'" (click)="billingCycle.set('annual')">
+                    Anual <span class="save-tag">· Ahorra 17%</span>
+                  </button>
+                </div>
+              }
+            </div>
+            <h2>{{plan.name}}</h2>
+            <p class="plan-tagline">{{plan.code === 'BASIC' ? 'Lo fundamental para comenzar tu tienda' : plan.code === 'MAX' ? 'Más sucursales para hacer crecer tu empresa' : 'Organiza y analiza tu negocio'}}</p>
+
+            @if(plan.code === 'BASIC') {
+              <div class="price-container">
+                <p class="price">Gratis <span>· Sin vencimiento</span></p>
+                <p class="price-sub">Sin cobros</p>
+              </div>
+            } @else {
+              <div class="price-container">
+                @if(plan.code !== 'PRO' || billingCycle() === 'monthly') {
+                  <p class="price">${{plan.price_usd | number:'1.0-2'}} <span class="price-unit">USD / {{plan.duration_days}} días</span></p>
+                  <p class="price-sub">Pago único por período fijo</p>
+                } @else {
+                  <p class="price">$17 <span class="price-unit">USD / mes</span></p>
+                  <p class="price-sub">$200 facturado anualmente</p>
+                }
+              </div>
+            }
+
+            @if(plan.code !== 'BASIC' && !company.is_root && auth.currentUser()?.role === 'ADMIN') {
+              <button class="btn-obtain-plan" (click)="checkout(plan.code)" [disabled]="busy() || !company.is_active || company.status === 'SUSPENDED'">
+                {{busy() ? 'Procesando…' : 'Obtener plan ' + plan.name}}
+              </button>
+              <p class="plan-sub-cancel">Sin renovación automática</p>
+            } @else {
+              <p class="plan-note">{{company.plan_code === plan.code ? 'Tu plan actual' : (plan.code === 'BASIC' ? 'Plan gratuito predeterminado (2 sucursales).' : 'Tu administrador puede contratar este plan.')}}</p>
+            }
+
+            <ul>
+              <li>Hasta {{plan.branch_limit}} sucursales activas</li>
+              <li>Productos, inventario, ventas y reservas</li>
+              <li>Operación offline</li>
+              <li>Reportes convencionales</li>
+              <li>{{plan.ai_reports ? 'Incluye reportes generativos con IA' : 'Sin reportes generativos con IA'}}</li>
+            </ul>
+            @if(auth.currentUser()?.is_saas_admin) {
+              <div class="plan-settings">
+                <label>Límite de sucursales<input type="number" [(ngModel)]="plan.branch_limit" min="1" max="1000" step="1" /></label>
+                <label class="check"><input type="checkbox" [(ngModel)]="plan.ai_reports" /> Reportes con IA</label>
+                <button type="button" class="secondary" (click)="savePlan(plan)" [disabled]="busy()">Guardar configuración</button>
+              </div>
+            }
+          </article>
+        }
+      </div>
+
+      @if(!company.is_root && auth.currentUser()?.role === 'ADMIN') {
+        <p class="hint">
+          {{billingCycle() === 'annual' ? 'El plan anual de USD 200 añade 365 días de cobertura Profesional (10 sucursales activas e IA) con un ahorro del 17%.' : 'Cada pago mensual de USD 20 añade 30 días de Profesional (10 sucursales activas e Inteligencia Artificial).'}}
+          Max cuesta USD 50 por 30 días. Cada pago suma su vigencia al vencimiento vigente de tu plan de pago y activa el plan elegido.
+          No se realizan cobros automáticos. Te dirigiremos a PayPal Sandbox en una pestaña nueva: autoriza el pago y al volver pulsa "Verificar pago" para emitir tu recibo.
+        </p>
+      }
+
+      @if(company.ai_reports) {
+        <a class="feature-link" routerLink="/reports">Explorar reportes con IA →</a>
+      }
+
+      @if(auth.currentUser()?.role === 'ADMIN' && !company.is_root) {
+        <section class="panel payments-section">
+          <div class="payments-header">
+            <div>
+              <h2>Historial de pagos y recibos</h2>
+              <p>Revisa el estado de tus suscripciones, verifica transacciones pendientes y consulta el recibo detallado de tu compra a su lado.</p>
+            </div>
+            <button class="secondary btn-refresh" (click)="cleanAndRefreshPayments()" [disabled]="busy()" title="Actualizar lista y limpiar avisos">
+              ↻ Actualizar pagos
+            </button>
+          </div>
+
+          @if(paymentError()) {
+            <div class="notice error payment-notice" role="alert">
+              <span>{{paymentError()}}</span>
+              <button type="button" class="notice-close" (click)="paymentError.set('')" aria-label="Cerrar aviso">×</button>
+            </div>
+          }
+          @if(paymentSuccess()) {
+            <div class="notice success payment-notice" role="status">
+              <span>{{paymentSuccess()}}</span>
+              <button type="button" class="notice-close" (click)="paymentSuccess.set('')" aria-label="Cerrar aviso">×</button>
+            </div>
+          }
+
+          @if(payments().length === 0) {
+            <p class="empty-payments-note">Aún no tienes registros de pagos. Al contratar un plan verás aquí tu transacción pendiente para verificarla y emitir tu recibo.</p>
+          } @else {
+            <div class="payments-split" [class.with-receipt]="selectedPayment()">
+              <div class="table-scroll payments-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Plan</th>
+                      <th>Importe</th>
+                      <th>Estado</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for(payment of payments(); track payment.id) {
+                      <tr [class.selected-row]="selectedPayment()?.id === payment.id">
+                        <td>{{payment.created_at | date:'dd/MM/yyyy HH:mm'}}</td>
+                        <td>
+                          <strong>{{payment.plan_name || 'Profesional'}}</strong>
+                          <small class="text-muted">
+                            ({{payment.duration_days || 30}} días)
+                          </small>
+                        </td>
+                        <td><span class="amount-tag">{{payment.amount | currency:'USD'}}</span></td>
+                        <td>
+                          <span class="status-pill" [class.paid]="payment.status === 'PAID'" [class.pending]="payment.status === 'PENDING'" [class.cancelled]="payment.status === 'CANCELLED'">
+                            {{statusLabel(payment.status)}}
+                          </span>
+                        </td>
+                        <td class="action-cell">
+                          @if(payment.status === 'PENDING') {
+                            @if(payment.order_id) {
+                              <button class="btn-verify" (click)="capture(payment.order_id)" [disabled]="busy()" title="Verificar estado del pago con PayPal">
+                                ✓ Verificar pago
+                              </button>
+                            }
+                            <button class="btn-cancel" (click)="cancelPayment(payment.id)" [disabled]="busy()" title="Cancelar esta orden pendiente">
+                              ✕ Cancelar
+                            </button>
+                          } @else if(payment.status === 'PAID') {
+                            <button class="btn-receipt secondary" (click)="selectPayment(payment)">
+                              📄 Ver recibo
+                            </button>
+                          } @else if(payment.status === 'CANCELLED') {
+                            <button class="btn-delete-payment" (click)="deletePayment(payment.id)" [disabled]="busy()" title="Eliminar este registro cancelado">
+                              🗑 Eliminar
+                            </button>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Recibo detallado a su lado -->
+              @if(selectedPayment(); as receipt) {
+                <aside class="receipt-container" id="printable-receipt">
+                  <div class="receipt-card">
+                    <div class="receipt-top">
+                      <div class="receipt-brand">
+                        <span class="receipt-brand-name">VESTA</span>
+                        <span class="receipt-tag">RECIBO DE SUSCRIPCIÓN</span>
+                      </div>
+                      <button class="receipt-close-btn" (click)="selectedPayment.set(null)" title="Ocultar recibo">×</button>
+                    </div>
+
+                    <div class="receipt-badge-strip" [class.strip-paid]="receipt.status === 'PAID'" [class.strip-pending]="receipt.status === 'PENDING'" [class.strip-cancelled]="receipt.status === 'CANCELLED'">
+                      <span class="badge-icon">{{receipt.status === 'PAID' ? '✓' : (receipt.status === 'CANCELLED' ? '✕' : '⏱')}}</span>
+                      <span class="badge-text">{{receipt.status === 'PAID' ? 'PAGO CONFIRMADO · ACTIVO' : (receipt.status === 'CANCELLED' ? 'PAGO CANCELADO' : 'PAGO PENDIENTE DE CONFIRMACIÓN')}}</span>
+                    </div>
+
+                    <div class="receipt-details">
+                      <div class="receipt-row">
+                        <span class="receipt-label">Empresa:</span>
+                        <span class="receipt-val font-semibold">{{company.name}}</span>
+                      </div>
+                      <div class="receipt-row">
+                        <span class="receipt-label">Fecha:</span>
+                        <span class="receipt-val">{{(receipt.paid_at || receipt.created_at) | date:'dd/MM/yyyy HH:mm'}}</span>
+                      </div>
+                      <div class="receipt-row">
+                        <span class="receipt-label">Válido hasta:</span>
+                        <span class="receipt-val highlight">
+                          {{receipt.expires_at ? (receipt.expires_at | date:'dd/MM/yyyy') : (receipt.duration_days || 30) + ' días al confirmar el pago'}}
+                        </span>
+                      </div>
+
+                      <div class="receipt-divider"></div>
+
+                      <div class="receipt-product-box">
+                        <div class="product-title-row">
+                          <strong>Plan {{receipt.plan_name || 'Profesional'}} VESTA</strong>
+                          <span class="product-price">{{receipt.amount | currency:'USD'}}</span>
+                        </div>
+                        <p class="product-subtitle">
+                          Suscripción de {{receipt.duration_days || 30}} días para tu empresa
+                        </p>
+                        <ul class="receipt-features-list">
+                          <li>✓ Operación multi-sucursal y sincronización POS</li>
+                          <li>✓ Cobertura: <strong>{{receipt.duration_days || 30}} días</strong></li>
+                          <li>✓ Pago único, sin renovación automática</li>
+                        </ul>
+                      </div>
+
+                      <div class="receipt-divider"></div>
+
+                      <div class="receipt-summary-table">
+                        <div class="receipt-row">
+                          <span>Subtotal</span>
+                          <span>{{receipt.amount | currency:'USD'}}</span>
+                        </div>
+                        <div class="receipt-row">
+                          <span>Impuestos y tasas</span>
+                          <span>$0.00 USD</span>
+                        </div>
+                        <div class="receipt-row total-highlight">
+                          <strong>Total pagado</strong>
+                          <strong class="total-price">{{receipt.amount | currency:'USD'}}</strong>
+                        </div>
+                      </div>
+
+                      <div class="receipt-meta-box">
+                        <div class="meta-row">
+                          <span class="meta-title">Pasarela:</span>
+                          <span>PayPal Sandbox</span>
+                        </div>
+                        @if(receipt.order_id) {
+                          <div class="meta-row">
+                            <span class="meta-title">Orden PayPal:</span>
+                            <code>{{receipt.order_id}}</code>
+                          </div>
+                        }
+                        @if(receipt.capture_id) {
+                          <div class="meta-row">
+                            <span class="meta-title">Captura PayPal:</span>
+                            <code>{{receipt.capture_id}}</code>
+                          </div>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="receipt-footer-actions">
+                      <button class="secondary btn-print" (click)="printReceipt()">
+                        🖨 Imprimir
+                      </button>
+                      @if(receipt.status === 'PAID') {
+                        <button class="secondary btn-pdf" (click)="downloadReceiptPdf(receipt.id)" [disabled]="isDownloadingInvoice()">
+                          {{isDownloadingInvoice() ? 'Descargando…' : '📥 Descargar PDF'}}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </aside>
+              }
+            </div>
+          }
+        </section>
+      }
+    }
+  }
+</section>
+

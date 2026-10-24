@@ -1,0 +1,98 @@
+<section class="offline-page">
+  <header>
+    <p class="eyebrow">VESTA · SEGURIDAD DE TU EMPRESA</p>
+    <h1>Backup</h1>
+    <p>Copias de seguridad de los datos de la empresa, guardadas en el servidor.</p>
+  </header>
+  @if (error()) {
+    <p class="notice error" role="alert">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="notice success" role="status">{{ success() }}</p>
+  }
+  <section class="panel">
+    <h2>Respaldo automático diario</h2>
+    <p>
+      Se genera una copia por día (hora de Bolivia) mientras el backend esté funcionando. Si estuvo
+      apagado, se genera la copia del día al volver a iniciar.
+    </p>
+    @if (auth.currentUser()?.is_saas_admin) {
+      <label
+        >Empresa<select [(ngModel)]="companyId" (ngModelChange)="changeCompany()" [disabled]="busy()">
+          @for (company of companies(); track company.id) {
+            <option [value]="company.id">{{ company.name }}</option>
+          }
+        </select></label
+      >
+    }
+    <p>
+      Incluye catálogo, sucursales, inventario, ventas, reservas, datos básicos de clientes y
+      personal, y la suscripción de esta empresa. Excluye contraseñas, tokens y claves de servicios.
+    </p>
+    <p>La actualización horaria del catálogo offline se administra por separado desde Mi perfil.</p>
+    <button (click)="create()" [disabled]="busy()">
+      {{ busy() ? 'Procesando…' : 'Crear y descargar backup JSON' }}
+    </button>
+  </section>
+  <section class="panel" aria-labelledby="restore-title">
+    <h2 id="restore-title">Recuperar datos desde un backup</h2>
+    <p>Arrastra tu archivo para revisar qué contiene y comparar sus registros con los de la empresa seleccionada. El análisis no carga datos.</p>
+    <div class="drop-zone" [class.dragging]="dragging()" [class.disabled]="busy()"
+      (dragover)="$event.preventDefault(); dragging.set(!busy())" (dragleave)="dragging.set(false)" (drop)="drop($event)">
+      <strong>{{selectedFile()?.name || 'Arrastra aquí un backup de VESTA'}}</strong>
+      <p>JSON sin comprimir · máximo 32 MB</p>
+      <label class="file-picker">O selecciona un archivo<input type="file" accept=".json,.json.gz,application/json,application/gzip" [disabled]="busy()" (change)="chooseFile($event)" /></label>
+    </div>
+    @if(busy() && selectedFile()) { <p role="status">Analizando o recuperando los datos. Espera a que termine…</p> }
+    @if(review(); as data) {
+      <div class="review-summary">
+        <h3>{{data.company_name}}</h3>
+        <p>Copia del {{data.created_at | date:'dd/MM/yyyy HH:mm'}} · {{data.missing}} registros faltantes · {{data.existing}} existentes · {{data.skipped}} omitidos o informativos</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Datos guardados</th><th>En archivo</th><th>Por recuperar</th><th>Ya existen</th><th>Omitidos / informativos</th></tr></thead>
+          <tbody>@for(row of data.tables; track row.table) {
+            <tr><td>{{tableLabels[row.table] || row.table}} @if(row.information_only){<small>Solo información</small>}
+              @if(row.examples?.length){<details><summary>Ver ejemplos</summary><ul>@for(example of row.examples; track $index){<li>{{example}}</li>}</ul></details>}
+            </td><td>{{row.total}}</td><td>{{row.missing}}</td><td>{{row.existing}}</td><td>{{row.skipped}}</td></tr>
+          }</tbody>
+        </table></div>
+        <p>Se recuperan los registros faltantes y sus relaciones. Los registros existentes se conservan con sus valores actuales; las prendas desactivadas cuentan como existentes.</p>
+        <p>Las cuentas y la configuración de empresa, planes y suscripciones son informativas. Este respaldo no contiene contraseñas para recrear cuentas.</p>
+        @if(data.issues.length) {
+          <h4>Registros que requieren revisión</h4><ul>@for(issue of data.issues; track $index){<li>{{tableLabels[issue.table] || issue.table}} · {{issue.name}}: {{issue.reason}}</li>}</ul>
+        }
+        @if(!data.missing) { <p role="status">No hay datos faltantes que puedan recuperarse de este archivo.</p> }
+        <button type="button" (click)="restore()" [disabled]="busy() || !data.missing">Recuperar {{data.missing}} registros faltantes</button>
+      </div>
+    }
+  </section>
+  <section class="panel">
+    <div class="row">
+      <h2>Historial de copias</h2>
+      <button class="secondary" (click)="load()" [disabled]="busy()">Actualizar</button>
+    </div>
+    @for (row of backups(); track row.id) {
+      <article class="operation">
+        <div class="row">
+          <strong>{{ row.created_at | date: 'dd/MM/yyyy HH:mm' }}</strong
+          ><span class="badge">{{ row.kind === 'AUTO' ? 'Automático diario' : 'Manual' }}</span>
+        </div>
+        <p>
+          {{ row.company_name }} · {{ row.records }} registros ·
+          {{ (row.download_size_bytes || row.size_bytes) / 1024 | number: '1.1-1' }} KB
+        </p>
+        <button class="secondary" (click)="download(row)" [disabled]="busy()">
+          Descargar respaldo
+        </button>
+        <p>
+          <small>{{row.download_sha256 ? 'SHA-256 del JSON' : 'SHA-256 de la copia del servidor'}}: {{ row.download_sha256 || row.sha256 }}</small>
+        </p>
+      </article>
+    } @empty {
+      <p>No hay copias disponibles para esta empresa.</p>
+    }
+    <p class="hint">
+      Descarga JSON sin comprimir. Puedes arrastrar ese mismo archivo en el área de recuperación para analizarlo y recuperar datos faltantes.
+    </p>
+  </section>
+</section>

@@ -1,12 +1,13 @@
 import { Routes } from '@angular/router';
 import {
   authGuard,
+  platformGuard,
   guestGuard,
   adminGuard,
   managerGuard,
   reportsGuard,
   dashboardGuard,
-} from './core/guards/auth.guard';
+} from './nucleo/guards/autenticacion.guard';
 
 export const routes: Routes = [
   {
@@ -17,99 +18,104 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () =>
-      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+      import('./funcionalidades/autenticacion/inicio_sesion/inicio_sesion.component').then((m) => m.InicioSesionComponent),
     canActivate: [guestGuard],
   },
   {
     path: 'register',
     loadComponent: () =>
-      import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
+      import('./funcionalidades/autenticacion/registro/registro.component').then((m) => m.RegistroComponent),
     canActivate: [guestGuard],
   },
   {
     path: 'forgot-password',
     loadComponent: () =>
-      import('./features/auth/forgot-password/forgot-password.component').then(
-        (m) => m.ForgotPasswordComponent
+      import('./funcionalidades/autenticacion/recuperar-contrasena/recuperar-contrasena.component').then(
+        (m) => m.RecuperarContrasenaComponent
       ),
     canActivate: [guestGuard],
   },
   {
     path: 'reset-password',
     loadComponent: () =>
-      import('./features/auth/reset-password/reset-password.component').then(
-        (m) => m.ResetPasswordComponent
+      import('./funcionalidades/autenticacion/restablecer-contrasena/restablecer-contrasena.component').then(
+        (m) => m.RestablecerContrasenaComponent
       ),
     canActivate: [guestGuard],
   },
   {
     path: 'paypal-return',
     loadComponent: () =>
-      import('./features/paypal-return/paypal-return.component').then(
-        (m) => m.PaypalReturnComponent
+      import('./funcionalidades/retorno-paypal/retorno-paypal.component').then(
+        (m) => m.RetornoPaypalComponent
       ),
   },
   {
     path: '',
     loadComponent: () =>
-      import('./core/layout/main-layout/main-layout.component').then(
-        (m) => m.MainLayoutComponent
+      import('./nucleo/layout/principal-layout/principal-layout.component').then(
+        (m) => m.PrincipalLayoutComponent
       ),
     canActivate: [authGuard],
     children: [
-      { path: 'profile', loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent) },
+      {path:'backups',loadComponent:()=>import('./funcionalidades/respaldos/respaldos.component').then(m=>m.RespaldosComponent),canActivate:[adminGuard]},
+      {path:'offline',redirectTo:'profile',pathMatch:'full'},
+      { path:'companies', loadComponent:()=>import('./funcionalidades/saas/saas.component').then(m=>m.SaasComponent), canActivate:[platformGuard], data:{platform:true} },
+      { path:'subscription', loadComponent:()=>import('./funcionalidades/saas/saas.component').then(m=>m.SaasComponent), canActivate:[managerGuard] },
+      { path:'my-history', loadComponent:()=>import('./funcionalidades/saas/historial-cliente.component').then(m=>m.HistorialClienteComponent) },
+      { path: 'profile', loadComponent: () => import('./funcionalidades/perfil/perfil.component').then(m => m.PerfilComponent) },
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./features/dashboard/dashboard.component').then(
-            (m) => m.DashboardComponent
+          import('./funcionalidades/panel_principal/panel_principal.component').then(
+            (m) => m.PanelPrincipalComponent
           ),
         canActivate: [dashboardGuard],
       },
       {
         path: 'catalog',
         loadComponent: () =>
-          import('./features/catalog/catalog.component').then(
-            (m) => m.CatalogComponent
+          import('./funcionalidades/catalogo/catalogo.component').then(
+            (m) => m.CatalogoComponent
           ),
       },
       {
         path: 'reports',
         loadComponent: () =>
-          import('./features/reports/reports.component').then(
-            (m) => m.ReportsComponent
+          import('./funcionalidades/reportes/reportes.component').then(
+            (m) => m.ReportesComponent
           ),
         canActivate: [reportsGuard],
       },
       {
         path: 'recommendations',
         loadComponent: () =>
-          import('./features/recommendations/recommendations.component').then(
-            (m) => m.RecommendationsComponent
+          import('./funcionalidades/recomendaciones/recomendaciones.component').then(
+            (m) => m.RecomendacionesComponent
           ),
       },
       {
         path: 'activity-log',
         loadComponent: () =>
-          import('./features/activity-log/activity-log.component').then(
-            (m) => m.ActivityLogComponent
+          import('./funcionalidades/bitacora/bitacora.component').then(
+            (m) => m.BitacoraComponent
           ),
-        canActivate: [adminGuard],
+        canActivate: [managerGuard],
       },
       // Módulo 1: Seguridad y Personal (Solo ADMIN)
       {
         path: 'users',
         loadComponent: () =>
-          import('./features/users/users.component').then(
-            (m) => m.UsersComponent
+          import('./funcionalidades/usuarios/usuarios.component').then(
+            (m) => m.UsuariosComponent
           ),
         canActivate: [adminGuard],
       },
       {
         path: 'branches',
         loadComponent: () =>
-          import('./features/branches/branches.component').then(
-            (m) => m.BranchesComponent
+          import('./funcionalidades/sucursales/sucursales.component').then(
+            (m) => m.SucursalesComponent
           ),
         canActivate: [adminGuard],
       },
@@ -117,40 +123,40 @@ export const routes: Routes = [
       {
         path: 'products',
         loadComponent: () =>
-          import('./features/products/products.component').then(
-            (m) => m.ProductsComponent
+          import('./funcionalidades/productos/productos.component').then(
+            (m) => m.ProductosComponent
           ),
         canActivate: [managerGuard],
       },
       {
         path: 'catalog-attributes',
         loadComponent: () =>
-          import('./features/catalog-attributes/catalog-attributes.component').then(
-            (m) => m.CatalogAttributesComponent
+          import('./funcionalidades/atributos-catalogo/atributos-catalogo.component').then(
+            (m) => m.AtributosCatalogoComponent
           ),
         canActivate: [managerGuard],
       },
       {
         path: 'seasons',
         loadComponent: () =>
-          import('./features/seasons/seasons.component').then(
-            (m) => m.SeasonsComponent
+          import('./funcionalidades/temporadas/temporadas.component').then(
+            (m) => m.TemporadasComponent
           ),
         canActivate: [managerGuard],
       },
       {
         path: 'promotions',
         loadComponent: () =>
-          import('./features/promotions/promotions.component').then(
-            (m) => m.PromotionsComponent
+          import('./funcionalidades/promociones/promociones.component').then(
+            (m) => m.PromocionesComponent
           ),
         canActivate: [managerGuard],
       },
       {
         path: 'suppliers',
         loadComponent: () =>
-          import('./features/suppliers/suppliers.component').then(
-            (m) => m.SuppliersComponent
+          import('./funcionalidades/proveedores/proveedores.component').then(
+            (m) => m.ProveedoresComponent
           ),
         canActivate: [managerGuard],
       },
@@ -158,29 +164,29 @@ export const routes: Routes = [
       {
         path: 'inventory-movements',
         loadComponent: () =>
-          import('./features/inventory-movements/inventory-movements.component').then(
-            (m) => m.InventoryMovementsComponent
+          import('./funcionalidades/movimientos-inventario/movimientos-inventario.component').then(
+            (m) => m.MovimientosInventarioComponent
           ),
       },
       {
         path: 'branch-availability',
         loadComponent: () =>
-          import('./features/branch-availability/branch-availability.component').then(
-            (m) => m.BranchAvailabilityComponent
+          import('./funcionalidades/disponibilidad-sucursal/disponibilidad-sucursal.component').then(
+            (m) => m.DisponibilidadSucursalComponent
           ),
       },
       {
         path: 'reservations',
         loadComponent: () =>
-          import('./features/reservations-admin/reservations-admin.component').then(
-            (m) => m.ReservationsAdminComponent
+          import('./funcionalidades/reservas-admin/reservas-admin.component').then(
+            (m) => m.ReservasAdminComponent
           ),
       },
       {
         path: 'payments',
         loadComponent: () =>
-          import('./features/payments/payments.component').then(
-            (m) => m.PaymentsComponent
+          import('./funcionalidades/pagos/pagos.component').then(
+            (m) => m.PagosComponent
           ),
       },
     ],

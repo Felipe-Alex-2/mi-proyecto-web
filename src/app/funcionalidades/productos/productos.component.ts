@@ -1,0 +1,650 @@
+import { EstadoLocalComponent } from '../../nucleo/componentes/estado-local.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, Subscription, debounceTime } from 'rxjs';
+import { sinEspaciosVaciosValidator , longitudMinimaSinEspacios} from '../../nucleo/validadores/validadores-personalizados';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { ProductoService } from '../../nucleo/servicios/producto.service';
+import { AtributoCatalogoService } from '../../nucleo/servicios/atributo-catalogo.service';
+import { TemporadaService } from '../../nucleo/servicios/temporada.service';
+import { PromocionService } from '../../nucleo/servicios/promocion.service';
+import { ProveedorService } from '../../nucleo/servicios/proveedor.service';
+import { SucursalService } from '../../nucleo/servicios/sucursal.service';
+import { StockService } from '../../nucleo/servicios/stock.service';
+import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
+import { Product, ProductCreate, ProductUpdate, VariantCreate } from '../../nucleo/modelos/producto.model';
+import { Category, Color, Size } from '../../nucleo/modelos/atributo-catalogo.model';
+import { Season } from '../../nucleo/modelos/temporada.model';
+import { Promotion } from '../../nucleo/modelos/promocion.model';
+import { Supplier } from '../../nucleo/modelos/proveedor.model';
+import { Branch } from '../../nucleo/modelos/sucursal.model';
+import { SelectorSucursalComponent } from '../../nucleo/componentes/selector-sucursal.component';
+
+@Component({
+  selector: 'app-products',
+  standalone: true,
+  imports: [EstadoLocalComponent, CommonModule, ReactiveFormsModule, FormsModule, RouterLink, SelectorSucursalComponent],
+  templateUrl: './productos.component.html',
+  styleUrls: ['./productos.component.css'],
+})
+export class ProductosComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly searchChanges = new Subject<void>();
+  private productsRequest?: Subscription;
+  products = signal<Product[]>([]);
+  readonly heroImage = computed(() => this.products().find(product => product.image_url)?.image_url ?? null);
+  categories = signal<Category[]>([]);
+  sizes = signal<Size[]>([]);
+  colors = signal<Color[]>([]);
+  seasons = signal<Season[]>([]);
+  promotions = signal<Promotion[]>([]);
+  suppliers = signal<Supplier[]>([]);
+  branches = signal<Branch[]>([]);
+
+  // Designated Branch for Stock Consultation and Management
+  designatedBranchId = signal<string>('');
+  onlyWithStockInBranch = signal<boolean>(false);
+
+  designatedBranch = computed(() => {
+    const bId = this.designatedBranchId();
+    return this.branches().find((b) => b.id === bId) || null;
+  });
+
+  filteredProducts = computed(() => {
+    const list = this.products();
+    const branchId = this.designatedBranchId();
+    const onlyStock = this.onlyWithStockInBranch();
+    if (!branchId || !onlyStock) return list;
+    return list.filter((p) => this.getProductStockInBranch(p, branchId) > 0);
+  });
+
+  // Filters & State
+  selectedCategory = signal<string>('');
+  searchQuery = signal<string>('');
+  isLoading = signal<boolean>(false);
+  errorMessage = signal<string | null>(null);
+  successMessage = signal<string | null>(null);
+
+  // Modal Create / Edit
+  isModalOpen = signal<boolean>(false);
+  isEditMode = signal<boolean>(false);
+  editingId = signal<string | null>(null);
+  isSaving = signal<boolean>(false);
+  modalError = signal<string | null>(null);
+
+  productForm: FormGroup;
+  imagePreview = signal<string | null>(null);
+  selectedSizeIds = signal<string[]>([]);
+  selectedColorIds = signal<string[]>([]);
+  initialStockMap = signal<Record<string, number>>({}); // key: `${sizeId}_${colorId}_${branchId}` -> qty
+
+  // Modal Stock Management
+  isStockModalOpen = signal<boolean>(false);
+  selectedProductForStock = signal<Product | null>(null);
+  selectedBranchForStock = signal<string>('');
+  stockUpdateMap = signal<Record<string, number>>({}); // variantId -> qty
+  isUpdatingStock = signal<boolean>(false);
+  stockModalError = signal<string | null>(null);
+
+  constructor(
+    private fb: FormBuilder,
+    private productService: ProductoService,
+    private catalogService: AtributoCatalogoService,
+    private seasonService: TemporadaService,
+    private promotionService: PromocionService,
+    private supplierService: ProveedorService,
+    private branchService: SucursalService,
+    private stockService: StockService,
+    public authService: AutenticacionService
+  ) {
+    this.productForm = this.fb.group({
+      name: ['', [Validators.required, longitudMinimaSinEspacios(2), Validators.maxLength(150), sinEspaciosVaciosValidator()]],
+      description: [''],
+      price: [null, [Validators.required, Validators.min(0.01)]],
+      category_id: ['', Validators.required],
+      season_id: [''],
+      promotion_id: [''],
+      supplier_id: [''],
+      image_url: [''],
+      gender: ['UNISEX', Validators.required],
+    });
+  }
+
+  ngOnInit(): void {
+    this.searchChanges.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadProducts());
+    this.loadCatalogMasters();
+    this.loadProducts();
+  }
+
+  loadCatalogMasters(): void {
+    this.catalogService.getCategories().subscribe({
+      next: (data) => this.categories.set(data.filter((c) => c.is_active)),
+    });
+    this.catalogService.getSizes().subscribe({
+      next: (data) => this.sizes.set(data.filter((s) => s.is_active)),
+    });
+    this.catalogService.getColors().subscribe({
+      next: (data) => this.colors.set(data.filter((c) => c.is_active)),
+    });
+    this.seasonService.getSeasons().subscribe({
+      next: (data) => this.seasons.set(data.filter((s) => s.is_active)),
+    });
+    this.promotionService.getPromotions(true).subscribe({
+      next: (data) => this.promotions.set(data),
+    });
+    this.supplierService.getSuppliers().subscribe({
+      next: (data) => this.suppliers.set(data.filter((s) => s.is_active)),
+    });
+    this.branchService.getBranches().subscribe({
+      next: (data) => {
+        const activeBranches = data.filter((b) => b.is_active);
+        this.branches.set(activeBranches);
+        if (activeBranches.length > 0 && !this.selectedBranchForStock()) {
+          this.selectedBranchForStock.set(activeBranches[0].id);
+        }
+        const user = this.authService.currentUser();
+        if (user && user.branch_id && !this.designatedBranchId()) {
+          this.designatedBranchId.set(user.branch_id);
+          this.selectedBranchForStock.set(user.branch_id);
+        }
+      },
+    });
+  }
+
+  loadProducts(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    const filters: any = {};
+    if (this.selectedCategory()) {
+      filters.categoryId = this.selectedCategory();
+    }
+    if (this.searchQuery().trim()) {
+      filters.search = this.searchQuery().trim();
+    }
+
+    this.productsRequest?.unsubscribe();
+    this.productsRequest = this.productService.getProducts(filters)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (data) => {
+        this.products.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'Error al cargar las prendas del catálogo');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  onCategoryFilter(event: Event): void {
+    const val = (event.target as HTMLSelectElement).value;
+    this.selectedCategory.set(val);
+    this.loadProducts();
+  }
+
+  onSearch(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(val);
+    this.searchChanges.next();
+  }
+
+  // Variant helpers
+  toggleSize(sizeId: string): void {
+    const current = this.selectedSizeIds();
+    if (current.includes(sizeId)) {
+      this.selectedSizeIds.set(current.filter((id) => id !== sizeId));
+    } else {
+      this.selectedSizeIds.set([...current, sizeId]);
+    }
+  }
+
+  toggleColor(colorId: string): void {
+    const current = this.selectedColorIds();
+    if (current.includes(colorId)) {
+      this.selectedColorIds.set(current.filter((id) => id !== colorId));
+    } else {
+      this.selectedColorIds.set([...current, colorId]);
+    }
+  }
+
+  getSizeName(sizeId: string): string {
+    const s = this.sizes().find((item) => item.id === sizeId);
+    return s ? `${s.name} (${s.code})` : sizeId;
+  }
+
+  getColorObj(colorId: string): Color | undefined {
+    return this.colors().find((item) => item.id === colorId);
+  }
+
+  setInitialStock(sizeId: string, colorId: string, branchId: string, event: Event): void {
+    const val = parseInt((event.target as HTMLInputElement).value, 10) || 0;
+    const key = `${sizeId}_${colorId}_${branchId}`;
+    const map = { ...this.initialStockMap() };
+    map[key] = val;
+    this.initialStockMap.set(map);
+  }
+
+  getInitialStockVal(sizeId: string, colorId: string, branchId: string): number {
+    const key = `${sizeId}_${colorId}_${branchId}`;
+    return this.initialStockMap()[key] || 0;
+  }
+
+  // Image Upload Handling
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.modalError.set('Por favor selecciona un archivo de imagen válido (PNG, JPG, WebP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 800;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          // Siempre exportamos en formato PNG para conservar canal alfa transparente para el vestidor virtual
+          const optimizedDataUrl = canvas.toDataURL('image/png');
+          this.imagePreview.set(optimizedDataUrl);
+          this.productForm.patchValue({ image_url: optimizedDataUrl });
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeWhiteBackground(): void {
+    const currentUrl = this.imagePreview() || this.productForm.get('image_url')?.value;
+    if (!currentUrl) return;
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.drawImage(img, 0, 0);
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+
+      // Algoritmo de remoción de fondo blanco / claro (RGB > 230)
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        if (r > 230 && g > 230 && b > 230) {
+          data[i + 3] = 0; // Transparente
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+      const pngDataUrl = canvas.toDataURL('image/png');
+      this.imagePreview.set(pngDataUrl);
+      this.productForm.patchValue({ image_url: pngDataUrl });
+      this.showSuccess('¡Fondo blanco eliminado! Prenda convertida a PNG transparente.');
+    };
+    img.src = currentUrl;
+  }
+
+  removeImage(): void {
+    this.imagePreview.set(null);
+    this.productForm.patchValue({ image_url: '' });
+  }
+
+  // Modals
+  openCreateModal(): void {
+    this.isEditMode.set(false);
+    this.editingId.set(null);
+    this.modalError.set(null);
+    this.errorMessage.set(null);
+    this.imagePreview.set(null);
+    this.productForm.reset({ gender: 'UNISEX', promotion_id: '' });
+    this.selectedSizeIds.set([]);
+    this.selectedColorIds.set([]);
+    this.initialStockMap.set({});
+    this.isModalOpen.set(true);
+  }
+
+  openEditModal(product: Product): void {
+    this.isEditMode.set(true);
+    this.editingId.set(product.id);
+    this.modalError.set(null);
+    this.errorMessage.set(null);
+    this.imagePreview.set(product.image_url || null);
+    this.productForm.patchValue({
+      name: product.name,
+      description: product.description || '',
+      price: product.price,
+      category_id: product.category_id,
+      season_id: product.season_id || '',
+      promotion_id: product.promotion_id || '',
+      supplier_id: product.supplier_id || '',
+      image_url: product.image_url || '',
+      gender: product.gender,
+    });
+    this.isModalOpen.set(true);
+  }
+
+  closeModal(): void {
+    this.isModalOpen.set(false);
+    this.modalError.set(null);
+    this.imagePreview.set(null);
+    this.productForm.reset();
+  }
+
+  saveProduct(): void {
+    if (this.isSaving()) return;
+    if (this.productForm.invalid) {
+      this.productForm.markAllAsTouched();
+      const invalidFields: string[] = [];
+      const c = this.productForm.controls;
+      if (c['name'].invalid) invalidFields.push('Nombre de la Prenda (mínimo 2 caracteres)');
+      if (c['price'].invalid) invalidFields.push('Precio Base ($ USD, debe ser mayor a 0)');
+      if (c['category_id'].invalid) invalidFields.push('Categoría (selecciona una opción)');
+      if (c['gender'].invalid) invalidFields.push('Género');
+      this.modalError.set(`No se puede guardar: Corrige los siguientes campos obligatorios:\n• ${invalidFields.join('\n• ')}`);
+      return;
+    }
+
+    if (!this.isEditMode()) {
+      if (this.selectedSizeIds().length === 0 || this.selectedColorIds().length === 0) {
+        this.modalError.set('No se puede guardar: Debes seleccionar al menos una Talla y un Color para generar las variantes de la prenda.');
+        return;
+      }
+    }
+
+    this.isSaving.set(true);
+    this.modalError.set(null);
+    this.errorMessage.set(null);
+
+    const f = this.productForm.value;
+
+    if (this.isEditMode() && this.editingId()) {
+      const updatePayload: ProductUpdate = {
+        name: f.name.trim(),
+        description: f.description?.trim() || '',
+        price: Number(f.price),
+        category_id: f.category_id,
+        season_id: f.season_id || '',
+        promotion_id: f.promotion_id ? f.promotion_id : null,
+        supplier_id: f.supplier_id || '',
+        image_url: f.image_url?.trim() || '',
+        gender: f.gender,
+      };
+
+      this.productService.updateProduct(this.editingId()!, updatePayload).subscribe({
+        next: (updated) => {
+          try {
+            this.modalError.set(null);
+            this.errorMessage.set(null);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.showSuccess(`Prenda "${updated.name}" actualizada con éxito`);
+            this.loadProducts();
+          } catch (e) {
+            console.error('Error al procesar respuesta de actualización:', e);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.loadProducts();
+          }
+        },
+        error: (err) => {
+          const detail = err.error?.detail || err.error?.message || 'Error al actualizar prenda';
+          this.modalError.set(detail);
+          this.isSaving.set(false);
+        },
+      });
+    } else {
+      // Build variants matrix
+      const variants: VariantCreate[] = [];
+      for (const sId of this.selectedSizeIds()) {
+        for (const cId of this.selectedColorIds()) {
+          const initialStock: Record<string, number> = {};
+          for (const b of this.branches()) {
+            const key = `${sId}_${cId}_${b.id}`;
+            const qty = this.initialStockMap()[key] || 0;
+            if (qty > 0) {
+              initialStock[b.id] = qty;
+            }
+          }
+          variants.push({
+            size_id: sId,
+            color_id: cId,
+            initial_stock: initialStock,
+          });
+        }
+      }
+
+      const createPayload: ProductCreate = {
+        name: f.name.trim(),
+        description: f.description?.trim() || undefined,
+        price: Number(f.price),
+        category_id: f.category_id,
+        season_id: f.season_id || undefined,
+        promotion_id: f.promotion_id ? f.promotion_id : undefined,
+        supplier_id: f.supplier_id || undefined,
+        image_url: f.image_url?.trim() || undefined,
+        gender: f.gender,
+        variants: variants,
+      };
+
+      this.productService.createProduct(createPayload).subscribe({
+        next: (created) => {
+          try {
+            this.modalError.set(null);
+            this.errorMessage.set(null);
+            this.isSaving.set(false);
+            this.closeModal();
+            const count = created?.variants?.length || 0;
+            this.showSuccess(`Prenda "${created.name}" creada con ${count} variantes y stock inicial`);
+            this.loadProducts();
+          } catch (e) {
+            console.error('Error al procesar respuesta de creación:', e);
+            this.isSaving.set(false);
+            this.closeModal();
+            this.loadProducts();
+          }
+        },
+        error: (err) => {
+          const detail = err.error?.detail || err.error?.message || 'Error al crear la prenda';
+          this.modalError.set(detail);
+          this.isSaving.set(false);
+        },
+      });
+    }
+  }
+
+  toggleProductStatus(product: Product): void {
+    this.productService.toggleProductStatus(product.id).subscribe({
+      next: (updated) => {
+        this.products.update((list) =>
+          list.map((p) => (p.id === updated.id ? updated : p))
+        );
+        this.showSuccess(
+          `Prenda "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'} con éxito`
+        );
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'Error al cambiar estado de la prenda');
+      },
+    });
+  }
+
+  // Stock Modal
+  openStockModal(product: Product): void {
+    this.selectedProductForStock.set(product);
+    this.stockModalError.set(null);
+    let targetBranchId = this.designatedBranchId();
+    if (!targetBranchId) {
+      const branchWithStock = this.branches().find((b) =>
+        product.variants?.some((v) => v.stocks?.some((s) => s.branch_id === b.id && s.quantity > 0))
+      );
+      if (branchWithStock) {
+        targetBranchId = branchWithStock.id;
+      } else if (this.branches().length > 0) {
+        targetBranchId = this.branches()[0].id;
+      }
+    }
+    this.selectedBranchForStock.set(targetBranchId);
+    this.syncStockMapWithProduct(product, targetBranchId);
+    this.isStockModalOpen.set(true);
+  }
+
+  onDesignateBranchChange(branchId: string): void {
+    this.designatedBranchId.set(branchId);
+    if (branchId) {
+      this.selectedBranchForStock.set(branchId);
+    } else {
+      this.onlyWithStockInBranch.set(false);
+    }
+  }
+
+  clearDesignatedBranch(): void {
+    this.designatedBranchId.set('');
+    this.onlyWithStockInBranch.set(false);
+  }
+
+  toggleOnlyWithStock(): void {
+    this.onlyWithStockInBranch.update((v) => !v);
+  }
+
+  getTotalStockInDesignatedBranch(): number {
+    const bId = this.designatedBranchId();
+    if (!bId) return 0;
+    return this.products().reduce((sum, p) => sum + this.getProductStockInBranch(p, bId), 0);
+  }
+
+  getProductsWithStockCountInDesignatedBranch(): number {
+    const bId = this.designatedBranchId();
+    if (!bId) return 0;
+    return this.products().filter((p) => this.getProductStockInBranch(p, bId) > 0).length;
+  }
+
+  getProductStockInBranch(product: Product | null, branchId: string): number {
+    if (!product || !product.variants) return 0;
+    let total = 0;
+    for (const v of product.variants) {
+      const s = v.stocks?.find((item) => item.branch_id === branchId);
+      if (s) total += s.quantity;
+    }
+    return total;
+  }
+
+  closeStockModal(): void {
+    this.isStockModalOpen.set(false);
+    this.selectedProductForStock.set(null);
+  }
+
+  onStockBranchChange(branchId: string): void {
+    this.selectedBranchForStock.set(branchId);
+    if (this.selectedProductForStock()) {
+      this.syncStockMapWithProduct(this.selectedProductForStock()!, branchId);
+    }
+  }
+
+  syncStockMapWithProduct(product: Product, branchId: string): void {
+    const map: Record<string, number> = {};
+    for (const v of product.variants) {
+      const stockItem = v.stocks.find((s) => s.branch_id === branchId);
+      map[v.id] = stockItem ? stockItem.quantity : 0;
+    }
+    this.stockUpdateMap.set(map);
+  }
+
+  onStockQtyInput(variantId: string, event: Event): void {
+    const val = parseInt((event.target as HTMLInputElement).value, 10) || 0;
+    const map = { ...this.stockUpdateMap() };
+    map[variantId] = Math.max(0, val);
+    this.stockUpdateMap.set(map);
+  }
+
+  saveBranchStock(): void {
+    const product = this.selectedProductForStock();
+    const branchId = this.selectedBranchForStock();
+    if (!product || !branchId) return;
+
+    this.isUpdatingStock.set(true);
+    this.stockModalError.set(null);
+
+    const updates = Object.entries(this.stockUpdateMap()).map(([variantId, qty]) =>
+      this.stockService.adjustStock({
+        variant_id: variantId,
+        branch_id: branchId,
+        quantity: qty,
+      })
+    );
+
+    // Run sequentially or via forkJoin; since RxJS is available:
+    let completed = 0;
+    let hasError = false;
+
+    if (updates.length === 0) {
+      this.isUpdatingStock.set(false);
+      this.closeStockModal();
+      return;
+    }
+
+    updates.forEach((obs) => {
+      obs.subscribe({
+        next: () => {
+          completed++;
+          if (completed === updates.length && !hasError) {
+            this.isUpdatingStock.set(false);
+            this.closeStockModal();
+            this.loadProducts(); // refresh products with updated totals
+            this.showSuccess(`Stock actualizado correctamente para la sucursal`);
+          }
+        },
+        error: (err) => {
+          hasError = true;
+          this.isUpdatingStock.set(false);
+          this.stockModalError.set(err.error?.detail || 'Error al ajustar stock');
+        },
+      });
+    });
+  }
+
+  private showSuccess(msg: string): void {
+    this.errorMessage.set(null);
+    this.successMessage.set(msg);
+    setTimeout(() => {
+      this.successMessage.set(null);
+    }, 4500);
+  }
+}
+
+

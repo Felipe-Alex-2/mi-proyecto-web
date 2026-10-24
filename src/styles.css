@@ -54,8 +54,8 @@ option {
 /* ==========================================================================
    GLOBAL NOTORIOUS FORM VALIDATION STYLES
    ========================================================================== */
-.form-input.ng-invalid.ng-touched,
-input.ng-invalid.ng-touched,
+.form-input.ng-invalid.ng-touched:not(.auth-wrapper input),
+input.ng-invalid.ng-touched:not(.auth-wrapper input),
 select.ng-invalid.ng-touched,
 textarea.ng-invalid.ng-touched {
   border: 2px solid #EF4444 !important;
@@ -81,7 +81,7 @@ textarea.ng-invalid.ng-touched {
   border-radius: 0 6px 6px 0 !important;
 }
 
-.alert-error,
+.alert-error:not(.auth-wrapper .alert-error),
 .modal-alert {
   display: flex !important;
   align-items: flex-start !important;

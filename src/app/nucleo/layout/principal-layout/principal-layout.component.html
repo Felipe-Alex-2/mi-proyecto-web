@@ -1,0 +1,29 @@
+<div class="layout-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed()">
+  <button class="sidebar-overlay" (click)="toggleSidebar()" aria-label="Cerrar menú"></button>
+  <aside class="sidebar" aria-label="Navegación principal">
+    <div class="sidebar-header"><a routerLink="/profile" class="brand-logo"><span class="brand-name">VESTA</span><span class="brand-badge">FashionStore</span></a>
+      <button class="close-sidebar" (click)="toggleSidebar()" aria-label="Cerrar menú">×</button></div>
+    <a routerLink="/profile" class="sidebar-profile" (click)="onNavigate()">
+      <app-user-avatar [user]="authService.currentUser()" [size]="44" /><div><strong>{{ authService.currentUser()?.full_name }}</strong><span>{{ roleLabel() }}</span></div>
+    </a>
+    <nav class="sidebar-nav">
+      @for (group of groups(); track group.title) {
+        <section class="nav-group"><p>{{ group.title }}</p>
+          @for (link of group.links; track link.path) {
+            <a [routerLink]="link.path" routerLinkActive="active" (click)="onNavigate()" [title]="link.label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path [attr.d]="icons[link.icon]" /></svg><span>{{ link.label }}</span>
+            </a>
+          }
+        </section>
+      }
+    </nav>
+    <footer class="sidebar-footer"><a routerLink="/profile" routerLinkActive="active" (click)="onNavigate()">Mi perfil</a><button type="button" class="logout-button" (click)="logout()">↪ <span>Cerrar sesión</span></button></footer>
+  </aside>
+  <div class="main-wrapper">
+    <header class="topbar"><div class="topbar-left"><button class="btn-hamburger" (click)="toggleSidebar()" [attr.aria-expanded]="!isSidebarCollapsed()" aria-label="Alternar menú">☰</button><span>Tu espacio en {{authService.currentUser()?.company_name || 'VESTA'}}</span></div>
+      <a class="topbar-user" routerLink="/profile"><span>{{ roleLabel() }}</span><app-user-avatar [user]="authService.currentUser()" [size]="36" /></a>
+    </header>
+    <app-offline-banner />
+    <main class="page-content"><router-outlet /></main>
+  </div>
+</div>
