@@ -173,6 +173,23 @@ small,
   margin-top: 20px;
 }
 
+.company .actions > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #e4d9cb;
+  border-radius: 10px;
+  color: #713c2f;
+  background: #faf7f2;
+  text-decoration: none;
+  font-size: .85rem;
+}
+.company .actions > a:focus-visible {
+  outline: 2px solid #a34f3d;
+  outline-offset: 3px;
+}
+
 .notice {
   padding: 16px 20px;
   border-radius: 12px;

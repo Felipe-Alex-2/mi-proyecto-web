@@ -44,9 +44,9 @@ export class TokenService {
 
   clearTokens(): void {
     this.storeContext=null;
-    this.saveIdentity(null);
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    this.saveIdentity(null);
   }
 
   hasToken(): boolean {

@@ -17,6 +17,9 @@
 
   @if(error()) { <div class="notice error" role="alert">{{error()}}</div> }
   @if(success()) { <div class="notice success" role="status">{{success()}}</div> }
+  @if(platform && syntheticCompany(); as company) {
+    <app-synthetic-generator [company]="company" (closed)="syntheticCompany.set(null)" />
+  }
   @if(loading()) { <p role="status">Cargando información…</p> }
   @if(!platform && auth.currentUser()?.is_saas_admin && showCreatePlan()) {
     <form class="panel" [formGroup]="planForm" (ngSubmit)="createPlan()" novalidate>
@@ -75,6 +78,10 @@
           <p>{{company.admin_email || 'Sin administrador asignado'}}</p>
           <p><strong>{{company.active_branches}}</strong> sucursales activas @if(!company.is_root){ de {{company.branch_limit}} }</p>
           <p>Vencimiento: {{company.expires_at ? (company.expires_at | date:'dd/MM/yyyy') : 'Sin vencimiento'}}</p>
+          <div class="actions">
+            <button type="button" class="secondary" (click)="syntheticCompany.set(company)" [disabled]="!company.is_active">Generar datos sintéticos</button>
+            <a routerLink="/models" [queryParams]="{tenant_id: company.id}">Ver modelos →</a>
+          </div>
           @if(!company.is_root) {
             <div class="actions">
               <button class="secondary" (click)="toggleCompany(company)" [disabled]="busy()">

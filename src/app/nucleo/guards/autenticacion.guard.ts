@@ -7,7 +7,7 @@ import { UserRole } from '../modelos/usuario.model';
 
 export function getDefaultRouteForRole(role?: UserRole | string): string {
   if (role === 'CUSTOMER') {
-    return '/catalog';
+    return '/home';
   }
   if (role === 'CASHIER') {
     return '/payments';
@@ -23,8 +23,7 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
-  router.navigate(['/login']);
-  return false;
+  return router.parseUrl('/home');
 };
 
 export const guestGuard: CanActivateFn = () => {

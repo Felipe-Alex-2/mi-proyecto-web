@@ -1,25 +1,34 @@
 import { EstadoLocalComponent } from '../../nucleo/componentes/estado-local.component';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DialogoTiendaDirective } from '../tienda/dialogo-tienda.directive';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PromocionService } from '../../nucleo/servicios/promocion.service';
 import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
-import { Promotion } from '../../nucleo/modelos/promocion.model';
+import { Promotion, DiscountSuggestion } from '../../nucleo/modelos/promocion.model';
 
 @Component({
   selector: 'app-promotions',
   standalone: true,
-  imports: [EstadoLocalComponent, CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [
+    EstadoLocalComponent,
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    DialogoTiendaDirective,
+  ],
   templateUrl: './promociones.component.html',
   styleUrls: ['./promociones.component.css'],
 })
 export class PromocionesComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  suggestions = signal<DiscountSuggestion[]>([]);
+  showSuggestions = signal(false);
+  suggesting = signal(false);
+  suggestionError = signal('');
+  draft = signal<DiscountSuggestion | null>(null);
   promotions = signal<Promotion[]>([]);
   filteredPromotions = signal<Promotion[]>([]);
   isLoading = signal<boolean>(false);
@@ -39,14 +48,11 @@ export class PromocionesComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private promotionService: PromocionService,
-    public authService: AutenticacionService
+    public authService: AutenticacionService,
   ) {
     this.promotionForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
-      discount_percent: [
-        null,
-        [Validators.required, Validators.min(1), Validators.max(100)],
-      ],
+      discount_percent: [null, [Validators.required, Validators.min(1), Validators.max(100)]],
       description: [''],
       start_date: ['', [Validators.required]],
       end_date: ['', [Validators.required]],
@@ -89,12 +95,13 @@ export class PromocionesComponent implements OnInit {
     const filtered = this.promotions().filter(
       (p) =>
         p.name.toLowerCase().includes(term) ||
-        (p.description && p.description.toLowerCase().includes(term))
+        (p.description && p.description.toLowerCase().includes(term)),
     );
     this.filteredPromotions.set(filtered);
   }
 
   openCreateModal(): void {
+    this.draft.set(null);
     this.isEditMode.set(false);
     this.editingId.set(null);
     this.modalError.set(null);
@@ -109,6 +116,7 @@ export class PromocionesComponent implements OnInit {
   }
 
   openEditModal(promotion: Promotion): void {
+    this.draft.set(null);
     this.isEditMode.set(true);
     this.editingId.set(promotion.id);
     this.modalError.set(null);
@@ -123,39 +131,83 @@ export class PromocionesComponent implements OnInit {
   }
 
   closeModal(): void {
+    if (this.isSaving()) return;
     this.isModalOpen.set(false);
     this.modalError.set(null);
   }
 
+  suggestDiscounts(): void {
+    if (this.suggesting()) return;
+    this.showSuggestions.set(true);
+    this.suggesting.set(true);
+    this.suggestionError.set('');
+    this.suggestions.set([]);
+    this.promotionService
+      .suggestDiscounts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (rows) => {
+          this.suggestions.set(rows);
+          this.suggesting.set(false);
+        },
+        error: (err) => {
+          this.suggestionError.set(
+            err?.error?.detail ||
+              'No se pudieron calcular los descuentos. Conéctate y vuelve a intentar.',
+          );
+          this.suggesting.set(false);
+        },
+      });
+  }
+
+  useSuggestion(suggestion: DiscountSuggestion): void {
+    this.openCreateModal();
+    this.draft.set(suggestion);
+    this.promotionForm.patchValue({
+      name: suggestion.name,
+      description: suggestion.description,
+      discount_percent: suggestion.discount_percent,
+      start_date: suggestion.start_date,
+      end_date: suggestion.end_date,
+    });
+  }
+
   save(): void {
+    if (this.isSaving()) return;
     if (this.promotionForm.invalid) {
       this.promotionForm.markAllAsTouched();
       const invalidFields: string[] = [];
       const c = this.promotionForm.controls;
       if (c['name'].invalid) invalidFields.push('Nombre de la Promoción (requerido)');
-      if (c['discount_percent'].invalid) invalidFields.push('Porcentaje de Descuento (debe ser de 1 a 100%)');
+      if (c['discount_percent'].invalid)
+        invalidFields.push('Porcentaje de Descuento (debe ser de 1 a 100%)');
       if (c['start_date'].invalid) invalidFields.push('Fecha de Inicio (requerida)');
       if (c['end_date'].invalid) invalidFields.push('Fecha de Fin (requerida)');
-      this.modalError.set(`No se puede guardar: Corrige los siguientes campos obligatorios:\n• ${invalidFields.join('\n• ')}`);
+      this.modalError.set(
+        `No se puede guardar: Corrige los siguientes campos obligatorios:\n• ${invalidFields.join('\n• ')}`,
+      );
       return;
     }
 
     const val = { ...this.promotionForm.value };
+    if (this.draft() && !this.isEditMode()) val.product_ids = [this.draft()!.product_id];
     const cleanName = (val.name || '').trim();
 
     if (!cleanName) {
-      this.modalError.set('El nombre de la promoción no puede estar en blanco ni contener solo espacios.');
+      this.modalError.set(
+        'El nombre de la promoción no puede estar en blanco ni contener solo espacios.',
+      );
       return;
     }
 
     // Validación de duplicados en cliente
     const isDuplicate = this.promotions().some(
-      (p) =>
-        p.name.toLowerCase() === cleanName.toLowerCase() &&
-        p.id !== this.editingId()
+      (p) => p.name.toLowerCase() === cleanName.toLowerCase() && p.id !== this.editingId(),
     );
     if (isDuplicate) {
-      this.modalError.set(`Ya existe una promoción registrada con el nombre "${cleanName}". Por favor ingresa otro nombre.`);
+      this.modalError.set(
+        `Ya existe una promoción registrada con el nombre "${cleanName}". Por favor ingresa otro nombre.`,
+      );
       return;
     }
 
@@ -169,7 +221,9 @@ export class PromocionesComponent implements OnInit {
 
     // Validación de fechas
     if (val.end_date < val.start_date) {
-      this.modalError.set('La fecha de fin no puede ser anterior a la fecha de inicio de la promoción.');
+      this.modalError.set(
+        'La fecha de fin no puede ser anterior a la fecha de inicio de la promoción.',
+      );
       return;
     }
 
@@ -206,7 +260,12 @@ export class PromocionesComponent implements OnInit {
           this.isSaving.set(false);
           try {
             this.closeModal();
-            this.showSuccess('Promoción creada exitosamente');
+            this.showSuccess(
+              this.draft()
+                ? 'Promoción guardada para la prenda seleccionada. Si no hay conexión, su aplicación queda pendiente de sincronizar.'
+                : 'Promoción creada exitosamente',
+            );
+            if (this.showSuggestions()) this.suggestDiscounts();
             this.loadPromotions();
           } catch (e) {
             console.error('Error al actualizar lista de promociones:', e);
@@ -229,7 +288,7 @@ export class PromocionesComponent implements OnInit {
       next: (updated) => {
         try {
           this.showSuccess(
-            `Promoción "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'}`
+            `Promoción "${updated.name}" ${updated.is_active ? 'activada' : 'desactivada'}`,
           );
           this.loadPromotions();
         } catch (e) {

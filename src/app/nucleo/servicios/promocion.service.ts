@@ -2,7 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Promotion, PromotionCreate, PromotionUpdate } from '../modelos/promocion.model';
+import {
+  Promotion,
+  PromotionCreate,
+  PromotionUpdate,
+  DiscountSuggestion,
+} from '../modelos/promocion.model';
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +30,10 @@ export class PromocionService {
 
   getPromotionById(id: string): Observable<Promotion> {
     return this.http.get<Promotion>(`${this.baseUrl}/${id}`);
+  }
+
+  suggestDiscounts(): Observable<DiscountSuggestion[]> {
+    return this.http.get<DiscountSuggestion[]>(`${this.baseUrl}/suggestions/stock-age`);
   }
 
   createPromotion(payload: PromotionCreate): Observable<Promotion> {

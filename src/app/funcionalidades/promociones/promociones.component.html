@@ -4,7 +4,11 @@
     <div class="navbar-left">
       <a routerLink="/dashboard" class="nav-back-link" title="Volver al Panel">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+          <path
+            fill-rule="evenodd"
+            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+            clip-rule="evenodd"
+          />
         </svg>
         <span>Panel Principal</span>
       </a>
@@ -15,13 +19,21 @@
     <div class="navbar-right">
       <a routerLink="/seasons" class="nav-link-secondary" title="Ir a Temporadas">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+          <path
+            fill-rule="evenodd"
+            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+            clip-rule="evenodd"
+          />
         </svg>
         <span>Temporadas</span>
       </a>
       <a routerLink="/products" class="nav-link-secondary" title="Ir a Prendas">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+          <path
+            fill-rule="evenodd"
+            d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
+            clip-rule="evenodd"
+          />
         </svg>
         <span>Prendas</span>
       </a>
@@ -39,14 +51,24 @@
       <div class="action-bar-info">
         <h2 class="section-title">Campañas de Descuento</h2>
         <p class="section-subtitle">
-          Configura promociones con porcentaje de descuento (%) para aplicarlas a prendas del catálogo y mostrarlas en Web y App Móvil.
+          Configura promociones con porcentaje de descuento (%) para aplicarlas a prendas del
+          catálogo y mostrarlas en Web y App Móvil.
         </p>
       </div>
 
       <div class="action-controls">
         <div class="search-box">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="search-icon">
-            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="search-icon"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+              clip-rule="evenodd"
+            />
           </svg>
           <input
             type="text"
@@ -57,9 +79,25 @@
           />
         </div>
 
+        @if (authService.currentUser()?.role === 'ADMIN') {
+          <button
+            type="button"
+            class="btn-secondary suggest-button"
+            (click)="suggestDiscounts()"
+            [disabled]="suggesting()"
+            [attr.aria-expanded]="showSuggestions()"
+            aria-controls="discount-suggestions"
+          >
+            {{ suggesting() ? 'Analizando stock…' : 'Sugerir descuento' }}
+          </button>
+        }
         <button class="btn-primary" (click)="openCreateModal()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            <path
+              fill-rule="evenodd"
+              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+              clip-rule="evenodd"
+            />
           </svg>
           <span>Nueva Promoción</span>
         </button>
@@ -70,7 +108,11 @@
     @if (successMessage()) {
       <div class="alert-success" role="status">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd"
+          />
         </svg>
         <span>{{ successMessage() }}</span>
       </div>
@@ -79,10 +121,86 @@
     @if (errorMessage()) {
       <div class="alert-error" role="alert">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          <path
+            fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
         </svg>
         <span>{{ errorMessage() }}</span>
       </div>
+    }
+
+    @if (showSuggestions()) {
+      <section
+        id="discount-suggestions"
+        class="suggestions-panel"
+        aria-labelledby="suggestions-title"
+        [attr.aria-busy]="suggesting()"
+      >
+        <div class="suggestions-heading">
+          <div>
+            <p class="suggestions-eyebrow">OPORTUNIDADES DE ROTACIÓN</p>
+            <h2 id="suggestions-title">Un impulso para tus prendas</h2>
+            <p>
+              Revisa una sugerencia y prepara un borrador. Tú decides el descuento final antes de
+              crearlo.
+            </p>
+          </div>
+          <button type="button" class="btn-secondary" (click)="showSuggestions.set(false)">
+            Ocultar
+          </button>
+        </div>
+        <p class="suggestion-rules">
+          30–59 días: 10% · 60–89: 15% · 90–119: 20% · 120–179: 25% · Desde 180: 30%.
+        </p>
+        <p class="suggestion-explanation">
+          Se usa el ingreso más reciente entre las variantes y sucursales con stock; sin historial,
+          se estima desde el alta de la prenda. Se omiten prendas con campañas vigentes o
+          programadas. El descuento se aplicará a toda la prenda en las sucursales de la empresa.
+        </p>
+        @if (suggesting()) {
+          <p role="status" class="suggestion-empty">
+            Analizando la antigüedad del stock disponible…
+          </p>
+        } @else if (suggestionError()) {
+          <div role="alert" class="alert-error">
+            {{ suggestionError() }}
+            <button type="button" class="btn-secondary" (click)="suggestDiscounts()">
+              Reintentar
+            </button>
+          </div>
+        } @else {
+          <div class="suggestion-grid">
+            @for (suggestion of suggestions(); track suggestion.product_id) {
+              <article class="suggestion-card">
+                <div class="suggestion-top">
+                  <span class="suggestion-age"
+                    >{{ suggestion.days_in_stock }} días
+                    {{ suggestion.estimated ? 'estimados' : 'desde ingreso' }}</span
+                  ><strong class="suggestion-percent">{{ suggestion.discount_percent }}%</strong>
+                </div>
+                <h3>{{ suggestion.product_name }}</h3>
+                <p>{{ suggestion.stock }} unidades disponibles</p>
+                <p class="suggestion-reason">{{ suggestion.reason }}</p>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  (click)="useSuggestion(suggestion)"
+                  [attr.aria-label]="'Preparar borrador para ' + suggestion.product_name"
+                >
+                  Preparar borrador <span aria-hidden="true">→</span>
+                </button>
+              </article>
+            } @empty {
+              <p class="suggestion-empty">
+                No hay prendas elegibles con al menos 30 días de antigüedad. Puedes crear una
+                promoción manualmente.
+              </p>
+            }
+          </div>
+        }
+      </section>
     }
 
     <!-- Promotions Grid -->
@@ -94,17 +212,32 @@
     } @else if (filteredPromotions().length === 0) {
       <div class="empty-state">
         <div class="empty-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 48px; height: 48px; opacity: 0.5;">
-            <path fill-rule="evenodd" d="M5.25 2.25a3 3 0 00-3 3v4.318a3 3 0 00.879 2.122l10.5 10.5a3 3 0 004.242 0l4.319-4.319a3 3 0 000-4.242l-10.5-10.5A3 3 0 009.568 2.25H5.25zM6 7.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            style="width: 48px; height: 48px; opacity: 0.5"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.25 2.25a3 3 0 00-3 3v4.318a3 3 0 00.879 2.122l10.5 10.5a3 3 0 004.242 0l4.319-4.319a3 3 0 000-4.242l-10.5-10.5A3 3 0 009.568 2.25H5.25zM6 7.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
+              clip-rule="evenodd"
+            />
           </svg>
         </div>
         <h3>No hay promociones registradas</h3>
-        <p>Crea tu primera promoción con porcentaje de descuento para destacar tus prendas en oferta.</p>
+        <p>
+          Crea tu primera promoción con porcentaje de descuento para destacar tus prendas en oferta.
+        </p>
       </div>
     } @else {
       <div class="promotions-grid">
         @for (promotion of filteredPromotions(); track promotion.id) {
-          <div class="promotion-card" [class.card-inactive]="!promotion.is_active" [class.card-expired]="promotion.is_expired">
+          <div
+            class="promotion-card"
+            [class.card-inactive]="!promotion.is_active"
+            [class.card-expired]="promotion.is_expired"
+          >
             <!-- Card Header -->
             <div class="card-header">
               <div class="badges-row">
@@ -115,7 +248,11 @@
                 @if (promotion.is_expired) {
                   <span class="expired-badge">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clip-rule="evenodd"
+                      />
                     </svg>
                     Expirada
                   </span>
@@ -124,13 +261,16 @@
 
               <!-- Discount Tag Badge (Etiqueta con porcentaje) -->
               <div class="discount-tag">
-                <span class="tag-percent">{{ promotion.discount_percent | number:'1.0-0' }}% OFF</span>
+                <span class="tag-percent"
+                  >{{ promotion.discount_percent | number: '1.0-0' }}% OFF</span
+                >
               </div>
             </div>
 
             <!-- Card Body -->
             <div class="card-body">
-              <h3 class="promotion-name">{{ promotion.name }}</h3><app-local-state [record]="promotion" />
+              <h3 class="promotion-name">{{ promotion.name }}</h3>
+              <app-local-state [record]="promotion" />
               <p class="promotion-desc">
                 {{ promotion.description || 'Sin descripción detallada para esta promoción.' }}
               </p>
@@ -143,7 +283,11 @@
                 </div>
                 <div class="date-divider">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div class="date-item">
@@ -155,7 +299,9 @@
               <!-- Status countdown / info -->
               <div class="time-status">
                 @if (promotion.is_expired) {
-                  <span class="time-text expired">Finalizó el {{ formatDate(promotion.end_date) }}</span>
+                  <span class="time-text expired"
+                    >Finalizó el {{ formatDate(promotion.end_date) }}</span
+                  >
                 } @else {
                   @let remaining = getDaysRemaining(promotion.end_date);
                   <span class="time-text active">
@@ -174,7 +320,9 @@
                 title="Editar Promoción"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  <path
+                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                  />
                 </svg>
                 <span>Editar</span>
               </button>
@@ -189,12 +337,20 @@
               >
                 @if (promotion.is_active) {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                   <span>Pausar</span>
                 } @else {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                   <span>Activar</span>
                 }
@@ -208,21 +364,48 @@
 
   <!-- Create / Edit Modal (Diseño idéntico a Nueva Temporada con porcentaje de descuento) -->
   @if (isModalOpen()) {
-    <div class="modal-backdrop" (click)="closeModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+      <div
+        class="modal-card"
+        appShopDialog
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="promotion-modal-title"
+        (click)="$event.stopPropagation()"
+      >
         <!-- Modal Header -->
         <div class="modal-header">
           <div>
-            <h2 class="modal-title">
-              {{ isEditMode() ? 'Editar Promoción' : 'Nueva Promoción' }}
+            <h2 class="modal-title" id="promotion-modal-title">
+              {{
+                isEditMode()
+                  ? 'Editar Promoción'
+                  : draft()
+                    ? 'Borrador de descuento'
+                    : 'Nueva Promoción'
+              }}
             </h2>
             <p class="modal-subtitle">
-              {{ isEditMode() ? 'Modifica los parámetros y descuento de la campaña' : 'Define una nueva campaña o descuento especial' }}
+              {{
+                isEditMode()
+                  ? 'Modifica los parámetros y descuento de la campaña'
+                  : 'Define una nueva campaña o descuento especial'
+              }}
             </p>
           </div>
-          <button type="button" class="btn-close" (click)="closeModal()" aria-label="Cerrar modal">
+          <button
+            type="button"
+            class="btn-close"
+            (click)="closeModal()"
+            [disabled]="isSaving()"
+            aria-label="Cerrar modal"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              <path
+                fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
             </svg>
           </button>
         </div>
@@ -231,7 +414,11 @@
         @if (modalError()) {
           <div class="modal-alert-error" role="alert">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
             </svg>
             <span>{{ modalError() }}</span>
           </div>
@@ -240,6 +427,20 @@
         <!-- Form -->
         <form [formGroup]="promotionForm" (ngSubmit)="save()" novalidate>
           <div class="form-body">
+            @if (draft(); as suggestion) {
+              <div class="draft-context">
+                <strong>{{ suggestion.product_name }}</strong>
+                <p>
+                  {{ suggestion.stock }} unidades · {{ suggestion.days_in_stock }} días
+                  {{ suggestion.estimated ? 'estimados' : 'desde el último ingreso' }}
+                </p>
+                <p>{{ suggestion.reason }}</p>
+                <p>
+                  Revisa nombre, porcentaje y fechas. Al crear, la promoción se asignará a esta
+                  prenda en todas las sucursales de tu empresa.
+                </p>
+              </div>
+            }
             <!-- Nombre de la Promoción -->
             <div class="form-group">
               <label for="promo-name">Nombre de la Promoción *</label>
@@ -249,7 +450,9 @@
                 class="form-input"
                 placeholder="Ej: Black Friday 50%, Liquidación de Fin de Temporada..."
                 formControlName="name"
-                [class.is-invalid]="promotionForm.get('name')?.invalid && promotionForm.get('name')?.touched"
+                [class.is-invalid]="
+                  promotionForm.get('name')?.invalid && promotionForm.get('name')?.touched
+                "
               />
               @if (promotionForm.get('name')?.invalid && promotionForm.get('name')?.touched) {
                 <span class="field-error">El nombre es requerido (mínimo 2 caracteres).</span>
@@ -269,12 +472,20 @@
                   class="form-input"
                   placeholder="Ej: 50"
                   formControlName="discount_percent"
-                  [class.is-invalid]="promotionForm.get('discount_percent')?.invalid && promotionForm.get('discount_percent')?.touched"
+                  [class.is-invalid]="
+                    promotionForm.get('discount_percent')?.invalid &&
+                    promotionForm.get('discount_percent')?.touched
+                  "
                 />
                 <span class="discount-suffix">%</span>
               </div>
-              @if (promotionForm.get('discount_percent')?.invalid && promotionForm.get('discount_percent')?.touched) {
-                <span class="field-error">Ingresa un porcentaje de descuento válido (entre 1% y 100%).</span>
+              @if (
+                promotionForm.get('discount_percent')?.invalid &&
+                promotionForm.get('discount_percent')?.touched
+              ) {
+                <span class="field-error"
+                  >Ingresa un porcentaje de descuento válido (entre 1% y 100%).</span
+                >
               }
             </div>
 
@@ -299,9 +510,15 @@
                   type="date"
                   class="form-input"
                   formControlName="start_date"
-                  [class.is-invalid]="promotionForm.get('start_date')?.invalid && promotionForm.get('start_date')?.touched"
+                  [class.is-invalid]="
+                    promotionForm.get('start_date')?.invalid &&
+                    promotionForm.get('start_date')?.touched
+                  "
                 />
-                @if (promotionForm.get('start_date')?.invalid && promotionForm.get('start_date')?.touched) {
+                @if (
+                  promotionForm.get('start_date')?.invalid &&
+                  promotionForm.get('start_date')?.touched
+                ) {
                   <span class="field-error">Requerida</span>
                 }
               </div>
@@ -313,9 +530,13 @@
                   type="date"
                   class="form-input"
                   formControlName="end_date"
-                  [class.is-invalid]="promotionForm.get('end_date')?.invalid && promotionForm.get('end_date')?.touched"
+                  [class.is-invalid]="
+                    promotionForm.get('end_date')?.invalid && promotionForm.get('end_date')?.touched
+                  "
                 />
-                @if (promotionForm.get('end_date')?.invalid && promotionForm.get('end_date')?.touched) {
+                @if (
+                  promotionForm.get('end_date')?.invalid && promotionForm.get('end_date')?.touched
+                ) {
                   <span class="field-error">Requerida</span>
                 }
               </div>
@@ -324,7 +545,12 @@
 
           <!-- Modal Footer -->
           <div class="modal-footer">
-            <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="isSaving()">
+            <button
+              type="button"
+              class="btn-secondary"
+              (click)="closeModal()"
+              [disabled]="isSaving()"
+            >
               Cancelar
             </button>
             <button type="submit" class="btn-primary" [disabled]="isSaving()">

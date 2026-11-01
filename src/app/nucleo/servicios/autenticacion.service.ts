@@ -43,6 +43,9 @@ export class AutenticacionService {
     };
     window.addEventListener('vesta-profile-confirmed', confirmed);
     this.destroyRef.onDestroy(() => window.removeEventListener('vesta-profile-confirmed', confirmed));
+    const sessionChanged = () => { if (!this.tokenService.hasToken()) this.currentUserSignal.set(null); };
+    window.addEventListener('vesta-session-changed', sessionChanged);
+    this.destroyRef.onDestroy(() => window.removeEventListener('vesta-session-changed', sessionChanged));
     if (this.tokenService.hasToken()) {
       this.acceptUser(this.tokenService.getIdentity());
       this.loadCurrentUser().subscribe();
@@ -153,6 +156,6 @@ export class AutenticacionService {
     }
     this.tokenService.clearTokens();
     this.currentUserSignal.set(null);
-    this.router.navigate(['/login']);
+    this.router.navigate(['/home']);
   }
 }

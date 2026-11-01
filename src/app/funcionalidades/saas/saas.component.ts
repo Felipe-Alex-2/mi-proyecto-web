@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { GeneradorSinteticoComponent } from '../analitica/generador-sintetico.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, Subscription } from 'rxjs';
 import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
@@ -20,7 +21,7 @@ import {
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, GeneradorSinteticoComponent],
   templateUrl: './saas.component.html',
   styleUrl: './saas.component.css',
 })
@@ -35,6 +36,7 @@ export class SaasComponent {
   private destroyRef = inject(DestroyRef);
   readonly platform = this.route.snapshot.data['platform'] === true;
   companies = signal<CompanySubscription[]>([]);
+  syntheticCompany = signal<CompanySubscription | null>(null);
   plans = signal<SaasPlan[]>([]);
   current = signal<CompanySubscription | null>(null);
   payments = signal<SubscriptionPayment[]>([]);

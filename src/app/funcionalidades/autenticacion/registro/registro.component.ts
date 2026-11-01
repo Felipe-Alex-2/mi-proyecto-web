@@ -2,7 +2,9 @@ import { SelectorTiendaComponent } from '../../../nucleo/componentes/selector-ti
 ﻿import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { shopReturnUrl } from '../../tienda/tienda.guard';
+import { guestStoreSelection } from '../../tienda/contexto-tienda';
 import { AutenticacionService } from '../../../nucleo/servicios/autenticacion.service';
 import { sinEspaciosVaciosValidator, seguridadContrasenaValidator , longitudMinimaSinEspacios} from '../../../nucleo/validadores/validadores-personalizados';
 
@@ -15,15 +17,27 @@ import { sinEspaciosVaciosValidator, seguridadContrasenaValidator , longitudMini
 })
 export class RegistroComponent {
   registerForm: FormGroup;
-  storeSelection: {tenant_id:string;branch_id:string}|null = null;
+  storeSelection: {tenant_id:string;branch_id:string}|null = guestStoreSelection();
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
   showPassword = signal<boolean>(false);
 
+  get passwordRequirements() {
+    const value: string = this.registerForm.get('password')?.value || '';
+    return [
+      { label: 'Mínimo 8 caracteres', met: value.length >= 8 },
+      { label: 'Una letra mayúscula', met: /[A-Z]/.test(value) },
+      { label: 'Una letra minúscula', met: /[a-z]/.test(value) },
+      { label: 'Un número', met: /[0-9]/.test(value) },
+      { label: 'Un símbolo', met: /[^A-Za-z0-9\s]/.test(value) },
+    ];
+  }
+
   constructor(
     private fb: FormBuilder,
     public authService: AutenticacionService,
-    private router: Router
+    private router: Router,
+    public route: ActivatedRoute
   ) {
     this.registerForm = this.fb.group({
       full_name: ['', [Validators.required, longitudMinimaSinEspacios(2), Validators.maxLength(100), sinEspaciosVaciosValidator()]],
@@ -65,7 +79,7 @@ export class RegistroComponent {
         // Auto login
         this.authService.login({ email: (email || '').trim(), password }).subscribe({
           next: () => {
-            setTimeout(() => this.router.navigate(['/dashboard']), 800);
+            setTimeout(() => this.router.navigateByUrl(shopReturnUrl(this.authService.currentUser()?.role, this.route.snapshot.queryParamMap.get('returnUrl'))), 800);
           },
           error: () => {
             this.router.navigate(['/login']);

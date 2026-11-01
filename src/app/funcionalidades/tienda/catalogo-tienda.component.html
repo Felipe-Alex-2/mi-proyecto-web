@@ -1,0 +1,353 @@
+@if (mode === 'home') {
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">{{ shop.company()?.name || 'VESTA' }} / descubre tu estilo</p>
+      <h1>Encuentra lo que<br />va contigo.</h1>
+      <p class="muted">
+        Prendas que se sienten tuyas. Explora la colección, descubre tu talla y reserva tus
+        favoritas en tu sucursal.
+      </p>
+      <div class="actions">
+        <a class="primary" routerLink="/catalog"
+          >Explorar catálogo <span aria-hidden="true">↗</span></a
+        ><a class="secondary" routerLink="/fitting">Conoce tu vestidor</a>
+      </div>
+      <div class="hero-note">
+        <span aria-hidden="true">✦</span> Tu cuenta, tus prendas. En móvil y en web.
+      </div>
+    </div>
+    <div class="hero-feature">
+      <span class="eyebrow">A tu medida</span>
+      <div class="feature-art" aria-hidden="true"></div>
+      <h2>Descubre.<br />Pruébate. Reserva.</h2>
+      <p>De la pantalla a tu próxima prenda favorita.</p>
+      <a routerLink="/catalog">Encuentra tu próxima prenda →</a>
+    </div>
+  </section>
+  <div class="benefits">
+    <span>01 / Colecciones para descubrir</span><span>02 / Tu talla, con más confianza</span
+    ><span>03 / Recoge en tu sucursal</span>
+  </div>
+}
+<div class="page-heading" [class.collection-heading]="mode === 'catalog'">
+  <div>
+    <p class="eyebrow">
+      {{
+        mode === 'favorites'
+          ? 'Tu selección'
+          : mode === 'catalog'
+            ? 'VESTA / CATÁLOGO'
+            : 'La colección'
+      }}
+    </p>
+    @if (mode === 'catalog') {
+      <h1>Catálogo de prendas</h1>
+    } @else {
+      <h2>
+        {{
+          mode === 'home'
+            ? 'Prendas para tu día a día'
+            : mode === 'favorites'
+              ? 'Tus favoritos'
+              : 'Encuentra tu próxima prenda'
+        }}
+      </h2>
+    }
+    @if (mode !== 'home') {
+      <p class="muted">
+        {{
+          mode === 'favorites'
+            ? 'Guarda lo que te gusta y vuelve cuando quieras.'
+            : 'Descubre tus prendas y consulta su disponibilidad.'
+        }}
+      </p>
+    }
+  </div>
+  @if (mode === 'home') {
+    <a class="text-button" routerLink="/catalog">Ver toda la colección →</a>
+  }
+</div>
+@if (mode === 'catalog') {
+  <section class="collection-banner" aria-label="Colección VESTA">
+    <div>
+      <h2>Tu estilo, en ti.</h2>
+      <p>Una colección para descubrir desde VESTA.</p>
+      <button class="banner-link" type="button" (click)="scrollToProducts()">Ver prendas →</button>
+    </div>
+    <img
+      src="/images/catalogo-poleras-vesta.png"
+      alt="Poleras blancas y terracota en perchas de madera"
+    />
+  </section>
+  <form class="catalog-toolbar" (ngSubmit)="apply()">
+    <label class="catalog-search"
+      ><span class="sr-only">Buscar por prenda</span
+      ><svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        aria-hidden="true"
+      >
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m16 16 5 5" /></svg
+      ><input
+        type="search"
+        name="search"
+        [(ngModel)]="search"
+        placeholder="Buscar por prenda…"
+      /><button type="submit" aria-label="Buscar prendas">→</button></label
+    >
+    <label class="catalog-category"
+      ><span class="sr-only">Categoría</span
+      ><select name="category" [(ngModel)]="category" (ngModelChange)="apply()">
+        <option value="">Todas las categorías</option>
+        @for (option of filters()?.categories; track option.id) {
+          <option [value]="option.id">{{ option.name }}</option>
+        }
+      </select></label
+    >
+  </form>
+  <div class="catalog-branch">
+    <span class="branch-icon" aria-hidden="true"
+      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path
+          d="m3 10 9-7 9 7M5 9v12h14V9M10 21v-7h4v7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        /></svg
+    ></span>
+    <label class="field"
+      ><span>Sucursal / disponibilidad de prendas</span
+      ><select
+        aria-label="Sucursal para consultar disponibilidad"
+        [ngModel]="shop.selection()?.branch_id || ''"
+        (ngModelChange)="changeBranch($event)"
+        [disabled]="shop.busy() || !shop.company()"
+      >
+        @for (branch of shop.company()?.branches; track branch.id) {
+          <option [value]="branch.id">{{ branch.name }} · {{ branch.city }}</option>
+        } @empty {
+          <option value="">Selecciona una tienda</option>
+        }
+      </select></label
+    >
+  </div>
+  <details class="advanced-filters">
+    <summary>Más filtros <span>Tallas, colores, temporada y precio</span></summary>
+    <form class="filters panel" (ngSubmit)="apply()">
+      <label class="field"
+        >Talla<select name="size" [(ngModel)]="size">
+          <option value="">Todas</option>
+          @for (option of filters()?.sizes; track option.id) {
+            <option [value]="option.id">{{ option.name }}</option>
+          }
+        </select></label
+      >
+      <label class="field"
+        >Color<select name="color" [(ngModel)]="color">
+          <option value="">Todos</option>
+          @for (option of filters()?.colors; track option.id) {
+            <option [value]="option.id">{{ option.name }}</option>
+          }
+        </select></label
+      >
+      <label class="field"
+        >Temporada<select name="season" [(ngModel)]="season">
+          <option value="">Todas</option>
+          @for (option of filters()?.seasons; track option.id) {
+            <option [value]="option.id">{{ option.name }}</option>
+          }
+        </select></label
+      >
+      <label class="field"
+        >Género<select name="gender" [(ngModel)]="gender">
+          <option value="">Todos</option>
+          @for (option of filters()?.genders; track option) {
+            <option [value]="option">{{ option }}</option>
+          }
+        </select></label
+      >
+      <label class="field"
+        >Desde (Bs)<input
+          type="number"
+          min="0"
+          name="minPrice"
+          [(ngModel)]="minPrice"
+          placeholder="0" /></label
+      ><label class="field"
+        >Hasta (Bs)<input
+          type="number"
+          min="0"
+          name="maxPrice"
+          [(ngModel)]="maxPrice"
+          placeholder="Sin límite"
+      /></label>
+      <label class="field"
+        >Ordenar<select name="sort" [(ngModel)]="sort">
+          <option value="newest">Novedades</option>
+          <option value="price_asc">Menor precio</option>
+          <option value="price_desc">Mayor precio</option>
+          <option value="name_asc">Nombre A–Z</option>
+        </select></label
+      >
+      <div class="actions">
+        <button class="primary" type="submit">Aplicar filtros</button
+        ><button class="text-button" type="button" (click)="reset()">Limpiar</button>
+      </div>
+    </form>
+  </details>
+}
+<div id="catalog-products" class="catalog-results-anchor" tabindex="-1"></div>
+@if (error()) {
+  <div class="notice error" role="alert">
+    {{ error()
+    }}<button class="text-button" type="button" (click)="revision.update(identity)">
+      Reintentar
+    </button>
+  </div>
+}
+@if (shop.directoryLoading() || loading()) {
+  <div class="empty" role="status">Preparando la colección…</div>
+} @else if (!shop.ready()) {
+  <div class="empty">
+    <h3>No hay una tienda seleccionada</h3>
+    <p>Selecciona una empresa y sucursal disponibles para explorar su colección.</p>
+  </div>
+} @else if (mode === 'favorites') {
+  @if (shop.favoritesError()) {
+    <p class="notice error" role="alert">{{ shop.favoritesError() }}</p>
+  }
+  @if (shop.favorites().length) {
+    <app-shop-products [products]="shop.favorites()" />
+  } @else {
+    <div class="empty">
+      <h3>Tu próxima favorita te espera</h3>
+      <p>Toca el corazón de una prenda para guardarla aquí.</p>
+      <a class="primary" routerLink="/catalog">Descubrir prendas</a>
+    </div>
+  }
+} @else if (products().length) {
+  @if (mode === 'catalog') {
+    <p class="muted results">{{ total() }} prendas encontradas</p>
+  }
+  <app-shop-products [products]="products()" [catalogStyle]="mode === 'catalog'" />
+  @if (mode === 'catalog' && pages() > 1) {
+    <nav class="pagination" aria-label="Páginas del catálogo">
+      <button
+        class="secondary"
+        type="button"
+        [disabled]="page() === 1"
+        (click)="page.set(page() - 1)"
+      >
+        Anterior</button
+      ><span>{{ page() }} de {{ pages() }}</span
+      ><button
+        class="secondary"
+        type="button"
+        [disabled]="page() === pages()"
+        (click)="page.set(page() + 1)"
+      >
+        Siguiente
+      </button>
+    </nav>
+  }
+} @else if (!error()) {
+  <div class="empty">
+    <h3>No encontramos prendas con esos filtros</h3>
+    <p>Prueba otra talla, color o categoría.</p>
+    <button class="secondary" type="button" (click)="reset()">Ver toda la colección</button>
+  </div>
+}
+@if (selected(); as product) {
+  <div class="overlay" (click)="close()">
+    <section
+      class="dialog"
+      appShopDialog
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-title"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="close()"
+    >
+      <button class="dialog-close" type="button" aria-label="Cerrar detalle" (click)="close()">
+        ×
+      </button>
+      <div class="detail-grid">
+        <div class="detail-image">
+          @if (product.image_url) {
+            <img [src]="shop.image(product.image_url)" [alt]="product.name" />
+          } @else {
+            <span class="no-photo">Vesta</span>
+          }
+        </div>
+        <div class="detail-copy">
+          <span class="eyebrow">{{ product.category_name }}</span>
+          <h2 id="product-title">{{ product.name }}</h2>
+          <p class="muted">{{ product.description || 'Una nueva posibilidad para tu estilo.' }}</p>
+          <p class="detail-price">
+            {{ product.min_price * (1 - (product.discount_percent || 0) / 100) | number: '1.2-2' }}
+            Bs
+          </p>
+          <label class="field"
+            >Talla y color<select [ngModel]="variant()" (ngModelChange)="variant.set($event)">
+              <option value="">Selecciona tu variante</option>
+              @for (v of product.variants; track v.id) {
+                <option [value]="v.id" [disabled]="!v.total_stock">
+                  {{ v.size_name }} · {{ v.color_name }} {{ !v.total_stock ? '(agotado)' : '' }}
+                </option>
+              }
+            </select></label
+          >
+          <div class="row">
+            <label class="field"
+              >Cantidad<input
+                type="number"
+                min="1"
+                [max]="availability() || 1"
+                [(ngModel)]="quantity" /></label
+            ><small class="muted"
+              >{{ availability() }} disponibles en {{ shop.branch()?.name }}</small
+            >
+          </div>
+          <button
+            class="primary"
+            type="button"
+            [disabled]="
+              shop.busy() ||
+              (shop.customer() && (!variant() || quantity < 1 || quantity > availability()))
+            "
+            (click)="add()"
+          >
+            {{ shop.busy() ? 'Guardando…' : 'Agregar al carrito' }}
+          </button>
+          @if (shop.message()) {
+            <div class="notice" role="status">
+              {{ shop.message() }} <a class="text-button" routerLink="/cart">Ver mi carrito →</a>
+            </div>
+          }
+          @if (shop.error()) {
+            <div class="notice error" role="alert">{{ shop.error() }}</div>
+          }
+          <div class="actions">
+            <button class="text-button" type="button" (click)="fitting()">
+              Probar en mi vestidor ↗</button
+            ><button
+              class="text-button"
+              type="button"
+              [disabled]="shop.busy()"
+              (click)="shop.toggleFavorite(product)"
+            >
+              {{ shop.isFavorite(product.id) ? '♥ Guardado' : '♡ Guardar favorito' }}
+            </button>
+          </div>
+          <p class="muted">
+            <small
+              >Reserva desde el carrito para recoger tus prendas en la sucursal seleccionada.</small
+            >
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+}

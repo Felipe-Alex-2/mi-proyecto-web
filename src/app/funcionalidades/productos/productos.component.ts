@@ -40,7 +40,6 @@ export class ProductosComponent implements OnInit {
   private readonly searchChanges = new Subject<void>();
   private productsRequest?: Subscription;
   products = signal<Product[]>([]);
-  readonly heroImage = computed(() => this.products().find(product => product.image_url)?.image_url ?? null);
   categories = signal<Category[]>([]);
   sizes = signal<Size[]>([]);
   colors = signal<Color[]>([]);

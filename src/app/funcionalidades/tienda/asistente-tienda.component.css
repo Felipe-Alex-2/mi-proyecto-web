@@ -1,0 +1,133 @@
+.floating-chat {
+  position: fixed;
+  right: 28px;
+  bottom: 100px;
+  width: 360px;
+  max-width: calc(100vw - 36px);
+  max-height: 70dvh;
+  background: white;
+  border: 1px solid var(--vesta-border);
+  border-radius: 17px;
+  overflow: hidden;
+  box-shadow: 0 16px 60px #5c403326;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+}
+.chat-header {
+  padding: 20px;
+  background: var(--vesta-primary);
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.chat-header strong {
+  font-size: 0.85rem;
+}
+.chat-header p {
+  font-size: 0.69rem;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+.chat-header button {
+  background: transparent;
+  color: white;
+  border: 0;
+  font-size: 1.5rem;
+}
+.chat-body {
+  padding: 20px;
+  overflow: auto;
+  flex: 1;
+}
+.bubble {
+  padding: 14px 16px;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  font-size: 0.83rem;
+  line-height: 1.7;
+  margin-bottom: 14px;
+  white-space: pre-line;
+}
+.bubble.user {
+  background: var(--vesta-primary);
+  color: white;
+  margin-left: 30px;
+}
+.suggestions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+.suggestions button {
+  font-size: 0.7rem;
+  padding: 7px 10px;
+  min-height: 32px;
+}
+.chat-form {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid var(--vesta-border);
+}
+.chat-form input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid var(--vesta-border);
+  border-radius: 7px;
+  padding: 12px;
+  font-size: 0.8rem;
+}
+.chat-form .primary {
+  font-size: 0.75rem;
+  padding: 8px 12px;
+}
+.chat-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 28px;
+  z-index: 46;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--vesta-primary);
+  color: white;
+  box-shadow: 0 8px 25px #a34f3d33;
+  display: grid;
+  place-items: center;
+}
+.chat-toggle svg {
+  width: 25px;
+  height: 25px;
+}
+.chat-product {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--vesta-border);
+  padding: 14px 0;
+  font-size: 0.8rem;
+}
+.chat-product span {
+  color: var(--vesta-primary);
+  font-size: 0.72rem;
+}
+.panel {
+  padding: 0;
+  overflow: hidden;
+}
+.panel .chat-body {
+  max-height: 420px;
+}
+@media (max-width: 600px) {
+  .floating-chat {
+    right: 18px;
+    bottom: 90px;
+  }
+  .chat-toggle {
+    right: 18px;
+  }
+}

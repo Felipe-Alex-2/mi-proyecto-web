@@ -31,7 +31,7 @@
       </div>
     }
 
-    <app-store-picker [selectedCompany]="storeSelection?.tenant_id" [selectedBranch]="storeSelection?.branch_id" [disabled]="authService.isLoading()" (selection)="storeSelection=$event" />
+    <app-store-picker [compact]="true" [selectedCompany]="storeSelection?.tenant_id" [selectedBranch]="storeSelection?.branch_id" [disabled]="authService.isLoading()" (selection)="storeSelection=$event" />
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
       <!-- Name Field -->
       <div class="form-group">
@@ -93,7 +93,7 @@
             placeholder="Mínimo 8 caracteres"
             autocomplete="new-password"
             [attr.aria-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
-            [attr.aria-describedby]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched ? 'password-error' : null"
+            [attr.aria-describedby]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched ? 'password-requirements password-error' : 'password-requirements'"
           />
           <button type="button" class="btn-eye" (click)="togglePassword()" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="showPassword()">
             @if (showPassword()) {
@@ -109,6 +109,19 @@
             }
           </button>
         </div>
+        <ul id="password-requirements" class="password-requirements" aria-label="Requisitos de contraseña">
+          @for (requirement of passwordRequirements; track requirement.label) {
+            <li [class.met]="requirement.met">
+              <span class="requirement-icon" aria-hidden="true">
+                @if (requirement.met) {
+                  <svg viewBox="0 0 16 16" fill="none"><path d="m4 8 2.5 2.5L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                } @else { <span>−</span> }
+              </span>
+              <span class="sr-only">{{ requirement.met ? 'Cumplido: ' : 'Pendiente: ' }}</span>
+              {{ requirement.label }}
+            </li>
+          }
+        </ul>
         @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
           <span class="error-text" id="password-error" aria-live="polite">{{ registerForm.get('password')?.hasError('required') ? 'Escribe una contraseña para proteger tu cuenta.' : 'Usa al menos 8 caracteres, con mayúscula, minúscula, número y símbolo.' }}</span>
         }
@@ -151,7 +164,8 @@
     </form>
 
     <div class="auth-footer">
-      <p>¿Ya tienes una cuenta? <a routerLink="/login" class="link-highlight">Inicia sesión</a></p>
+      <p>¿Ya tienes una cuenta? <a routerLink="/login" [queryParams]="{returnUrl:route.snapshot.queryParamMap.get('returnUrl')}" class="link-highlight">Inicia sesión</a></p>
+      <p><a routerLink="/home" class="link-highlight">Seguir explorando la tienda</a></p>
     </div>
   </div>
 </div>

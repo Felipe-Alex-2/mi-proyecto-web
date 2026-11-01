@@ -1,4 +1,195 @@
-<section class="dashboard-page"><p class="eyebrow">FASHIONSTORE · VESTA</p><h1>Hola, {{ authService.currentUser()?.full_name }}.</h1><p class="intro">Tu colección, tus tiendas y tus clientes, en un solo lugar.</p>
-<div class="welcome-banner"><div><p>DISEÑADO PARA TU DÍA A DÍA</p><h2>Una nueva forma<br />de vivir la moda.</h2><a routerLink="/products">Gestionar prendas →</a></div><div class="brand-emblem" aria-hidden="true">V</div></div>
-<div class="quick-links"><a routerLink="/products"><span>01 · INVENTARIO</span><h2>Tu colección</h2><p>Prendas, tallas, colores y disponibilidad.</p><strong>Ver prendas →</strong></a><a routerLink="/reservations"><span>02 · VENTAS</span><h2>Reservas</h2><p>Consulta las prendas que esperan a tus clientes.</p><strong>Ver reservas →</strong></a><a routerLink="/reports"><span>03 · INTELIGENCIA</span><h2>Reportes</h2><p>Encuentra información útil para tus tiendas.</p><strong>Explorar reportes →</strong></a></div>
-<a class="profile-summary" routerLink="/profile"><app-user-avatar [user]="authService.currentUser()" [size]="64" /><div><h2>Tu espacio personal</h2><p>Actualiza tus datos, cambia tu foto o escoge un avatar.</p></div><span>Editar perfil →</span></a></section>
+<section class="dashboard-page">
+  <p class="eyebrow">FASHIONSTORE · VESTA</p>
+  <h1>Hola, {{ authService.currentUser()?.full_name }}.</h1>
+  <p class="intro">Tu negocio, de un vistazo. Sigue las ventas y conoce a tus clientes.</p>
+  <div class="dashboard-toolbar">
+    <div class="period-switch" role="group" aria-label="Periodo del resumen">
+      @for (period of periods; track period.value) {
+        <button
+          type="button"
+          [class.selected]="months() === period.value"
+          [attr.aria-pressed]="months() === period.value"
+          (click)="changePeriod(period.value)"
+        >
+          {{ period.label }}
+        </button>
+      }
+    </div>
+    <button type="button" class="refresh-button" (click)="load()" [disabled]="loading()">
+      {{ loading() ? 'Actualizando…' : 'Actualizar resumen' }}
+    </button>
+  </div>
+  <app-branch-selector
+    [branches]="branches()"
+    [value]="branchId"
+    [allowAll]="authService.currentUser()?.role === 'ADMIN'"
+    (valueChange)="changeBranch($event)"
+  />
+  @if (branchError()) {
+    <p role="alert" class="dashboard-error">{{ branchError() }}</p>
+  }
+  @if (error()) {
+    <div role="alert" class="dashboard-error">
+      {{ error() }} <button type="button" (click)="load()">Reintentar</button>
+    </div>
+  }
+  @if (loading()) {
+    <div class="dashboard-loading" role="status">Preparando el resumen de tu negocio…</div>
+  }
+  @if (data(); as summary) {
+    <p class="scope-note">
+      {{ summary.scope }} · {{ summary.date_from | date: 'dd/MM/yyyy' }} —
+      {{ summary.date_to | date: 'dd/MM/yyyy' }}
+      @if (months() === 12) {
+        <span>Últimos 12 meses hasta hoy.</span>
+      }
+    </p>
+    <div class="stats-grid">
+      <article class="stat-card">
+        <span class="stat-label">Ingresos cobrados</span>
+        <div class="revenue-values">
+          @for (total of summary.revenue; track total.currency) {
+            <strong
+              >{{ total.amount | number: '1.2-2' }} <small>{{ total.currency }}</small></strong
+            >
+          } @empty {
+            <strong>0 <small>Sin cobros</small></strong>
+          }
+        </div>
+        <p>Importes separados por moneda</p>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Ventas confirmadas</span
+        ><strong>{{ summary.sales | number }}</strong>
+        <p>Solo cobros pagados, sin duplicados</p>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Clientes con compras</span
+        ><strong>{{ summary.customers | number }}</strong>
+        <p>Cuentas identificadas, sin repetir</p>
+      </article>
+    </div>
+    <div class="dashboard-detail">
+      <article class="chart-card">
+        <div class="chart-heading">
+          <div>
+            <h2>Actividad de ventas</h2>
+            <p>
+              {{
+                months() === 1
+                  ? 'Cobros confirmados por día de este mes.'
+                  : 'Cobros confirmados por mes.'
+              }}
+            </p>
+          </div>
+          <span class="chart-total">{{ summary.sales }} ventas</span>
+        </div>
+        @if (summary.sales === 0) {
+          <p class="zero-note">Todavía no hay ventas pagadas en este periodo.</p>
+        }
+        <div
+          class="sales-chart"
+          [class.daily]="months() === 1"
+          role="group"
+          aria-label="Gráfico de ventas confirmadas. Valores disponibles en la tabla de detalle."
+        >
+          @for (point of summary.series; track point.period) {
+            <div
+              class="chart-column"
+              tabindex="0"
+              [attr.aria-label]="
+                point.period + ': ' + point.sales + ' ventas, ' + point.customers + ' clientes'
+              "
+              [title]="point.period + ': ' + point.sales + ' ventas'"
+            >
+              <span class="bar-value">{{ point.sales }}</span>
+              <div class="bar-track">
+                <div
+                  class="sales-bar"
+                  [style.height.%]="(point.sales / maxSales()) * 100"
+                  [class.empty-bar]="point.sales === 0"
+                ></div>
+              </div>
+              <span class="bar-label">{{ periodLabel(point.period) }}</span>
+            </div>
+          }
+        </div>
+        <details class="chart-details">
+          <summary>Ver datos del gráfico</summary>
+          <div class="table-scroll">
+            <table>
+              <caption>
+                Ventas e ingresos del periodo seleccionado
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Periodo</th>
+                  <th scope="col">Ventas</th>
+                  <th scope="col">Clientes</th>
+                  <th scope="col">Ingresos</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (point of summary.series; track point.period) {
+                  <tr>
+                    <th scope="row">{{ point.period }}</th>
+                    <td>{{ point.sales }}</td>
+                    <td>{{ point.customers }}</td>
+                    <td>
+                      @for (total of point.revenue; track total.currency) {
+                        <span class="table-money"
+                          >{{ total.amount | number: '1.2-2' }} {{ total.currency }}</span
+                        >
+                      } @empty {
+                        —
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </article>
+      <aside class="workspace-card">
+        <p class="eyebrow">TU ESPACIO DE TRABAJO</p>
+        <h2>Todo a tu alcance</h2>
+        <p>Continúa con las tareas de tu tienda.</p>
+        <a routerLink="/payments"
+          ><span
+            ><strong>Caja y cobros</strong
+            ><small>Registra ventas y consulta comprobantes.</small></span
+          ><span aria-hidden="true">→</span></a
+        >
+        <a routerLink="/products"
+          ><span
+            ><strong>Prendas y stock</strong
+            ><small>Gestiona tu colección y disponibilidad.</small></span
+          ><span aria-hidden="true">→</span></a
+        >
+        <a routerLink="/promotions"
+          ><span
+            ><strong>Promociones</strong
+            ><small>Revisa descuentos para renovar tu stock.</small></span
+          ><span aria-hidden="true">→</span></a
+        >
+        <a routerLink="/reports"
+          ><span><strong>Reportes</strong><small>Explora el detalle de tu negocio.</small></span
+          ><span aria-hidden="true">→</span></a
+        >
+      </aside>
+    </div>
+    <p class="data-note">
+      Los clientes sin cuenta identificada no se incluyen en el número de clientes. Una reserva y su
+      cobro se cuentan una sola vez. Fechas según Bolivia.
+    </p>
+  }
+  <a class="profile-summary" routerLink="/profile"
+    ><app-user-avatar [user]="authService.currentUser()" [size]="64" />
+    <div>
+      <h2>Tu espacio personal</h2>
+      <p>Actualiza tus datos, cambia tu foto o escoge un avatar.</p>
+    </div>
+    <span>Editar perfil →</span></a
+  >
+</section>

@@ -1,0 +1,227 @@
+<div class="shop-shell">
+  <header class="shop-header">
+    <a class="brand" routerLink="/home" aria-label="VESTA, inicio"
+      >VESTA<span>tu estilo, a tu medida</span></a
+    >
+    <button
+      class="mobile-menu secondary"
+      type="button"
+      aria-label="Abrir navegación"
+      [attr.aria-expanded]="menuOpen()"
+      (click)="menuOpen.set(!menuOpen())"
+    >
+      ☰
+    </button>
+    <nav class="shop-nav" [class.open]="menuOpen()" aria-label="Tienda">
+      <a routerLink="/home" routerLinkActive="active" (click)="menuOpen.set(false)">Inicio</a>
+      <a routerLink="/catalog" routerLinkActive="active" (click)="menuOpen.set(false)">Catálogo</a>
+      <a routerLink="/for-you" routerLinkActive="active" (click)="menuOpen.set(false)">Para ti</a>
+      <a routerLink="/fitting" routerLinkActive="active" (click)="menuOpen.set(false)"
+        >Vestidor virtual</a
+      >
+      <a routerLink="/my-reservations" routerLinkActive="active" (click)="menuOpen.set(false)"
+        >Mis reservas</a
+      >
+    </nav>
+    <div class="header-actions">
+      <form class="search" (ngSubmit)="searchProducts()">
+        <label for="shop-search" class="sr-only">Buscar prendas</label
+        ><input
+          id="shop-search"
+          type="search"
+          name="search"
+          [(ngModel)]="search"
+          placeholder="Busca tu próxima prenda"
+        /><button type="submit" aria-label="Buscar">⌕</button>
+      </form>
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Favoritos"
+        (click)="account('/favorites')"
+      >
+        ♡
+      </button>
+      <button
+        class="icon-button"
+        type="button"
+        [attr.aria-label]="'Carrito, ' + shop.cart().total_items + ' prendas'"
+        (click)="account('/cart')"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 3h2l3 13h11l3-9H6M9 20h.01M18 20h.01"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          /></svg
+        ><span class="counter">{{ shop.cart().total_items }}</span>
+      </button>
+      @if (shop.customer()) {
+        <button
+          class="icon-button"
+          type="button"
+          [attr.aria-label]="'Notificaciones, ' + shop.unread() + ' sin leer'"
+          (click)="account('/notifications')"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            aria-hidden="true"
+          >
+            <path
+              d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM9 21h6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+          ><span class="counter" [hidden]="!shop.unread()">{{ shop.unread() }}</span>
+        </button>
+        <details class="account-menu">
+          <summary aria-label="Mi cuenta">
+            {{ shop.auth.currentUser()?.full_name?.charAt(0) }}
+          </summary>
+          <div>
+            <strong>{{ shop.auth.currentUser()?.full_name }}</strong
+            ><a routerLink="/account">Mi perfil</a
+            ><a routerLink="/purchases">Mis compras y comprobantes</a
+            ><button type="button" (click)="shop.auth.logout()">Cerrar sesión</button>
+          </div>
+        </details>
+      } @else if (shop.auth.currentUser()) {
+        <a class="primary" routerLink="/dashboard">Mi panel</a>
+      } @else {
+        <a class="primary" routerLink="/login">Ingresar</a>
+      }
+    </div>
+  </header>
+  <main class="shop-main" id="shop-content">
+    <div class="store-bar">
+      @if (shop.directoryLoading()) {
+        <span role="status">Cargando tiendas…</span>
+      } @else if (shop.directoryError()) {
+        <span role="alert">{{ shop.directoryError() }}</span
+        ><button class="text-button" type="button" (click)="shop.loadDirectory()">
+          Reintentar
+        </button>
+      } @else {
+        <div>
+          <strong>{{ shop.company()?.name || 'Elige una tienda' }}</strong
+          ><span class="muted"
+            >{{ shop.branch()?.name }}
+            @if (shop.branch()?.city) {
+              · {{ shop.branch()?.city }}
+            }
+          </span>
+        </div>
+        <button
+          type="button"
+          class="text-button"
+          [disabled]="shop.busy()"
+          (click)="storeOpen.set(true)"
+        >
+          Cambiar empresa o sucursal
+        </button>
+      }
+    </div>
+    @if (shop.error()) {
+      <div class="notice error" role="alert">
+        {{ shop.error()
+        }}<button type="button" class="text-button" (click)="shop.error.set('')">Cerrar</button>
+      </div>
+    }
+    @if (shop.message()) {
+      <div class="notice" role="status">
+        {{ shop.message()
+        }}<button type="button" class="text-button" (click)="shop.message.set('')">Cerrar</button>
+      </div>
+    }
+    <router-outlet />
+  </main>
+  <footer class="shop-footer">
+    <a class="brand" routerLink="/home">VESTA</a>
+    <p>Descubre, pruébate y reserva. Tu estilo empieza aquí.</p>
+    <span>Encuentra tu próxima prenda en {{ shop.company()?.name || 'nuestras tiendas' }}.</span>
+  </footer>
+  <app-shop-assistant />
+</div>
+@if (storeOpen()) {
+  <div class="overlay" (click)="storeOpen.set(false)">
+    <section
+      class="dialog store-dialog"
+      appShopDialog
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="store-title"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="storeOpen.set(false)"
+    >
+      <button
+        type="button"
+        class="dialog-close"
+        aria-label="Cerrar selector"
+        (click)="storeOpen.set(false)"
+      >
+        ×
+      </button>
+      <h2 id="store-title">Encuentra tu tienda</h2>
+      <p class="muted section-space">
+        El catálogo y el carrito corresponden a la empresa y sucursal elegidas. Tus reservas e
+        historial se conservan.
+      </p>
+      <app-store-picker
+        [selectedCompany]="shop.selection()?.tenant_id"
+        [selectedBranch]="shop.selection()?.branch_id"
+        [disabled]="shop.busy()"
+        (selection)="choose($event)"
+      />
+    </section>
+  </div>
+}
+@if (shop.authPrompt()) {
+  <div class="overlay" (click)="shop.authPrompt.set(false)">
+    <section
+      class="dialog login-dialog"
+      appShopDialog
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="login-title"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="shop.authPrompt.set(false)"
+    >
+      <button
+        type="button"
+        class="dialog-close"
+        aria-label="Cerrar"
+        (click)="shop.authPrompt.set(false)"
+      >
+        ×
+      </button>
+      <p class="eyebrow">Tu espacio en VESTA</p>
+      <h2 id="login-title">Continúa con tu cuenta</h2>
+      <p class="muted">
+        Inicia sesión para guardar favoritos, agregar prendas al carrito, reservar o usar tu
+        vestidor virtual.
+      </p>
+      <div class="actions section-space">
+        <button class="primary" type="button" (click)="shop.login()">Iniciar sesión</button
+        ><a
+          class="secondary"
+          routerLink="/register"
+          [queryParams]="{ returnUrl: shop.authReturn() }"
+          (click)="shop.authPrompt.set(false)"
+          >Crear cuenta</a
+        >
+      </div>
+      <button class="text-button section-space" type="button" (click)="shop.authPrompt.set(false)">
+        Seguir mirando el catálogo
+      </button>
+    </section>
+  </div>
+}

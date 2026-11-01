@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReservaService } from '../../nucleo/servicios/reserva.service';
 import { PagoService } from '../../nucleo/servicios/pago.service';
+import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
+import { inject } from '@angular/core';
+import { EMPTY, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-paypal-return',
@@ -30,7 +33,7 @@ import { PagoService } from '../../nucleo/servicios/pago.service';
           </div>
 
           <div *ngIf="!isPosPayment()" class="redirect-notice">
-            Redirigiendo a Gestión de Reservas...
+            Volviendo a tus reservas…
           </div>
         </div>
 
@@ -200,6 +203,7 @@ import { PagoService } from '../../nucleo/servicios/pago.service';
   `]
 })
 export class RetornoPaypalComponent implements OnInit {
+  private readonly auth = inject(AutenticacionService);
   loading = signal<boolean>(true);
   success = signal<boolean>(false);
   errorMsg = signal<string | null>(null);
@@ -246,7 +250,13 @@ export class RetornoPaypalComponent implements OnInit {
       });
     } else {
       // Flujo de reserva directa
-      this.reservationService.capturePayPalOrder(orderId).subscribe({
+      this.auth.loadCurrentUser().pipe(switchMap(user => {
+        if (!user) {
+          this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+          return EMPTY;
+        }
+        return this.reservationService.capturePayPalOrder(orderId);
+      })).subscribe({
         next: (res) => {
           this.loading.set(false);
           this.success.set(true);
@@ -255,7 +265,7 @@ export class RetornoPaypalComponent implements OnInit {
             `Tu orden (${orderId}) ha sido completada exitosamente para la reserva ${code}.`
           );
           setTimeout(() => {
-            this.router.navigate(['/reservations']);
+            this.goToReservations();
           }, 3000);
         },
         error: (err) => {
@@ -273,6 +283,6 @@ export class RetornoPaypalComponent implements OnInit {
   }
 
   goToReservations(): void {
-    this.router.navigate(['/reservations']);
+    this.router.navigate([this.auth.currentUser()?.role === 'CUSTOMER' ? '/my-reservations' : '/reservations']);
   }
 }

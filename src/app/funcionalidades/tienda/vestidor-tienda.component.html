@@ -1,0 +1,217 @@
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">Tu estilo, a tu medida</p>
+    <h1>Tu vestidor virtual.</h1>
+    <p class="muted">Conoce tu talla y descubre cómo puede verse una prenda contigo.</p>
+  </div>
+  <a class="text-button" routerLink="/catalog">Explorar prendas →</a>
+</div>
+@if (error()) {
+  <p class="notice error" role="alert">{{ error() }}</p>
+}
+@if (success()) {
+  <p class="notice" role="status">{{ success() }}</p>
+}
+@if (loading()) {
+  <p class="notice" role="status">Preparando tu vestidor…</p>
+}
+<div class="split">
+  <form class="panel stack" #measureForm="ngForm" (ngSubmit)="save(measureForm)">
+    <div>
+      <p class="eyebrow">01 / Tu perfil</p>
+      <h2>Un ajuste pensado para ti</h2>
+      <p class="muted section-space">
+        <small
+          >Introduce tus medidas reales para obtener una recomendación. Puedes guardarlas para
+          usarlas también desde el móvil.</small
+        >
+      </p>
+    </div>
+    <div class="form-grid">
+      <label class="field"
+        >Guía de tallas<select name="gender" [(ngModel)]="measurements.gender" required>
+          <option value="MUJER">Mujer</option>
+          <option value="HOMBRE">Hombre</option>
+        </select></label
+      >
+      @for (field of fields; track field.key) {
+        <label class="field"
+          >{{ field.label
+          }}<input
+            type="number"
+            [name]="field.key"
+            [(ngModel)]="measurements[field.key]"
+            [min]="field.min"
+            [max]="field.max"
+            step="0.1"
+            required
+        /></label>
+      }
+    </div>
+    @if (measureForm.invalid && measureForm.submitted) {
+      <p class="notice error">
+        Revisa que todas tus medidas estén dentro de los rangos permitidos.
+      </p>
+    }
+    <button class="secondary" type="submit" [disabled]="busy() || loading()">
+      Guardar mis medidas
+    </button>
+    <div class="divider"></div>
+    <p class="eyebrow">02 / Tu próxima prenda</p>
+    <label class="field"
+      >Elige una prenda<select
+        name="product"
+        [ngModel]="productId()"
+        (ngModelChange)="changeProduct($event)"
+      >
+        <option value="">Selecciona una prenda</option>
+        @for (p of products(); track p.id) {
+          <option [value]="p.id">{{ p.name }}</option>
+        }
+      </select></label
+    ><button
+      class="primary"
+      type="button"
+      [disabled]="!productId() || busy() || measureForm.invalid || loading()"
+      (click)="recommend(measureForm)"
+    >
+      Recomendar mi talla
+    </button>
+    @if (sizeResult(); as result) {
+      <div class="notice">
+        <p class="eyebrow">Tu talla recomendada</p>
+        <strong class="size-result">{{ result.recommended_size }}</strong>
+        <p>{{ result.fit_overall }}</p>
+        <p>
+          <small>Confianza estimada: {{ result.confidence_score | number: '1.0-1' }}%</small>
+        </p>
+        @for (detail of result.fit_details; track detail.zone) {
+          <p>
+            <small>{{ detail.zone }}: {{ detail.message }}</small>
+          </p>
+        }
+        @if (product(); as p) {
+          <a class="text-button" routerLink="/catalog" [queryParams]="{ product: p.id }"
+            >Ver disponibilidad y reservar ↗</a
+          >
+        }
+      </div>
+    }
+  </form>
+  <section class="panel stack">
+    <div>
+      <p class="eyebrow">03 / Pruébatela</p>
+      <h2>Mírate con un nuevo estilo</h2>
+    </div>
+    <div class="photo-preview">
+      @if (personPhoto()) {
+        <img [src]="shop.image(personPhoto())" alt="Tu foto para la prueba virtual" />
+      } @else {
+        <div>
+          <span aria-hidden="true">✦</span>
+          <p>Tu próxima versión<br />empieza aquí.</p>
+        </div>
+      }
+    </div>
+    <div class="actions">
+      <label class="secondary upload"
+        >Cargar mi foto<input
+          class="sr-only"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          (change)="selectPhoto($event)" /></label
+      ><button class="secondary" type="button" [disabled]="busy()" (click)="camera()">
+        Usar cámara
+      </button>
+    </div>
+    <p class="muted">
+      <small
+        >Usa una foto de cuerpo entero, de frente y con buena iluminación. JPG, PNG o WebP, hasta 8
+        MB.</small
+      >
+    </p>
+    @if (product(); as p) {
+      <div class="line-item">
+        @if (p.image_url) {
+          <img [src]="shop.image(p.image_url)" [alt]="p.name" />
+        }
+        <div class="line-copy">
+          <h3>{{ p.name }}</h3>
+          <p>Prenda seleccionada para la prueba</p>
+        </div>
+      </div>
+    }
+    <label class="field"
+      >Foto de la prenda (opcional)<input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        (change)="selectPhoto($event, false)"
+    /></label>
+    @if (garmentPhoto()) {
+      <img class="garment-preview" [src]="garmentPhoto()" alt="Foto de la prenda cargada" />
+    }
+    <button
+      class="primary"
+      type="button"
+      [disabled]="
+        busy() || !personPhoto() || (!product()?.image_url && !garmentPhoto()) || loading()
+      "
+      (click)="tryOn()"
+    >
+      {{ busy() ? 'Procesando…' : 'Generar prueba con IA' }}
+    </button>
+    @if (busy()) {
+      <p class="muted" role="status">
+        <small>La generación puede tardar unos minutos. Puedes mantener esta página abierta.</small>
+      </p>
+    }
+    @if (resultImage()) {
+      <div class="stack">
+        <h3>Tu prueba virtual</h3>
+        <img
+          class="result-image"
+          [src]="resultImage()"
+          alt="Resultado de tu prueba virtual con IA"
+        /><a class="secondary" [href]="resultImage()" download="vesta-prueba-virtual.webp"
+          >Guardar imagen</a
+        >
+      </div>
+    }
+  </section>
+</div>
+@if (sessions().length) {
+  <section class="section-space">
+    <h2>Tus pruebas anteriores</h2>
+    <div class="session-grid section-space">
+      @for (s of sessions(); track s.session_id) {
+        <article class="panel">
+          <p class="eyebrow">{{ shop.date(s.created_at) | date: 'dd/MM/yyyy' }}</p>
+          <h3 class="section-space">Talla {{ s.recommended_size }}</h3>
+          <p class="muted">{{ s.fit_feedback }}</p>
+          <a class="text-button" routerLink="/catalog" [queryParams]="{ product: s.product_id }"
+            >Ver prenda →</a
+          >
+        </article>
+      }
+    </div>
+  </section>
+}
+@if (cameraOpen()) {
+  <div class="overlay">
+    <section
+      class="dialog"
+      style="max-width: 600px"
+      appShopDialog
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="camera-title"
+    >
+      <h2 id="camera-title">Tu foto</h2>
+      <video #camera autoplay playsinline muted class="camera"></video>
+      <div class="actions">
+        <button class="primary" type="button" (click)="snapshot()">Tomar foto</button
+        ><button class="secondary" type="button" (click)="stopCamera()">Cerrar cámara</button>
+      </div>
+    </section>
+  </div>
+}

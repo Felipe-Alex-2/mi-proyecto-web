@@ -13,9 +13,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isApiRequest = req.url === apiUrl || req.url.startsWith(`${apiUrl}/`);
   if (!isApiRequest) return next(req);
   const token = tokenService.getAccessToken();
+  const publicRequest = req.url.split('?')[0] === `${apiUrl}/saas/directory`
+    || req.url.startsWith(`${apiUrl}/shop/catalog/`);
+  const restoringIdentity = req.method === 'GET' && req.url.split('?')[0] === `${apiUrl}/users/me`;
 
   let authReq = req;
-  if (token) {
+  if (token && !publicRequest) {
     authReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,
@@ -26,9 +29,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && token && tokenService.getAccessToken() === token && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
+      if ((error.status === 401 || (error.status === 403 && restoringIdentity)) && token && !publicRequest && tokenService.getAccessToken() === token && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
         tokenService.clearTokens();
-        router.navigate(['/login']);
+        const path = router.url.split(/[?#]/)[0];
+        const publicPage = ['/', '/home', '/catalog', '/login', '/register', '/forgot-password', '/reset-password'].includes(path);
+        if (!publicPage) {
+          if (restoringIdentity) router.navigate(['/home']);
+          else router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
+        }
       }
       return throwError(() => error);
     })

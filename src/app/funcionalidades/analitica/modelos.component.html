@@ -1,0 +1,369 @@
+<section class="analytics-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">VESTA · APRENDIZAJE AUTOMÁTICO</p>
+      <h1>Modelos y entrenamiento</h1>
+      <p>Prepara tus modelos, compara sus resultados y explora los patrones de la simulación.</p>
+    </div>
+    <button type="button" class="secondary" (click)="load()" [disabled]="loading() || training()">
+      Actualizar
+    </button>
+  </header>
+  @if (platform) {
+    <label class="company-selector"
+      >Empresa<select
+        [ngModel]="tenantId"
+        (ngModelChange)="changeCompany($event)"
+        [disabled]="training()"
+      >
+        <option value="">Seleccionar empresa</option>
+        @for (company of companies(); track company.id) {
+          <option [value]="company.id">{{ company.name }}</option>
+        }
+      </select></label
+    >
+  } @else {
+    <p class="company-caption">{{ companyName() }} · Datos exclusivos de tu empresa</p>
+  }
+  <div class="source-notice">
+    <strong>Laboratorio con datos sintéticos</strong>
+    <p>
+      Los modelos aprenden de una simulación independiente. Sus métricas no acreditan precisión
+      sobre ventas reales y no cambian precios, ventas ni inventario.
+    </p>
+  </div>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="success" role="status">{{ success() }}</p>
+  }
+  @if (loading()) {
+    <p class="loading" role="status">Cargando conjuntos y entrenamientos…</p>
+  }
+
+  <div class="training-layout">
+    <section class="panel setup-panel" aria-labelledby="training-title">
+      <p class="eyebrow">01 · ELEGIR Y ENTRENAR</p>
+      <h2 id="training-title">De los datos al modelo</h2>
+      @if (datasets().length) {
+        <label
+          >Conjunto de datos<select [(ngModel)]="datasetId" [disabled]="training()">
+            @for (data of datasets(); track data.id) {
+              <option [value]="data.id">
+                {{ data.name }} · {{ data.created_at | date: 'dd/MM/yyyy HH:mm' : '-0400' }}
+              </option>
+            }
+          </select></label
+        >
+        @if (dataset(); as data) {
+          <div class="dataset-stats">
+            <div>
+              <strong>{{ data.summary.sales | number }}</strong
+              ><span>Ventas</span>
+            </div>
+            <div>
+              <strong>{{ data.summary.customers | number }}</strong
+              ><span>Clientes</span>
+            </div>
+            <div>
+              <strong>{{ data.summary.returns | number }}</strong
+              ><span>Devoluciones</span>
+            </div>
+          </div>
+          <p class="helper">
+            {{ data.parameters.date_from }} — {{ data.parameters.date_to }} ·
+            {{ data.summary.products }} prendas · {{ data.summary.weeks }} semanas completas
+          </p>
+          <details>
+            <summary>Cómo se prepararon los datos</summary>
+            <p class="helper">{{ data.summary.preprocessing }}</p>
+            <ul>
+              @for (assumption of data.summary.assumptions; track assumption) {
+                <li>{{ assumption }}</li>
+              }
+            </ul>
+            <p class="helper">
+              Filas descartadas: {{ data.summary.discarded_rows }}. Demanda:
+              {{ data.summary.demand_train }} filas de entrenamiento y
+              {{ data.summary.demand_test }} de prueba.
+            </p>
+          </details>
+        }
+        <label
+          >Grupos de clientes (K-Means)<select [(ngModel)]="clusters" [disabled]="training()">
+            @for (k of [2, 3, 4, 5, 6]; track k) {
+              <option [ngValue]="k">{{ k }} grupos</option>
+            }
+          </select></label
+        >
+        <p class="helper">
+          Se entrenan tres modelos: demanda semanal por categoría y sucursal, segmentos RFM y
+          detección de ventas/devoluciones inusuales.
+        </p>
+        <div class="setup-actions">
+          <button type="button" (click)="train()" [disabled]="training() || loading()">
+            {{ training() ? 'Entrenando y evaluando…' : 'Entrenar y evaluar' }}</button
+          ><button type="button" class="secondary" (click)="download()" [disabled]="downloading()">
+            {{ downloading() ? 'Descargando…' : 'Descargar datos JSON' }}
+          </button>
+        </div>
+        @if (training()) {
+          <p role="status" class="helper">
+            Ajustando modelos y calculando métricas. Puedes consultar el historial al regresar a
+            este módulo.
+          </p>
+        }
+      } @else if (!loading()) {
+        <div class="empty-state">
+          <h3>Aún no hay datos para entrenar</h3>
+          <p>Primero genera un conjunto para esta empresa desde Empresas.</p>
+          @if (platform) {
+            <a routerLink="/companies">Ir a Empresas →</a>
+          } @else {
+            <p>Solicita la generación al administrador SaaS.</p>
+          }
+        </div>
+      }
+    </section>
+    <section class="panel history-panel" aria-labelledby="history-title">
+      <p class="eyebrow">02 · HISTORIAL</p>
+      <h2 id="history-title">Tus ejecuciones</h2>
+      <p class="helper">
+        Cada entrenamiento conserva el conjunto, los parámetros, los modelos y sus métricas.
+      </p>
+      <div class="run-list">
+        @for (run of runs(); track run.id) {
+          <button
+            type="button"
+            class="run-row"
+            [class.selected]="selected()?.id === run.id"
+            [attr.aria-pressed]="selected()?.id === run.id"
+            (click)="openRun(run)"
+          >
+            <span
+              ><strong>{{ datasetName(run.dataset_id) }}</strong
+              ><small
+                >{{ run.created_at | date: 'dd/MM/yyyy HH:mm' : '-0400' }} ·
+                {{ run.parameters.clusters }} grupos</small
+              ></span
+            ><span class="status" [class.failed]="run.status === 'FAILED'">{{
+              status(run.status)
+            }}</span>
+          </button>
+        } @empty {
+          <p class="helper">Los resultados aparecerán aquí cuando entrenes un conjunto.</p>
+        }
+      </div>
+    </section>
+  </div>
+  @if (detailError()) {
+    <p role="alert" class="error">{{ detailError() }}</p>
+  }
+  @if (detailLoading()) {
+    <p role="status" class="loading">Cargando resultados…</p>
+  }
+  @if (selected(); as run) {
+    @if (run.status === 'FAILED') {
+      <p class="error" role="alert">{{ run.error }}</p>
+    }
+    @if (run.status === 'TRAINING') {
+      <p class="source-notice" role="status">
+        Este entrenamiento sigue en curso. El historial se actualiza automáticamente mientras esta
+        pantalla está abierta.
+      </p>
+    }
+    @if (run.status === 'COMPLETED') {
+      <div class="results-heading">
+        <div>
+          <p class="eyebrow">03 · RESULTADOS DE EVALUACIÓN</p>
+          <h2>{{ datasetName(run.dataset_id) }}</h2>
+        </div>
+        <span class="ready-badge">Modelos guardados</span>
+      </div>
+      <div class="metric-grid">
+        <article class="panel">
+          <span class="model-type">SUPERVISADO · RANDOM FOREST</span>
+          <h3>Demanda de prendas</h3>
+          <dl>
+            <div>
+              <dt>Error medio MAE</dt>
+              <dd>{{ metric(run.metrics.demand?.mae) }} <small>unidades/semana</small></dd>
+            </div>
+            <div>
+              <dt>RMSE</dt>
+              <dd>{{ metric(run.metrics.demand?.rmse) }}</dd>
+            </div>
+            <div>
+              <dt>R²</dt>
+              <dd>{{ metric(run.metrics.demand?.r2) }}</dd>
+            </div>
+          </dl>
+          <p class="helper">
+            MAE y RMSE menores indican menos error. R² puede ser negativo: el modelo puede rendir
+            peor que una predicción constante.
+          </p>
+          <p class="helper">
+            MAE de referencia: {{ metric(run.metrics.demand?.baseline_mae) }}. Entrena con
+            {{ run.metrics.demand?.train_rows }} filas y evalúa con
+            {{ run.metrics.demand?.test_rows }} posteriores.
+          </p>
+          <p class="helper">
+            Última semana de entrenamiento: {{ run.metrics.demand?.train_until }}. Prueba desde
+            {{ run.metrics.demand?.test_from }}.
+          </p>
+        </article>
+        <article class="panel">
+          <span class="model-type">NO SUPERVISADO · K-MEANS</span>
+          <h3>Segmentos de clientes</h3>
+          <dl>
+            <div>
+              <dt>Silueta de evaluación</dt>
+              <dd>{{ metric(run.metrics.clustering?.silhouette) }}</dd>
+            </div>
+            <div>
+              <dt>Grupos</dt>
+              <dd>{{ run.metrics.clustering?.clusters }}</dd>
+            </div>
+            <div>
+              <dt>Clientes de prueba</dt>
+              <dd>{{ run.metrics.clustering?.test_rows }}</dd>
+            </div>
+          </dl>
+          <p class="helper">
+            Agrupa por días desde la última compra, frecuencia y gasto. La silueta va de −1 a 1; un
+            valor más alto indica grupos mejor separados.
+          </p>
+          <p class="helper">
+            Puede no estar disponible si la muestra de prueba no contiene al menos dos grupos
+            válidos.
+          </p>
+        </article>
+        <article class="panel">
+          <span class="model-type">NO SUPERVISADO · ISOLATION FOREST</span>
+          <h3>Operaciones inusuales</h3>
+          <dl>
+            <div>
+              <dt>Precisión en prueba</dt>
+              <dd>{{ metric(run.metrics.anomalies?.precision) }}</dd>
+            </div>
+            <div>
+              <dt>Recall en prueba</dt>
+              <dd>{{ metric(run.metrics.anomalies?.recall) }}</dd>
+            </div>
+            <div>
+              <dt>F1 en prueba</dt>
+              <dd>{{ metric(run.metrics.anomalies?.f1) }}</dd>
+            </div>
+          </dl>
+          <p class="helper">
+            Comparación con anomalías insertadas en la simulación.
+            {{ run.metrics.anomalies?.test_detected }} detecciones en prueba;
+            {{ run.metrics.anomalies?.test_injected }} anomalías conocidas.
+          </p>
+          <p class="helper">Una operación señalada requiere revisión; no demuestra fraude.</p>
+        </article>
+      </div>
+      @if (run.results; as results) {
+        <section class="panel result-section">
+          <h2>Grupos encontrados</h2>
+          <p class="helper">
+            Asignaciones sobre todos los clientes con compras del conjunto. Importes en BOB.
+          </p>
+          <div class="segment-grid">
+            @for (group of results.groups; track group.cluster) {
+              <article class="segment">
+                <h3>{{ group.name }}</h3>
+                <strong>{{ group.customers }} clientes</strong>
+                <p>Última compra: {{ metric(group.recency_days) }} días, en promedio.</p>
+                <p>
+                  {{ metric(group.frequency) }} compras · Bs {{ metric(group.monetary) }} de gasto
+                  medio.
+                </p>
+              </article>
+            }
+          </div>
+        </section>
+        <section class="panel result-section">
+          <h2>Predicción de demanda semanal</h2>
+          <p class="helper">
+            Estimaciones para la semana siguiente al conjunto simulado. No son un pronóstico
+            validado del negocio real.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <caption>
+                Inferencia del modelo supervisado guardado
+              </caption>
+              <thead>
+                <tr>
+                  <th>Semana</th>
+                  <th>Categoría</th>
+                  <th>Sucursal</th>
+                  <th>Unidades estimadas</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (forecast of results.forecasts; track $index) {
+                  <tr>
+                    <td>{{ forecast.week }}</td>
+                    <td>{{ forecast.category }}</td>
+                    <td>{{ forecast.branch }}</td>
+                    <td>{{ metric(forecast.predicted_units) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel result-section">
+          <h2>Ventas y devoluciones para revisar</h2>
+          <p class="helper">
+            Hasta 50 operaciones con el menor puntaje de normalidad, entre
+            {{ run.metrics.anomalies?.detected }} detecciones del conjunto. Se indica si pertenecen
+            a entrenamiento o prueba.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <caption>
+                Operaciones sintéticas detectadas por Isolation Forest
+              </caption>
+              <thead>
+                <tr>
+                  <th>Venta</th>
+                  <th>Fecha</th>
+                  <th>Sucursal</th>
+                  <th>Unidades</th>
+                  <th>Devueltas</th>
+                  <th>Importe BOB</th>
+                  <th>Muestra</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of results.anomalies; track item.sale_id) {
+                  <tr>
+                    <td>{{ item.sale_id }}</td>
+                    <td>{{ item.date }}</td>
+                    <td>{{ item.branch }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.returned_quantity }}</td>
+                    <td>{{ metric(item.amount) }}</td>
+                    <td>{{ item.split === 'test' ? 'Prueba' : 'Entrenamiento' }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="7">No se detectaron operaciones inusuales.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+      <p class="helper provenance">
+        Datos sintéticos · scikit-learn {{ run.metrics.sklearn_version }} · Finalizado
+        {{ run.completed_at | date: 'dd/MM/yyyy HH:mm' : '-0400' }} · Identificador {{ run.id }}
+      </p>
+    }
+  }
+</section>

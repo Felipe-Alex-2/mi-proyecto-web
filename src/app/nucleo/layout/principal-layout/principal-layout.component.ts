@@ -31,6 +31,7 @@ export class PrincipalLayoutComponent implements OnInit {
         {path:'/backups',label:'Backup',icon:'box'},
         { path: '/users', label: 'Personal', icon: 'person' },
         { path: '/branches', label: 'Sucursales', icon: 'home' },
+        { path: '/models', label: 'Modelos y entrenamiento', icon: 'chart' },
       ] : [] },
       { title: 'Inteligencia', links: manager ? [
         { path: '/reports', label: 'Reportes', icon: 'chart' },

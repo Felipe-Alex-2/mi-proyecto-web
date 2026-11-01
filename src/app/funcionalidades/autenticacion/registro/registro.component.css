@@ -223,6 +223,62 @@
   margin-top: 0.2rem;
 }
 
+.password-requirements {
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0.7rem;
+  border: 1px solid #e2ded8;
+  border-radius: 10px;
+  background: #fafaf8;
+  color: #756b65;
+  font-size: 0.78rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.password-requirements .met {
+  color: #27834a;
+  font-weight: 600;
+}
+
+.requirement-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #eeefeb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.met .requirement-icon {
+  background: #27834a;
+  color: white;
+}
+
+.requirement-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .btn-primary {
   margin-top: 0.5rem;
   background: linear-gradient(135deg, #A0522D 0%, #C5907E 100%);
