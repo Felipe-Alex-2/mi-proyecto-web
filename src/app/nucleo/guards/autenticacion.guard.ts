@@ -153,6 +153,8 @@ export const reportsGuard: CanActivateFn = () => {
 
 export const platformGuard: CanActivateFn = () => {
   const auth = inject(AutenticacionService); const router = inject(Router);
-  if (auth.currentUser()) return auth.currentUser()?.is_saas_admin ? true : router.parseUrl('/subscription');
-  return auth.loadCurrentUser().pipe(map(user=>user?.is_saas_admin ? true : router.parseUrl('/subscription')));
+  const allowed = (user: ReturnType<typeof auth.currentUser>) => user?.role === 'ADMIN' && user.is_saas_admin
+    ? true : router.parseUrl(user ? getDefaultRouteForRole(user.role) : '/home');
+  if (auth.currentUser()) return allowed(auth.currentUser());
+  return auth.loadCurrentUser().pipe(map(allowed), catchError(() => of(router.parseUrl('/home'))));
 };

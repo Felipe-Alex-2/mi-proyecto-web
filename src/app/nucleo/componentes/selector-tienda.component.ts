@@ -44,6 +44,7 @@ export class SelectorTiendaComponent implements OnInit {
   selectedBranch = input<string|null|undefined>();
   disabled = input(false);
   compact = input(false);
+  autoSelect = input(true);
   expanded = signal(false);
   selection = output<{tenant_id:string;branch_id:string}>();
   companies = signal<StoreCompany[]>([]); loading = signal(false); error = signal('');
@@ -58,7 +59,7 @@ export class SelectorTiendaComponent implements OnInit {
     next: rows=>{
       this.companies.set(rows);
       this.loading.set(false);
-      if (this.compact() && !rows.some(row => row.id === this.selectedCompany() && row.branches.some(branch => branch.id === this.selectedBranch()))) {
+      if (this.compact() && this.autoSelect() && !rows.some(row => row.id === this.selectedCompany() && row.branches.some(branch => branch.id === this.selectedBranch()))) {
         const company = rows.find(row => row.branches.length > 0);
         if (company) this.selection.emit({tenant_id: company.id, branch_id: company.branches[0].id});
       }

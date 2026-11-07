@@ -26,8 +26,10 @@ export class PrincipalLayoutComponent implements OnInit {
         ...(role === 'CUSTOMER' ? [{ path: '/catalog', label: 'Catálogo', icon: 'hanger' }, {path:'/my-history',label:'Mis compras y reservas',icon:'calendar'}] : []),
       ] },
       { title: 'Administración', links: admin ? [
-        ...(this.authService.currentUser()?.is_saas_admin ? [{path:'/companies',label:'Empresas',icon:'home'}] : []),
-        {path:'/subscription',label:'Mi plan',icon:'tag'},
+        ...(this.authService.currentUser()?.is_saas_admin ? [
+          {path:'/companies',label:'Empresas',icon:'home'},
+          {path:'/subscription',label:'Mi plan',icon:'tag'},
+        ] : []),
         {path:'/backups',label:'Backup',icon:'box'},
         { path: '/users', label: 'Personal', icon: 'person' },
         { path: '/branches', label: 'Sucursales', icon: 'home' },

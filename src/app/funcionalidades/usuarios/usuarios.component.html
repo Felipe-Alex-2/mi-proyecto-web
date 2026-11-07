@@ -205,7 +205,7 @@
               {{ isEditMode() ? 'Actualiza los datos personales o modifica el rol asignado' : 'Registra un nuevo miembro del personal y asígnale su rol' }}
             </p>
           </div>
-          <button class="btn-close" (click)="closeModal()" type="button">&times;</button>
+          <button class="btn-close" (click)="closeModal()" type="button" aria-label="Cerrar formulario de personal">&times;</button>
         </div>
 
         @if (modalError()) {
@@ -217,12 +217,14 @@
           </div>
         }
 
-        <form [formGroup]="userForm" (ngSubmit)="onSubmitModal()" class="modal-form">
+        <form [formGroup]="userForm" (ngSubmit)="onSubmitModal()" class="modal-form" autocomplete="off">
           <!-- Full Name -->
           <div class="form-group">
             <label for="modal-fullname">Nombre Completo</label>
             <input
               id="modal-fullname"
+              name="employee-full-name"
+              autocomplete="off"
               type="text"
               class="form-input"
               formControlName="full_name"
@@ -238,6 +240,10 @@
             <label for="modal-email">Correo Electrónico</label>
             <input
               id="modal-email"
+              name="employee-email"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
               type="email"
               class="form-input"
               formControlName="email"
@@ -281,6 +287,8 @@
             </label>
             <input
               id="modal-password"
+              name="employee-new-password"
+              autocomplete="new-password"
               type="password"
               class="form-input"
               formControlName="password"

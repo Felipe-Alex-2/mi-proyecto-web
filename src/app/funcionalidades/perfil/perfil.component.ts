@@ -99,7 +99,7 @@ export class PerfilComponent {
       )
       .subscribe({
         next: () =>
-          this.success.set('Tienda actualizada. Tu historial y comprobantes se conservan.'),
+          this.success.set(this.auth.currentUser()?.is_saas_admin ? 'Empresa y sucursal actualizadas. Ya puedes trabajar en la selección elegida.' : 'Tienda actualizada. Tu historial y comprobantes se conservan.'),
         error: (e) =>
           this.error.set(
             typeof e.error?.detail === 'string' ? e.error.detail : 'No se pudo cambiar de tienda.',

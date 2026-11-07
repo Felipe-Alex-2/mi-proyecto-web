@@ -79,7 +79,7 @@ export const routes: Routes = [
       {path:'models',loadComponent:()=>import('./funcionalidades/analitica/modelos.component').then(m=>m.ModelosComponent),canActivate:[adminGuard]},
       {path:'offline',redirectTo:'profile',pathMatch:'full'},
       { path:'companies', loadComponent:()=>import('./funcionalidades/saas/saas.component').then(m=>m.SaasComponent), canActivate:[platformGuard], data:{platform:true} },
-      { path:'subscription', loadComponent:()=>import('./funcionalidades/saas/saas.component').then(m=>m.SaasComponent), canActivate:[managerGuard] },
+      { path:'subscription', loadComponent:()=>import('./funcionalidades/saas/saas.component').then(m=>m.SaasComponent), canActivate:[platformGuard] },
       { path:'my-history', loadComponent:()=>import('./funcionalidades/saas/historial-cliente.component').then(m=>m.HistorialClienteComponent), canActivate: [legacyCustomerPageGuard] },
       { path: 'profile', loadComponent: () => import('./funcionalidades/perfil/perfil.component').then(m => m.PerfilComponent), canActivate: [legacyCustomerPageGuard] },
       {

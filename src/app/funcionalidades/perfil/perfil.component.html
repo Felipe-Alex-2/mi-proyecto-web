@@ -1,6 +1,15 @@
 <section class="profile-page">
   <p class="eyebrow">TU ESPACIO EN VESTA</p><h1>Mi perfil</h1>
   <p class="intro">Elige cómo quieres aparecer y mantén tus datos al día.</p>
+  @if(auth.currentUser()?.is_saas_admin) {
+    <section class="profile-card">
+      <h2>Trabajar en una empresa y sucursal</h2>
+      <p>Selecciona dónde trabajar. Las operaciones se registrarán en la empresa y sucursal elegidas.</p>
+      <p>Empresa actual: <strong>{{auth.currentUser()?.company_name || 'Sin seleccionar'}}</strong> · Sucursal: <strong>{{auth.currentUser()?.branch_name || 'Sin seleccionar'}}</strong></p>
+      <app-store-picker [compact]="true" [selectedCompany]="auth.currentUser()?.tenant_id" [selectedBranch]="auth.currentUser()?.branch_id" [disabled]="storeBusy()" [autoSelect]="false" (selection)="changeStore($event)" />
+      @if(storeBusy()) { <p role="status">Cambiando empresa y sucursal…</p> }
+    </section>
+  }
   @if(auth.currentUser()?.role==='CUSTOMER') {
     <app-store-picker [selectedCompany]="auth.currentUser()?.selected_tenant_id" [selectedBranch]="auth.currentUser()?.branch_id" [disabled]="storeBusy()" (selection)="changeStore($event)" />
   }
