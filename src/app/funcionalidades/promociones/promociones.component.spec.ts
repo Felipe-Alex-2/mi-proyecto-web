@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
 import { PromocionesComponent } from './promociones.component';
 
@@ -20,13 +20,14 @@ describe('Borrador de descuento', () => {
     start_date: '2026-11-01',
     end_date: '2026-11-15',
   };
-  function setup(role = 'ADMIN') {
+  function setup(role = 'ADMIN', productId: string | null = null) {
     TestBed.configureTestingModule({
       imports: [PromocionesComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
+        {provide:ActivatedRoute,useValue:{snapshot:{queryParamMap:convertToParamMap(productId?{suggestion:productId}:{})}}},
         { provide: AutenticacionService, useValue: { currentUser: signal({ role }) } },
       ],
     });
@@ -36,6 +37,22 @@ describe('Borrador de descuento', () => {
     http.expectOne((req) => req.url.endsWith('/promotions')).flush([]);
     return { fixture, http, component: fixture.componentInstance };
   }
+
+  it('opens a server-validated prefilled campaign from CU22 and writes only on Create', () => {
+    const { fixture, http, component } = setup('ADMIN', 'p1');
+    http.expectOne(req => req.url.endsWith('/suggestions/stock-age')).flush([suggestion]);
+    expect(component.isModalOpen()).toBe(true);
+    expect(component.promotionForm.value.name).toBe(suggestion.name);
+    expect(component.promotionForm.value.discount_percent).toBe(20);
+    expect(component.draft()?.product_id).toBe('p1');
+    http.expectNone(req => req.method === 'POST');
+    component.save();
+    const request = http.expectOne(req => req.method === 'POST');
+    expect(request.request.body.product_ids).toEqual(['p1']);
+    request.flush({id:'created',...request.request.body});
+    http.expectOne(req => req.url.endsWith('/promotions')).flush([]);
+    fixture.destroy(); http.verify();
+  });
 
   it('suggests without writing, opens an editable draft and assigns only on create', () => {
     const { fixture, http, component } = setup();

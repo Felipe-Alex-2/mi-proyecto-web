@@ -25,7 +25,7 @@ export function shopReturnUrl(role: string | undefined, url: string | null): str
   if (
     role === 'CUSTOMER' &&
     url &&
-    /^\/(home|catalog|for-you|fitting|my-reservations|cart|favorites|notifications|account|purchases|paypal-return)(?:[?/#]|$)/.test(
+    /^\/(home|catalog|for-you|fitting|my-reservations|cart|favorites|notifications|account|purchases|points|delivery|paypal-return)(?:[?/#]|$)/.test(
       url,
     )
   )

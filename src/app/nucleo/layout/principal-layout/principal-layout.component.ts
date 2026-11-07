@@ -46,6 +46,13 @@ export class PrincipalLayoutComponent implements OnInit {
         { path: '/reservations', label: 'Reservas', icon: 'calendar' },
         { path: '/payments', label: 'Pagos', icon: 'wallet' },
       ] : [] },
+      { title: 'Aporte Propio', links: sales ? [
+        {path:'/own/exchanges',label:'Cambios de prendas',icon:'arrows'},
+        ...(manager ? [{path:'/own/transfers',label:'Traslados',icon:'box'}] : []),
+        {path:'/own/loyalty',label:'Fidelización por puntos',icon:'spark'},
+        ...(admin ? [{path:'/own/discounts',label:'Descuentos sugeridos',icon:'tag'}] : []),
+        {path:'/own/deliveries',label:'Delivery',icon:'home'},
+      ] : [] },
       { title: 'Inventario', links: manager ? [
         { path: '/products', label: 'Catálogo', icon: 'hanger' },
         { path: '/catalog-attributes', label: 'Tallas y colores', icon: 'tag' },

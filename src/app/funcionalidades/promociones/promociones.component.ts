@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DialogoTiendaDirective } from '../tienda/dialogo-tienda.directive';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PromocionService } from '../../nucleo/servicios/promocion.service';
 import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
 import { Promotion, DiscountSuggestion } from '../../nucleo/modelos/promocion.model';
@@ -24,6 +24,7 @@ import { Promotion, DiscountSuggestion } from '../../nucleo/modelos/promocion.mo
 })
 export class PromocionesComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute, {optional:true});
   suggestions = signal<DiscountSuggestion[]>([]);
   showSuggestions = signal(false);
   suggesting = signal(false);
@@ -61,6 +62,17 @@ export class PromocionesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPromotions();
+    const productId = this.route?.snapshot.queryParamMap.get('suggestion');
+    if (productId && this.authService.currentUser()?.role === 'ADMIN') {
+      this.promotionService.suggestDiscounts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: rows => {
+          const suggestion = rows.find(row => row.product_id === productId);
+          if (suggestion) this.useSuggestion(suggestion);
+          else this.errorMessage.set('La sugerencia ya no está disponible. Actualiza los descuentos sugeridos.');
+        },
+        error: () => this.errorMessage.set('No se pudo preparar la sugerencia. Vuelve a Descuentos sugeridos e inténtalo de nuevo.'),
+      });
+    }
   }
 
   loadPromotions(): void {
