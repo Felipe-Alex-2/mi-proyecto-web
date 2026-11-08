@@ -29,6 +29,9 @@ export interface CartItem {
   available_stock: number;
 }
 export interface Cart {
+  subtotal_before_wholesale?: number;
+  wholesale_discount_percent?: number;
+  wholesale_discount_amount?: number;
   items: CartItem[];
   total_items: number;
   total_amount: number;

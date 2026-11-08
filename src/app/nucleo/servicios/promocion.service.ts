@@ -32,8 +32,8 @@ export class PromocionService {
     return this.http.get<Promotion>(`${this.baseUrl}/${id}`);
   }
 
-  suggestDiscounts(): Observable<DiscountSuggestion[]> {
-    return this.http.get<DiscountSuggestion[]>(`${this.baseUrl}/suggestions/stock-age`);
+  suggestDiscounts(minAgeMinutes = 43200): Observable<DiscountSuggestion[]> {
+    return this.http.get<DiscountSuggestion[]>(`${this.baseUrl}/suggestions/stock-age${minAgeMinutes===43200?'':'?min_age_minutes='+minAgeMinutes}`);
   }
 
   createPromotion(payload: PromotionCreate): Observable<Promotion> {

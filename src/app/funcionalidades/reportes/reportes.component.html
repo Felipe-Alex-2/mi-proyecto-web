@@ -9,7 +9,14 @@
     <div class="header-mark">BI<br /><strong>PRO</strong></div>
   </header>
 
+  <section class="delivery-controls">
+    @if(platform){<label>Ámbito de empresas<select [(ngModel)]="allCompanies" (ngModelChange)="changeScope()"><option [ngValue]="false">Mi empresa actual</option><option [ngValue]="true">Todas las empresas y sucursales</option></select></label>}
+    <label>Correo de destino del PDF (opcional)<input type="email" [(ngModel)]="emailTo" maxlength="254" placeholder="nombre@gmail.com" /></label>
+    <p>Al generar el reporte con un correo indicado se enviará su PDF a esa dirección.</p>
+  </section>
+  @if(!allCompanies){
   <app-branch-selector [branches]="branches()" [value]="branchId" [allowAll]="auth.currentUser()?.role === 'ADMIN'" (valueChange)="changeBranch($event)" />
+  }
   <section class="control-grid">
     <article class="control-panel manual-panel">
       <div class="panel-heading">
@@ -22,7 +29,7 @@
           @for (type of reportTypes; track type.value) { <option [value]="type.value">{{ type.label }}</option> }
         </select>
       </label>
-      @if (reportType === 'sales_by_branch') {
+      @if ((reportType === 'sales_by_branch' || reportType === 'sales_by_company')) {
         <div class="field-row"><label>Desde<input type="date" [(ngModel)]="dateFrom" [max]="dateTo || ''" /></label><label>Hasta<input type="date" [(ngModel)]="dateTo" [min]="dateFrom" /></label></div>
         <p class="panel-description">Se incluyen solo cobros realizados. Las monedas se comparan por separado.</p>
       }
@@ -42,7 +49,7 @@
         }
       </div>
       }
-      @if (reportType !== 'sales_by_branch' && reportType !== 'registered_customers' && reportType !== 'reservations_status' && reportType !== 'reservations_by_branch') {
+      @if (reportType !== 'sales_by_branch' && reportType !== 'sales_by_company' && reportType !== 'registered_customers' && reportType !== 'reservations_status' && reportType !== 'reservations_by_branch') {
       <label>Buscar producto
         <input [(ngModel)]="search" placeholder="Opcional" (keyup.enter)="generateManual()" />
       </label>
@@ -75,8 +82,12 @@
     <section class="result-panel">
       <header class="result-header">
         <div><p class="eyebrow">{{ current.generated_by === 'manual' ? 'CONSULTA MANUAL' : 'CONSULTA EN LENGUAJE NATURAL' }}</p><h2>{{ current.title }}</h2></div>
-        <button class="export-button" type="button" (click)="exportCsv()">↓ Exportar CSV</button>
+        <div class="report-actions">
+          @if(speaking()){<button class="export-button" type="button" (click)="stopReading()">Detener lectura</button>}@else{<button class="export-button" type="button" (click)="readReport()">Leer en voz alta</button>}
+          @if(current.report_id){<button class="export-button" type="button" (click)="downloadPdf()">Descargar PDF</button><button class="export-button" type="button" (click)="sendPdf()" [disabled]="sendingEmail()||!emailTo.trim()">{{sendingEmail()?'Enviando…':'Enviar PDF al correo'}}</button>}
+        <button class="export-button" type="button" (click)="exportCsv()">↓ Exportar CSV</button></div>
       </header>
+      @if(current.email_message){<p role="status">{{current.email_message}}</p>}
       <div class="summary-grid">
         @for (item of (current.summary | keyvalue); track item.key) { <div class="summary-item"><span>{{ label(item.key) }}</span><strong>{{ item.value }}</strong></div> }
       </div>

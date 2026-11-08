@@ -76,7 +76,7 @@ type CustomerReservation = Reservation & {
                     {{ item.size_name }} · {{ item.color_name }} · {{ item.quantity }} unidad(es)
                   </p>
                 </div>
-                <strong>{{ item.price * item.quantity | number: '1.2-2' }} Bs</strong>
+                <strong>{{ (r.wholesale_discount_percent ? (item.original_price ?? item.price) : item.price) * item.quantity | number: '1.2-2' }} Bs</strong>
               </div>
             }
             <div class="summary-row">
@@ -191,15 +191,19 @@ type CustomerReservation = Reservation & {
           <div class="stack section-space">
             <p>{{ r.reservation_code }} · {{ r.company_name }} · {{ r.branch_name }}</p>
             <p>Cliente: {{ shop.auth.currentUser()?.full_name }}</p>
+            <p>Código para cambios / devoluciones: <strong>{{r.exchange_code || r.reservation_code}}</strong></p>
+            <p>Plazo: 48 horas desde la emisión del recibo.</p>
+            @if(r.exchange_deadline){<p>Límite: {{r.exchange_deadline | date:'dd/MM/yyyy HH:mm'}}</p>}
             <p>Fecha: {{ shop.date(r.paid_at) | date: 'dd/MM/yyyy HH:mm' }}</p>
             <p>Método: {{ r.payment_method }}</p>
             <p>Referencia PayPal: {{ r.paypal_capture_id || r.paypal_order_id }}</p>
             @for (item of r.items; track item.id) {
               <div class="row">
                 <span>{{ item.product_name }} × {{ item.quantity }}</span
-                ><strong>{{ item.price * item.quantity | number: '1.2-2' }} Bs</strong>
+                ><strong>{{ (r.wholesale_discount_percent ? (item.original_price ?? item.price) : item.price) * item.quantity | number: '1.2-2' }} Bs</strong>
               </div>
             }
+            @if(r.wholesale_discount_percent){<p>Subtotal: {{r.subtotal_before_wholesale | number:'1.2-2'}} · Venta por mayor −{{r.wholesale_discount_percent}}%: −{{r.wholesale_discount_amount | number:'1.2-2'}}</p>}
             <div class="summary-row">
               <span>Total pagado</span
               ><strong

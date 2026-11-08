@@ -111,6 +111,13 @@
             />
           </div>
 
+          <div class="form-group">
+            <label class="form-label" for="posCoupon">Cupón del cliente (opcional)</label>
+            <input id="posCoupon" class="form-input" formControlName="coupon_code" maxlength="30" autocomplete="off" placeholder="VESTA-…" />
+            <small class="form-hint">Solicita el código y correo registrado del cliente. No acumulable con venta por mayor.</small>
+            <button type="button" class="btn-refresh-caja" (click)="previewCoupon()" [disabled]="isSubmitting()">Validar cupón y actualizar total</button>
+            @if(couponSavings()>0){<p role="status">Ahorro por cupón: $ {{couponSavings() | number:'1.2-2'}}</p>}
+          </div>
           <!-- Product / Stock selection for direct sale -->
           <div class="form-group stock-selection-box">
             <div class="stock-box-header">
@@ -221,6 +228,12 @@
             />
           </div>
 
+          @if(cartItems().length){
+            <p>Venta por mayor: 15% de descuento desde 13 prendas.</p>
+            @if(wholesale().wholesale_discount_percent){
+              <p role="status">Subtotal: {{wholesale().subtotal_before_wholesale | number:'1.2-2'}} · Por mayor −15%: −{{wholesale().wholesale_discount_amount | number:'1.2-2'}}</p>
+            }
+          }
           <!-- Amount -->
           <div class="form-group">
             <div class="amount-label-row">

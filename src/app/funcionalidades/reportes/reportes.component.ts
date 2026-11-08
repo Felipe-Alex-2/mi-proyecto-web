@@ -33,6 +33,28 @@ export class ReportesComponent implements OnInit, OnDestroy {
     { value: 'products_by_supplier', label: 'Catálogo por proveedor' },
     { value: 'registered_customers', label: 'Clientes registrados' },
   ];
+  allCompanies = false;
+  emailTo = '';
+  sendingEmail = signal(false);
+  speaking = signal(false);
+  get platform() {return !!this.auth.currentUser()?.is_saas_admin;}
+  changeScope() {this.changeBranch('');if(!this.allCompanies&&this.reportType==='sales_by_company')this.reportType='sales_by_branch';}
+  readReport() {
+    const current=this.report();if(!current)return;
+    if(!('speechSynthesis' in window)){this.error.set('Este navegador no permite lectura de voz.');return;}
+    window.speechSynthesis.cancel();
+    const text=current.narration||current.title+'. '+Object.entries(current.summary).map(([k,v])=>this.label(k)+': '+v).join('. ');
+    const speech=new SpeechSynthesisUtterance(text);speech.lang='es-ES';
+    speech.onend=()=>this.speaking.set(false);speech.onerror=()=>{this.speaking.set(false);this.error.set('No se pudo leer el reporte en voz alta.');};
+    this.speaking.set(true);window.speechSynthesis.speak(speech);
+  }
+  stopReading() {if('speechSynthesis' in window)window.speechSynthesis.cancel();this.speaking.set(false);}
+  sendPdf() {
+    const id=this.report()?.report_id;if(!id||!this.emailTo.trim()||this.sendingEmail())return;
+    this.sendingEmail.set(true);
+    this.reportService.email(id,this.emailTo.trim()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:r=>{this.report.set(r);this.sendingEmail.set(false);},error:e=>{this.error.set(e.error?.detail||'No se pudo enviar el PDF.');this.sendingEmail.set(false);}});
+  }
+  downloadPdf() {const current=this.report();if(!current?.report_id)return;this.reportService.pdf(current.report_id).subscribe({next:blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='reporte-vesta.pdf';a.click();URL.revokeObjectURL(url);},error:()=>this.error.set('No se pudo descargar el PDF.')});}
   reportType = 'inventory_by_branch';
   status = '';
   search = '';
@@ -43,7 +65,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   dateFrom = '';
   dateTo = '';
   readonly labels: Record<string, string> = {
-    branch: 'Sucursal', city: 'Ciudad', units: 'Unidades', variants_in_stock: 'Variantes con stock',
+    company:'Empresa',companies:'Empresas',records:'Registros', branch: 'Sucursal', city: 'Ciudad', units: 'Unidades', variants_in_stock: 'Variantes con stock',
     branches: 'Sucursales', total_units: 'Unidades totales', most_stock_branch: 'Mayor inventario',
     sales: 'Cobros realizados', amount: 'Importe cobrado', currency: 'Moneda', scope: 'Sucursal consultada',
     category: 'Categoría', categories: 'Categorías', products: 'Prendas', season: 'Temporada', seasons: 'Temporadas',
@@ -62,12 +84,15 @@ export class ReportesComponent implements OnInit, OnDestroy {
   constructor(private reportService: ReporteService, private branchService: SucursalService, public auth: AutenticacionService) {}
 
   ngOnInit(): void {
-    this.saas.subscription().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:sub=>this.aiAvailable.set(sub.ai_reports),error:()=>this.aiAvailable.set(false)});
+    this.saas.subscription().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:sub=>this.aiAvailable.set(sub.ai_reports||this.platform),error:()=>this.aiAvailable.set(this.platform)});
+    this.allCompanies=this.platform;
+    if(this.platform){this.aiAvailable.set(true);this.reportTypes.push({value:'sales_by_company',label:'Ventas cobradas por empresa'});}
     this.branchId = this.auth.currentUser()?.role === 'ADMIN' ? '' : this.auth.currentUser()?.branch_id || '';
     this.branchService.getBranches().subscribe({ next: branches => this.branches.set(branches), error: () => this.error.set('No se pudieron cargar las sucursales.') });
   }
 
   changeBranch(value: string): void {
+    this.stopReading();
     this.request?.unsubscribe();
     this.loading.set(false);
     this.branchId = value;
@@ -82,18 +107,21 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   generateManual(): void {
+    this.stopReading();
     this.request?.unsubscribe();
     this.report.set(null);
     this.loading.set(true);
     this.error.set('');
     const request: ReportRequest = {
       report_type: this.reportType,
+      all_companies:this.platform&&this.allCompanies,
+      email_to:this.emailTo.trim()||undefined,
       status: this.status || undefined,
       search: this.search.trim() || undefined,
       low_stock_threshold: this.threshold,
       branch_id: this.branchId || undefined,
-      date_from: this.reportType === 'sales_by_branch' ? this.dateFrom || undefined : undefined,
-      date_to: this.reportType === 'sales_by_branch' ? this.dateTo || undefined : undefined,
+      date_from: ['sales_by_branch','sales_by_company'].includes(this.reportType) ? this.dateFrom || undefined : undefined,
+      date_to: ['sales_by_branch','sales_by_company'].includes(this.reportType) ? this.dateTo || undefined : undefined,
     };
     this.request = this.reportService.generate(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
@@ -137,12 +165,13 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   sendVoiceReport(): void {
+    this.stopReading();
     if (!this.transcript.trim()) return;
     this.request?.unsubscribe();
     this.report.set(null);
     this.loading.set(true);
     this.error.set('');
-    this.request = this.reportService.generateFromVoice(this.transcript.trim(), this.branchId || undefined).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.request = this.reportService.generateFromVoice(this.transcript.trim(), this.branchId || undefined, this.platform&&this.allCompanies,this.emailTo.trim()||undefined).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.report.set(response.report);
         this.loading.set(false);
@@ -173,6 +202,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopReading();
     this.recognition?.stop();
   }
 }

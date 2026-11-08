@@ -22,9 +22,10 @@ export const offlineInterceptor: HttpInterceptorFn = (req, next) => {
     );
   // Every allowed commercial write first obtains a durable UUID. A lost online
   // response can then be retried safely instead of being submitted twice.
-  const reserve = req.method === 'POST' && path === '/reservations';
+  const hasCoupon = !!(req.body as any)?.coupon_code?.trim();
+  const reserve = req.method === 'POST' && path === '/reservations' && !hasCoupon;
   const sale =
-    req.method === 'POST' && path === '/payments' && (req.body as any)?.payment_type === 'EFECTIVO';
+    req.method === 'POST' && path === '/payments' && !hasCoupon && (req.body as any)?.payment_type === 'EFECTIVO';
   const localCash = req.method === 'POST' && /^\/payments\/local-[a-z0-9-]+\/cash$/.test(path);
   if (localCash)
     return from(store.refresh()).pipe(

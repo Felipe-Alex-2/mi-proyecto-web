@@ -1,3 +1,4 @@
+import { wholesaleSummary } from '../venta-mayor';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, DecimalPipe } from '@angular/common';
@@ -86,7 +87,7 @@ export class CambiosPendientesComponent {
       const body = { ...current.body, items: items.filter((item: any) => item.quantity > 0) };
       if (current.path === '/payments/offline-sale') {
         body.items = body.items.map((item: any) => ({ ...item, subtotal: Math.round(item.quantity * item.unit_price * 100) / 100 }));
-        body.amount = Math.round(body.items.reduce((sum: number, item: any) => sum + item.subtotal, 0) * 100) / 100;
+        body.amount = wholesaleSummary(body.items.reduce((sum: number, item: any) => sum + item.subtotal, 0), body.items.reduce((sum:number,item:any)=>sum+item.quantity,0)).total_amount;
         if (body.amount <= 0) { this.error.set('El total de la venta debe ser mayor a cero.'); return; }
       }
       // Preserve the UUID: if another window already confirmed the original,

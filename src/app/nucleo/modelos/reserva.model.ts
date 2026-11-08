@@ -11,12 +11,20 @@ export interface ReservationItem {
   color_name?: string;
   color_hex?: string;
   price: number;
+  original_price?: number|null;
   image_url?: string;
 }
 
 export interface Reservation {
   id: string;
   reservation_code: string;
+  exchange_code?: string|null;
+  receipt_issued_at?: string|null;
+  exchange_deadline?: string|null;
+  currency?: string;
+  subtotal_before_wholesale?: number;
+  wholesale_discount_percent?: number;
+  wholesale_discount_amount?: number;
   customer_id: string;
   branch_id: string;
   status: ReservationStatus;

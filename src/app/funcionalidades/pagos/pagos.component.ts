@@ -1,3 +1,5 @@
+import { AportePropioService } from '../../nucleo/servicios/aporte-propio.service';
+import { wholesaleSummary } from '../../nucleo/venta-mayor';
 import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -36,6 +38,20 @@ import { SelectorSucursalComponent } from '../../nucleo/componentes/selector-suc
 })
 export class PagosComponent implements OnInit {
   readonly offline = inject(AlmacenSinConexion);
+  private own = inject(AportePropioService);
+  private couponKey = '';
+  couponSavings = signal(0);
+  private currentCouponKey() {return JSON.stringify([this.selectedBranchId(),this.posForm.value.customer_email?.trim().toLowerCase(),this.posForm.value.coupon_code?.trim().toUpperCase(),this.cartItems()]);}
+  previewCoupon() {
+    if(this.isSubmitting())return;
+    const value=this.posForm.value;
+    if(!value.coupon_code?.trim() || !value.customer_email || !this.cartItems().length || value.reservation_id) {this.showToast('Ingresa el correo del cliente, su cupón y las prendas de una venta directa.','error');return;}
+    const key=this.currentCouponKey();this.isSubmitting.set(true);
+    this.own.post('loyalty/quote',{code:value.coupon_code.trim(),branch_id:this.selectedBranchId(),customer_email:value.customer_email.trim(),items:this.cartItems().map(i=>({variant_id:i.variant_id,quantity:i.quantity}))}).subscribe({
+      next:(quote:any)=>{this.isSubmitting.set(false);if(key!==this.currentCouponKey())return;this.couponKey=key;this.couponSavings.set(Number(quote.coupon_discount_amount));this.posForm.patchValue({amount:Number(quote.total_amount)});this.showToast('Cupón validado. Revisa el total y confirma el cobro.','success');},
+      error:e=>{this.isSubmitting.set(false);this.couponKey='';this.couponSavings.set(0);this.showToast(e.error?.detail||'No se pudo validar el cupón.','error');}
+    });
+  }
   branches = signal<Branch[]>([]);
   selectedBranchId = signal<string>('');
   payments = signal<Payment[]>([]);
@@ -44,6 +60,7 @@ export class PagosComponent implements OnInit {
 
   // Cart for direct POS sale
   cartItems = signal<PaymentItem[]>([]);
+  readonly wholesale = computed(() => wholesaleSummary(this.cartItems().reduce((n,i)=>n+i.subtotal,0), this.cartItems().reduce((n,i)=>n+i.quantity,0)));
   selectedVariantId = signal<string>('');
   selectedItemQuantity = signal<number>(1);
 
@@ -91,6 +108,7 @@ export class PagosComponent implements OnInit {
         ],
       ],
       customer_email: ['', [Validators.email]],
+      coupon_code: [''],
       concept: [
         '',
         [
@@ -103,6 +121,12 @@ export class PagosComponent implements OnInit {
       amount: [0, [Validators.required, Validators.min(0.01)]],
       notes: [''],
     });
+    for(const field of ['coupon_code','customer_email']) {
+      this.posForm.get(field)?.valueChanges.subscribe(()=>{
+        this.couponKey='';this.couponSavings.set(0);
+        if(this.cartItems().length) this.updateTotalsFromCart();
+      });
+    }
   }
 
   ngOnInit(): void {
@@ -341,6 +365,7 @@ export class PagosComponent implements OnInit {
   }
 
   updateTotalsFromCart(): void {
+    this.couponKey='';this.couponSavings.set(0);
     const cart = this.cartItems();
     if (cart.length === 0) {
       this.posForm.patchValue({ amount: 0, concept: '' });
@@ -349,7 +374,7 @@ export class PagosComponent implements OnInit {
     const total = cart.reduce((acc, itm) => acc + itm.subtotal, 0);
     const concept = cart.map((i) => `${i.quantity}x ${i.product_name}`).join(', ');
     this.posForm.patchValue({
-      amount: Math.round(total * 100) / 100,
+      amount: wholesaleSummary(total,cart.reduce((sum,item)=>sum+item.quantity,0)).total_amount,
       concept: `Venta: ${concept}`,
     });
   }
@@ -427,6 +452,7 @@ export class PagosComponent implements OnInit {
       return;
     }
 
+    if(this.posForm.value.coupon_code?.trim() && this.couponKey!==this.currentCouponKey()) {this.previewCoupon();return;}
     this.isSubmitting.set(true);
     const formVal = this.posForm.value;
     const paymentType = this.selectedPaymentType();
@@ -436,6 +462,7 @@ export class PagosComponent implements OnInit {
       reservation_id: formVal.reservation_id || undefined,
       customer_name: formVal.customer_name.trim(),
       customer_email: formVal.customer_email ? formVal.customer_email.trim() : undefined,
+      coupon_code: formVal.coupon_code?.trim() || undefined,
       concept: formVal.concept.trim(),
       amount: parseFloat(formVal.amount),
       currency: 'USD',
@@ -567,6 +594,7 @@ export class PagosComponent implements OnInit {
       reservation_id: '',
       customer_name: '',
       customer_email: '',
+      coupon_code: '',
       concept: '',
       amount: 0,
       notes: '',

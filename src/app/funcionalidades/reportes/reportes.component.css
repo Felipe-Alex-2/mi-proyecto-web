@@ -59,3 +59,9 @@ td { color: #594333; }
 app-branch-selector{max-width:1380px;margin-inline:auto}
 .summary-item{min-width:0;max-width:100%;flex:1 1 160px}
 .summary-item strong{font-size:1.1rem;overflow-wrap:anywhere}
+
+.delivery-controls {background:#fffdf9;border:1px solid #e6d6c9;border-radius:16px;padding:20px;margin-bottom:20px;display:grid;gap:12px;}
+.delivery-controls label {display:grid;gap:8px;max-width:600px;}
+.delivery-controls input,.delivery-controls select {font:inherit;padding:12px;border:1px solid #cdb6a6;border-radius:8px;min-height:44px;max-width:100%;box-sizing:border-box;}
+.delivery-controls input:focus-visible,.delivery-controls select:focus-visible {outline:2px solid #a34f3d;outline-offset:2px;}
+.report-actions {display:flex;gap:8px;flex-wrap:wrap;}

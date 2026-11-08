@@ -176,7 +176,7 @@
               <article class="suggestion-card">
                 <div class="suggestion-top">
                   <span class="suggestion-age"
-                    >{{ suggestion.days_in_stock }} días
+                    >{{ suggestion.minutes_in_stock!==undefined && suggestion.minutes_in_stock<1440 ? suggestion.minutes_in_stock+' minutos' : suggestion.days_in_stock+' días' }}
                     {{ suggestion.estimated ? 'estimados' : 'desde ingreso' }}</span
                   ><strong class="suggestion-percent">{{ suggestion.discount_percent }}%</strong>
                 </div>
@@ -431,7 +431,7 @@
               <div class="draft-context">
                 <strong>{{ suggestion.product_name }}</strong>
                 <p>
-                  {{ suggestion.stock }} unidades · {{ suggestion.days_in_stock }} días
+                  {{ suggestion.stock }} unidades · {{ suggestion.minutes_in_stock!==undefined && suggestion.minutes_in_stock<1440 ? suggestion.minutes_in_stock+' minutos' : suggestion.days_in_stock+' días' }}
                   {{ suggestion.estimated ? 'estimados' : 'desde el último ingreso' }}
                 </p>
                 <p>{{ suggestion.reason }}</p>

@@ -12,7 +12,7 @@ import { DiscountSuggestion } from '../../nucleo/modelos/promocion.model';
 
 type Mode = 'exchanges'|'transfers'|'loyalty'|'discounts'|'deliveries';
 interface StockRow {variant_id:string; product_id:string; product_name:string; sku:string; size:string; color:string; quantity:number; price:number;}
-interface Purchase {id:string; code:string; branch_id:string; customer_name:string; currency:string; amount:number; paid_at:string; items:any[];}
+interface Purchase {source?:'payment'|'reservation';reservation_id?:string|null;customer_email?:string|null;customer_phone?:string|null;receipt_issued_at?:string;exchange_deadline?:string;id:string; code:string; branch_id:string; customer_name:string; currency:string; amount:number; paid_at:string; items:any[];}
 
 @Component({
   standalone:true, imports:[CommonModule, FormsModule, RouterLink],
@@ -27,11 +27,11 @@ export class AportePropioComponent implements OnInit {
   private promotions = inject(PromocionService);
   readonly auth = inject(AutenticacionService);
   readonly mode = this.route.snapshot.data['mode'] as Mode;
-  readonly titles: Record<Mode,string> = {exchanges:'Cambios de talla y color', transfers:'Traslados entre sucursales', loyalty:'Fidelización por puntos', discounts:'Descuentos sugeridos', deliveries:'Entregas a domicilio'};
+  readonly titles: Record<Mode,string> = {exchanges:'Cambios y devoluciones de prendas', transfers:'Traslados entre sucursales', loyalty:'Fidelización por puntos', discounts:'Descuentos sugeridos', deliveries:'Entregas a domicilio'};
   readonly descriptions: Record<Mode,string> = {
-    exchanges:'Recibe la prenda, elige otra variante y cobra únicamente la diferencia.',
+    exchanges:'Busca el código del comprobante, verifica al cliente y elige la prenda del catálogo para el cambio.',
     transfers:'Envía un lote y confirma su recepción. Las prendas permanecen en tránsito hasta llegar.',
-    loyalty:'Las compras identificadas en BOB acumulan puntos y desbloquean beneficios.',
+    loyalty:'Ranking de clientes y beneficios por compras pagadas: 1 punto por cada USD 10.',
     discounts:'Encuentra prendas con stock desde hace un mes y prepara su promoción.',
     deliveries:'Solicita una entrega o gestiona la preparación y el reparto de una compra pagada.',
   };
@@ -51,10 +51,10 @@ export class AportePropioComponent implements OnInit {
   resellable = false; confirmCash = false;
   origin = this.auth.currentUser()?.branch_id || ''; destination = ''; transferVariant = ''; transferQuantity = 1;
   transferItems: {variant_id:string; quantity:number; label:string}[] = []; notes = '';
-  coupon = ''; pendingPayment = ''; minMonths = 1;
+  coupon = ''; pendingPayment = ''; minAgeMinutes = 43200;
   recipient = ''; phone = ''; address = ''; zone = 'CENTRO';
   couriers: Record<string,string> = {}; deliveryNotes: Record<string,string> = {};
-  readonly statusLabels: Record<string,string> = {SENT:'En tránsito', RECEIVED:'Recibido', PENDING:'Pendiente', PREPARING:'En preparación', OUT_FOR_DELIVERY:'En reparto', DELIVERED:'Entregado', FAILED:'Entrega fallida', CANCELLED:'Cancelado', AVAILABLE:'Disponible', USED:'Utilizado', PAID:'Pagado'};
+  readonly statusLabels: Record<string,string> = {SENT:'En tránsito', RECEIVED:'Recibido', PENDING:'Pendiente', PREPARING:'En preparación', OUT_FOR_DELIVERY:'En reparto', DELIVERED:'Entregado', FAILED:'Entrega fallida', CANCELLED:'Cancelado', RESERVED:'Reservado en una compra', CLAIMED:'Retirado presencialmente', AVAILABLE:'Disponible', USED:'Utilizado', PAID:'Pagado'};
 
   constructor() {
     effect(() => {
@@ -73,17 +73,18 @@ export class AportePropioComponent implements OnInit {
   get purchase() { return this.purchases().find(p=>p.id===this.purchaseId); }
   get item() { return this.purchase?.items[this.line]; }
   get replacements() {
-    const original = this.inventory().find(v=>v.variant_id===this.item?.variant_id);
-    return this.inventory().filter(v=>v.product_id===original?.product_id && v.variant_id!==original?.variant_id && v.quantity>0);
+    return this.inventory().filter(v=>v.variant_id!==this.item?.variant_id && v.quantity>0);
   }
   get difference() {
     const variant = this.inventory().find(v=>v.variant_id===this.newVariant);
     const item = this.item;
     if (!variant || !item) return null;
-    const original = Number((Number(item.subtotal ?? item.unit_price * item.quantity) / item.quantity).toFixed(2));
-    return Number(((Number(variant.price)-original)*this.quantity).toFixed(2));
+    const cents = Math.round(Number(item.subtotal ?? item.unit_price*item.quantity)*100);
+    const previousQuantity = item.quantity - item.available_to_exchange;
+    const credit = Math.round(cents*(previousQuantity+this.quantity)/item.quantity) - Math.round(Number(item.credited_amount || 0)*100);
+    return (Math.round(Number(variant.price)*100)*this.quantity-credit)/100;
   }
-  get visibleSuggestions() { return this.suggestions().filter(row=>row.days_in_stock>=this.minMonths*30); }
+  get visibleSuggestions() { return this.suggestions().filter(row=>(this.minAgeMinutes<43200?(row.minutes_in_stock ?? row.days_in_stock*1440):row.days_in_stock*1440)>=this.minAgeMinutes); }
   get exchangeValid() {
     return !!this.newVariant && this.quantity>=1 && Number.isInteger(this.quantity) &&
       this.quantity <= (this.item?.available_to_exchange || 0) && this.resellable &&
@@ -122,11 +123,13 @@ export class AportePropioComponent implements OnInit {
   load() {
     this.loading.set(true);this.error.set('');
     if(this.mode==='discounts') {
-      this.promotions.suggestDiscounts().pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>this.suggestions.set(r),error:e=>this.error.set(this.message(e))});return;
+      this.promotions.suggestDiscounts(this.minAgeMinutes).pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>this.suggestions.set(r),error:e=>this.error.set(this.message(e))});return;
     }
     if(this.mode==='loyalty') {
       if(!this.customer) {
-        this.api.get<any[]>('pending-sales').pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>this.rows.set(r),error:e=>this.error.set(this.message(e))});return;
+        this.saas.directory().subscribe(directory=>this.branches.set(directory.find(c=>c.id===this.auth.currentUser()?.tenant_id)?.branches || []));
+        if(this.origin) this.loadInventory(this.origin);
+        this.api.get<any[]>('loyalty/ranking').pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>this.rows.set(r),error:e=>this.error.set(this.message(e))});return;
       }
       this.api.get('loyalty').pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>this.loyalty.set(r),error:e=>this.error.set(this.message(e))});return;
     }
@@ -135,13 +138,19 @@ export class AportePropioComponent implements OnInit {
         next:({rows,directory})=>{this.rows.set(rows);this.branches.set(directory.find(c=>c.id===this.auth.currentUser()?.tenant_id)?.branches || []);if(this.origin) this.loadInventory(this.origin);},error:e=>this.error.set(this.message(e)),
       });return;
     }
-    const purchases = this.api.get<Purchase[]>('purchases?search='+encodeURIComponent(this.search));
+    const purchases = this.api.get<Purchase[]>('purchases?search='+encodeURIComponent(this.search)+(this.mode==='exchanges'?'&for_exchange=true':''));
     if(this.mode==='exchanges') {
-      purchases.pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>this.purchases.set(r),error:e=>this.error.set(this.message(e))});return;
+      this.purchaseId='';this.purchases.set([]);this.inventory.set([]);this.newVariant='';
+      purchases.pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({
+        next:r=>{
+          this.purchases.set(r);
+          if(this.search.trim() && r.length===1){this.purchaseId=r[0].id;this.selectPurchase(true);}
+        },error:e=>{this.purchaseId='';this.purchases.set([]);this.error.set(this.message(e));},
+      });return;
     }
     forkJoin({purchases,rows:this.api.get<any[]>('deliveries')}).pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>{this.purchases.set(r.purchases.filter(p=>p.currency==='BOB'));this.rows.set(r.rows);},error:e=>this.error.set(this.message(e))});
   }
-  selectPurchase() {this.line=0;this.newVariant='';this.confirmCash=false;this.resellable=false;this.receiptId.set('');if(this.purchase && this.mode==='exchanges')this.loadInventory(this.purchase.branch_id);}
+  selectPurchase(keepReceipt=false) {this.line=0;this.newVariant='';this.confirmCash=false;this.resellable=false;if(!keepReceipt)this.receiptId.set('');if(this.purchase && this.mode==='exchanges')this.loadInventory(this.purchase.branch_id);}
   selectLine() {this.newVariant='';this.confirmCash=false;}
   loadInventory(id:string) {
     const version=++this.stockVersion;this.inventory.set([]);this.stockLoading.set(true);
@@ -156,7 +165,7 @@ export class AportePropioComponent implements OnInit {
   }
   exchange() {
     if(!this.exchangeValid)return;
-    const payload={payment_id:this.purchaseId,original_line:this.line,new_variant_id:this.newVariant,quantity:this.quantity,resellable:true,confirm_cash:this.confirmCash,expected_difference:this.difference};
+    const payload={...(this.purchase?.source==='reservation'?{reservation_id:this.purchaseId}:{payment_id:this.purchaseId}),original_line:this.line,new_variant_id:this.newVariant,quantity:this.quantity,resellable:true,confirm_cash:this.confirmCash,expected_difference:this.difference};
     this.submit('exchanges',this.request('exchange',payload),'Cambio confirmado. Puedes descargar su comprobante.',r=>{this.receiptId.set(r.receipt_payment_id);this.newVariant='';this.confirmCash=false;this.resellable=false;if(this.purchase)this.loadInventory(this.purchase.branch_id);});
   }
   removeItem(id:string) {this.transferItems=this.transferItems.filter(i=>i.variant_id!==id);}
@@ -166,9 +175,10 @@ export class AportePropioComponent implements OnInit {
   }
   canReceive(row:any) {return row.status==='SENT' && (this.auth.currentUser()?.role==='ADMIN'||row.destination_id===this.auth.currentUser()?.branch_id);}
   receive(row:any) {this.submit('transfers/'+row.id+'/receive',{},'Recepción confirmada. Stock actualizado.');}
-  redeem() {this.submit('loyalty/redeem',this.request('redeem',{}),'Cupón generado. Presenta su código en caja.',()=>this.requests.delete('redeem'));}
+  redeem(reward:string) {this.submit('loyalty/redeem',this.request('redeem',{reward}),'Beneficio generado. Tu código aparece en tus canjes.',()=>this.requests.delete('redeem'));}
+  claimBox() {if(this.coupon.trim() && this.origin && this.newVariant)this.submit('loyalty/claim',{code:this.coupon.trim(),branch_id:this.origin,variant_id:this.newVariant},'Caja entregada. Inventario actualizado.');}
   applyCoupon() {if(this.coupon.trim() && this.pendingPayment.trim())this.submit('loyalty/apply',{code:this.coupon.trim(),payment_id:this.pendingPayment.trim()},'Cupón aplicado. El importe está actualizado en Pagos.');}
-  useSuggestion(row:DiscountSuggestion) {this.router.navigate(['/promotions'],{queryParams:{suggestion:row.product_id}});}
+  useSuggestion(row:DiscountSuggestion) {this.router.navigate(['/promotions'],{queryParams:{suggestion:row.product_id,...(this.minAgeMinutes<43200?{min_age_minutes:this.minAgeMinutes}:{})}});}
   createDelivery() {
     if(!this.purchaseId || this.recipient.trim().length<2 || this.phone.trim().length<7 || this.address.trim().length<10)return;
     this.submit('deliveries',this.request('delivery',{payment_id:this.purchaseId,recipient:this.recipient.trim(),phone:this.phone.trim(),address:this.address.trim(),zone:this.zone}),'Entrega solicitada. El envío debe pagarse antes de su preparación.',()=>{this.purchaseId='';this.recipient='';this.phone='';this.address='';});

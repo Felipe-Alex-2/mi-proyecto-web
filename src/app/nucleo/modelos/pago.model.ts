@@ -41,6 +41,7 @@ export interface Payment {
 }
 
 export interface PaymentCreate {
+  coupon_code?: string;
   customer_name: string;
   customer_email?: string;
   concept: string;

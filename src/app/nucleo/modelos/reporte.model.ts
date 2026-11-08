@@ -1,4 +1,7 @@
 export interface ReportRequest {
+  all_companies?: boolean;
+  email_to?: string;
+  email_self?: boolean;
   report_type: string;
   branch_id?: string;
   category_id?: string;
@@ -12,6 +15,10 @@ export interface ReportRequest {
 }
 
 export interface ReportResponse {
+  report_id?: string;
+  narration?: string;
+  email_status?: string;
+  email_message?: string;
   report_type: string;
   title: string;
   generated_by: string;

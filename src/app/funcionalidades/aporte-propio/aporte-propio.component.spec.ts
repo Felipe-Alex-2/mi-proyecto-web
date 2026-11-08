@@ -23,7 +23,8 @@ describe('Aporte Propio workflows', () => {
     http.expectOne(r=>r.url.endsWith('/suggestions/stock-age')).flush([suggestion]);fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Camisa');
     const select:HTMLSelectElement=fixture.nativeElement.querySelector('select');
-    select.value=select.options[1].value;select.dispatchEvent(new Event('change'));
+    select.value=select.options[3].value;select.dispatchEvent(new Event('change'));
+    http.expectOne(r=>r.url.includes('min_age_minutes=86400')).flush([]);
     await fixture.whenStable();fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No hay descuentos pendientes');
     const navigate=vi.spyOn(TestBed.inject(Router),'navigate').mockResolvedValue(true);
@@ -41,7 +42,7 @@ describe('Aporte Propio workflows', () => {
       {variant_id:'new',product_id:'p',price:120,quantity:3},
       {variant_id:'other-product',product_id:'q',price:120,quantity:3},
     ]);
-    expect(component.replacements).toHaveLength(1);
+    expect(component.replacements).toHaveLength(2);
     component.newVariant='new';component.resellable=true;
     expect(component.difference).toBe(20);expect(component.exchangeValid).toBe(false);
     component.confirmCash=true;component.exchange();component.exchange();
@@ -69,10 +70,49 @@ describe('Aporte Propio workflows', () => {
     expect(component.transferItems).toHaveLength(1);fixture.destroy();http.verify();
   });
 
-  it('shows the customer balance and refuses redeeming in the UI below 100 points',()=>{
+  it('looks up a mobile receipt, selects its customer and allows another catalog product',()=>{
+    const {fixture,component,http}=setup('exchanges');
+    http.expectOne(r=>r.url.includes('/own/purchases')).flush([]);
+    component.search='REC-RSV-E2C8A6';component.load();
+    const lookup=http.expectOne(r=>r.url.includes('/own/purchases'));
+    expect(lookup.request.url).toContain('for_exchange=true');
+    lookup.flush([{id:'reservation',source:'reservation',reservation_id:'reservation',code:'RSV-E2C8A6',
+      branch_id:'branch',customer_name:'Felipe Cliente',customer_email:'felipe@example.com',currency:'USD',amount:50,
+      paid_at:'2026-11-07T12:00:00Z',exchange_deadline:'2026-11-09T12:00:00Z',
+      items:[{variant_id:'old',quantity:1,unit_price:50,subtotal:50,product_name:'Camisa',available_to_exchange:1}]}]);
+    http.expectOne(r=>r.url.includes('/own/stock')).flush([
+      {variant_id:'old',product_id:'shirt',price:50,quantity:2},
+      {variant_id:'other',product_id:'pants',price:80,quantity:3},
+    ]);
+    fixture.detectChanges();
+    expect(component.purchaseId).toBe('reservation');
+    expect(fixture.nativeElement.textContent).toContain('Cliente: Felipe Cliente');
+    expect(fixture.nativeElement.textContent).toContain('felipe@example.com');
+    component.newVariant='other';component.resellable=true;component.confirmCash=true;component.exchange();
+    const exchange=http.expectOne(r=>r.method==='POST');
+    expect(exchange.request.body.reservation_id).toBe('reservation');
+    expect(exchange.request.body.payment_id).toBeUndefined();
+    expect(exchange.request.body.expected_difference).toBe(30);
+    exchange.flush({detail:'Prueba de validación'},{status:409,statusText:'Conflict'});
+    fixture.destroy();http.verify();
+  });
+
+  it('clears any previous purchase and shows the 48-hour error returned by the server',()=>{
+    const {fixture,component,http}=setup('exchanges');
+    http.expectOne(r=>r.url.includes('/own/purchases')).flush([]);
+    component.purchaseId='previous';component.search='RSV-EXPIRED';component.load();
+    http.expectOne(r=>r.url.includes('/own/purchases')).flush({detail:'Pasó el límite de cambio de 48 horas desde la emisión del recibo.'},{status:409,statusText:'Conflict'});
+    fixture.detectChanges();
+    expect(component.purchaseId).toBe('');expect(component.purchases()).toEqual([]);
+    expect(fixture.nativeElement.textContent).toContain('Pasó el límite de cambio de 48 horas');
+    expect(component.exchangeValid).toBe(false);
+    fixture.destroy();http.verify();
+  });
+
+  it('shows the customer balance and refuses redeeming in the UI below five points',()=>{
     const {fixture,http}=setup('loyalty','CUSTOMER');
-    http.expectOne(r=>r.url.endsWith('/own/loyalty')).flush({balance:80,rewards:[],entries:[]});fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Te faltan 20 puntos');
+    http.expectOne(r=>r.url.endsWith('/own/loyalty')).flush({balance:4,options:[{id:'COUPON_7',name:'Cupón 7%',points:5}],rewards:[],entries:[]});fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('4');
     const button=Array.from(fixture.nativeElement.querySelectorAll('button')).find((b:any)=>b.textContent.includes('Canjear')) as HTMLButtonElement;
     expect(button.disabled).toBe(true);fixture.destroy();http.verify();
   });
@@ -85,4 +125,37 @@ describe('Aporte Propio workflows', () => {
     http.expectOne(r=>r.method==='PATCH').flush({detail:'Confirma el cobro del envío'},{status:409,statusText:'Conflict'});
     expect(component.rows()[0].status).toBe('PENDING');expect(component.error()).toContain('Confirma el cobro');fixture.destroy();http.verify();
   });
+  it('shows staff the descending ranking without private reward codes',()=>{
+    const {fixture,http}=setup('loyalty');
+    http.expectOne(r=>r.url.includes('/saas/directory')).flush([{id:'company',branches:[]}]);
+    http.expectOne(r=>r.url.includes('/own/stock')).flush([]);
+    http.expectOne(r=>r.url.endsWith('/own/loyalty/ranking')).flush([
+      {customer_id:'a',customer_name:'Ana',points:20},{customer_id:'b',customer_name:'Luis',points:2}]);
+    fixture.detectChanges();
+    const text=fixture.nativeElement.textContent;
+    expect(text.indexOf('Ana')).toBeLessThan(text.indexOf('Luis'));
+    expect(text).toContain('20 puntos');expect(text).toContain('Confirmar entrega presencial');
+    expect(text).not.toContain('Tus canjes');fixture.destroy();http.verify();
+  });
+
+  it('loads minute-old stock and carries the chosen threshold to the promotion draft',()=>{
+    const {fixture,component,http}=setup('discounts');
+    http.expectOne(r=>r.url.endsWith('/suggestions/stock-age')).flush([]);
+    fixture.detectChanges();
+    const select:HTMLSelectElement=fixture.nativeElement.querySelector('select');
+    expect(Array.from(select.options).map(o=>o.textContent?.trim())).toContain('5 minutos');
+    expect(Array.from(select.options).map(o=>o.textContent?.trim())).toContain('30 minutos');
+    component.minAgeMinutes=5;component.load();
+    const row={...suggestion,days_in_stock:0,minutes_in_stock:6};
+    http.expectOne(r=>r.url.includes('min_age_minutes=5')).flush([row]);fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('6 minutos');
+    expect(component.visibleSuggestions).toHaveLength(1);
+    const navigate=vi.spyOn(TestBed.inject(Router),'navigate').mockResolvedValue(true);
+    component.useSuggestion(row);
+    expect(navigate).toHaveBeenCalledWith(['/promotions'],{queryParams:{suggestion:'product',min_age_minutes:5}});
+    component.minAgeMinutes=30;component.load();
+    http.expectOne(r=>r.url.includes('min_age_minutes=30')).flush([]);
+    expect(component.visibleSuggestions).toHaveLength(0);fixture.destroy();http.verify();
+  });
+
 });

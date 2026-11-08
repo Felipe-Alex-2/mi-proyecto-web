@@ -64,7 +64,8 @@ export class PromocionesComponent implements OnInit {
     this.loadPromotions();
     const productId = this.route?.snapshot.queryParamMap.get('suggestion');
     if (productId && this.authService.currentUser()?.role === 'ADMIN') {
-      this.promotionService.suggestDiscounts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      const age = Number(this.route?.snapshot.queryParamMap.get('min_age_minutes'));
+      this.promotionService.suggestDiscounts(age===5||age===30?age:43200).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: rows => {
           const suggestion = rows.find(row => row.product_id === productId);
           if (suggestion) this.useSuggestion(suggestion);

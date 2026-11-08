@@ -25,6 +25,7 @@ export interface DiscountSuggestion {
   product_name: string;
   stock: number;
   days_in_stock: number;
+  minutes_in_stock?: number;
   estimated: boolean;
   reason: string;
   discount_percent: number;

@@ -66,7 +66,7 @@ import { Reservation } from '../../nucleo/modelos/reserva.model';
                   type="button"
                   [disabled]="
                     item.quantity >= item.available_stock ||
-                    item.quantity >= 50 ||
+                    item.quantity >= 1000 ||
                     shop.busy() ||
                     submitting()
                   "
@@ -102,6 +102,11 @@ import { Reservation } from '../../nucleo/modelos/reserva.model';
               <option value="PAYPAL">PayPal (Sandbox)</option>
             </select></label
           >
+          <p class="muted">Venta por mayor: 15% de descuento en el total desde 13 prendas.</p>
+          @if(shop.cart().wholesale_discount_percent){
+            <div class="summary-row"><span>Subtotal</span><strong>{{shop.cart().subtotal_before_wholesale | number:'1.2-2'}} Bs</strong></div>
+            <div class="summary-row"><span>Por mayor · −{{shop.cart().wholesale_discount_percent}}%</span><strong>−{{shop.cart().wholesale_discount_amount | number:'1.2-2'}} Bs</strong></div>
+          }
           <div class="summary-row">
             <span>{{ shop.cart().total_items }} prendas</span
             ><strong>{{ shop.cart().total_amount | number: '1.2-2' }} Bs</strong>
@@ -143,7 +148,7 @@ export class CarritoTiendaComponent {
   readonly destroyRef = inject(DestroyRef);
   readonly submitting = signal(false);
   readonly invalidStock = computed(() =>
-    this.shop.cart().items.some((i) => i.quantity > i.available_stock || i.quantity > 50),
+    this.shop.cart().items.some((i) => i.quantity > i.available_stock || i.quantity > 1000),
   );
   notes = '';
   payment = 'EFECTIVO';

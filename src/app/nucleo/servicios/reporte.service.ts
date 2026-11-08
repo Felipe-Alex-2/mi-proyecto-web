@@ -16,7 +16,10 @@ export class ReporteService {
     return this.http.post<ReportResponse>(`${this.baseUrl}/generate`, request);
   }
 
-  generateFromVoice(transcript: string, branchId?: string): Observable<VoiceReportResponse> {
-    return this.http.post<VoiceReportResponse>(`${this.baseUrl}/voice`, { transcript, branch_id: branchId });
+  generateFromVoice(transcript: string, branchId?: string, allCompanies=false, emailTo?:string): Observable<VoiceReportResponse> {
+    return this.http.post<VoiceReportResponse>(`${this.baseUrl}/voice`, { transcript, branch_id: branchId, all_companies:allCompanies, email_to:emailTo });
   }
+  email(id:string,emailTo:string) {return this.http.post<ReportResponse>(`${this.baseUrl}/${id}/email`,{email_to:emailTo});}
+  pdf(id:string) {return this.http.get(`${this.baseUrl}/${id}/pdf`,{responseType:'blob'});}
+
 }

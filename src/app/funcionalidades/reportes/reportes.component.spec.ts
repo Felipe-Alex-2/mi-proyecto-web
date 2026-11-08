@@ -7,10 +7,10 @@ import { AutenticacionService } from '../../nucleo/servicios/autenticacion.servi
 import { ReportesComponent } from './reportes.component';
 
 describe('Reports branch boundaries', () => {
-  function setup(role = 'ADMIN') {
+  function setup(role = 'ADMIN', platform=false) {
     TestBed.configureTestingModule({ imports: [ReportesComponent], providers: [
       provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
-      {provide: AutenticacionService, useValue: {currentUser: signal({role, branch_id: role === 'ADMIN' ? null : 'centro'})}},
+      {provide: AutenticacionService, useValue: {currentUser: signal({role,is_saas_admin:platform, branch_id: role === 'ADMIN' ? null : 'centro'})}},
     ] });
     const fixture = TestBed.createComponent(ReportesComponent);
     const http = TestBed.inject(HttpTestingController);
@@ -55,4 +55,29 @@ describe('Reports branch boundaries', () => {
     fixture.destroy();
     http.verify();
   });
+  it('lets only the platform UI request global comparisons and carries the PDF recipient',()=>{
+    const {fixture,http,component}=setup('ADMIN',true);
+    expect(component.allCompanies).toBe(true);
+    component.reportType='sales_by_company';component.emailTo='felipe@gmail.com';component.generateManual();
+    const request=http.expectOne(r=>r.url.endsWith('/reports/generate'));
+    expect(request.request.body.all_companies).toBe(true);
+    expect(request.request.body.email_to).toBe('felipe@gmail.com');
+    request.flush({report_id:'one',report_type:'sales_by_company',title:'Ventas por empresa',generated_by:'manual',summary:{leader_USD:'MODAT'},columns:[],rows:[],email_status:'FAILED',email_message:'No se pudo enviar el PDF.'});
+    fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('No se pudo enviar el PDF.');
+    component.sendPdf();const email=http.expectOne(r=>r.url.endsWith('/reports/one/email'));
+    expect(email.request.body.email_to).toBe('felipe@gmail.com');email.flush({...component.report(),email_status:'SENT'});
+    fixture.destroy();http.verify();
+  });
+
+  it('reads the generated narration and stops speaking on scope changes',()=>{
+    const speak=vi.fn(),cancel=vi.fn();
+    vi.stubGlobal('speechSynthesis',{speak,cancel});
+    vi.stubGlobal('SpeechSynthesisUtterance',class {lang='';onend:any;onerror:any;constructor(public text:string){}});
+    const {fixture,http,component}=setup();
+    component.report.set({report_type:'sales_by_branch',title:'Ventas',generated_by:'manual',summary:{},columns:[],rows:[],narration:'La sucursal Central vendió 50 dólares.'});
+    component.readReport();expect(speak.mock.calls[0][0].text).toContain('50 dólares');expect(component.speaking()).toBe(true);
+    component.changeBranch('sur');expect(cancel).toHaveBeenCalled();expect(component.speaking()).toBe(false);
+    fixture.destroy();http.verify();vi.unstubAllGlobals();
+  });
+
 });
