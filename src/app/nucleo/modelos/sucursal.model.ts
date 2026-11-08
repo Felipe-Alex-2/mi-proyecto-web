@@ -13,6 +13,9 @@ export interface Branch {
   city: string;
   address: string;
   phone?: string;
+  maps_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   opening_hours?: string;
   is_active: boolean;
   created_at: string;
@@ -27,6 +30,9 @@ export interface BranchCreate {
   city: string;
   address: string;
   phone?: string;
+  maps_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   opening_hours?: string;
 }
 
@@ -35,6 +41,9 @@ export interface BranchUpdate {
   city?: string;
   address?: string;
   phone?: string;
+  maps_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   opening_hours?: string;
   is_active?: boolean;
 }

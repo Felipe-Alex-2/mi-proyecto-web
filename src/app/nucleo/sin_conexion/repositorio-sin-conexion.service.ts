@@ -1,3 +1,4 @@
+import { AporteLocal, ownWrites } from './aporte-local';
 import { Injectable, inject } from '@angular/core';
 import { AlmacenSinConexion } from './almacen-sin-conexion.service';
 import { queryLocalCatalog } from './consulta-catalogo';
@@ -8,6 +9,7 @@ export function resourcePath(path: string): string | undefined {
   return resources.find(root => path === root || path.startsWith(root + '/'));
 }
 export function managedWrite(path: string, method: string): boolean {
+  if(method==='POST' && ownWrites.includes(path)) return true;
   const root = resourcePath(path);
   if (path === '/users/me') return method === 'PUT';
   if (path === '/stocks/adjust') return method === 'POST';
@@ -36,6 +38,11 @@ export class RepositorioSinConexion {
       if (op.path === '/inventory/movements' && op.method === 'POST' && body.variant_id === variant)
         quantity = body.type === 'ADJUSTMENT' ? body.quantity : Math.max(0, quantity + (body.type === 'EXIT' ? -body.quantity : body.quantity));
       else if (op.path === '/stocks/adjust' && body.variant_id === variant) quantity = body.quantity;
+      else if(op.path==='/own/exchanges') {
+        if(body.new_variant_id===variant)quantity=Math.max(0,quantity-body.quantity);
+        if(op.preview.returned_variant_id===variant)quantity+=body.quantity;
+      }
+      else if(op.path==='/own/loyalty/claim' && body.variant_id===variant)quantity=Math.max(0,quantity-1);
       else if (['/payments/offline-sale', '/reservations'].includes(op.path))
         for (const line of body.items || []) if (line.variant_id === variant) quantity = Math.max(0, quantity - line.quantity);
     }
@@ -65,6 +72,7 @@ export class RepositorioSinConexion {
   }
 
   async queue(path: string, method: string, body: any): Promise<any> {
+    if(ownWrites.includes(path))return new AporteLocal(this.store).queue(path,body);
     const user = this.store.tokens.getIdentity();
     const scope = this.store.scope;
     if (!user) throw new Error('Inicia sesión antes de guardar cambios locales.');
@@ -158,6 +166,7 @@ export class RepositorioSinConexion {
   async read(url: string): Promise<{ data: any; saved_at: string } | undefined> {
     const parsed = new URL(url), path = parsed.pathname.slice(new URL(this.base).pathname.length), params = parsed.searchParams;
     const root = resourcePath(path);
+    if(path.startsWith('/own/') || path==='/promotions/suggestions/stock-age') return new AporteLocal(this.store).read(url);
     if (path === '/users/me') {
       const rows = this.store.operations().filter(row => row.scope === this.store.scope && row.path === '/users/me');
       const user = this.store.tokens.getIdentity();

@@ -17,7 +17,7 @@ export const offlineInterceptor: HttpInterceptorFn = (req, next) => {
     req.method === 'GET' &&
     req.responseType === 'json' &&
     !!owner &&
-    /^\/(catalog|products|branches|stocks|reservations|payments|suppliers|seasons|promotions|attributes|inventory|users|saas\/subscription|saas\/plans|saas\/history)(\/|$)/.test(
+    /^\/(own|catalog|products|branches|stocks|reservations|payments|suppliers|seasons|promotions|attributes|inventory|users|saas\/directory|saas\/subscription|saas\/plans|saas\/history)(\/|$)/.test(
       path,
     );
   // Every allowed commercial write first obtains a durable UUID. A lost online
@@ -213,7 +213,7 @@ export const offlineInterceptor: HttpInterceptorFn = (req, next) => {
       if (!cacheable || store.owner !== owner) return throwError(() => error);
       return from(
         (async () => {
-          if (resourcePath(path) || path.startsWith('/stocks/') || path.startsWith('/inventory/') || path.startsWith('/catalog/products') || path === '/payments' || path === '/reservations') {
+          if (path.startsWith('/own/') || path==='/promotions/suggestions/stock-age' || resourcePath(path) || path.startsWith('/stocks/') || path.startsWith('/inventory/') || path.startsWith('/catalog/products') || path === '/payments' || path === '/reservations') {
             const local = await repository.read(req.urlWithParams);
             if (local) return local;
           }

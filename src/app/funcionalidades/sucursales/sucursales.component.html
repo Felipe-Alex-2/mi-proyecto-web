@@ -134,6 +134,7 @@
                   <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                 </svg>
                 <span>{{ branch.address }}</span>
+                @if(branch.maps_url){<a [href]="branch.maps_url" target="_blank" rel="noopener noreferrer">Ver ubicación en Google Maps</a>}
               </div>
 
               @if (branch.phone) {
@@ -287,6 +288,11 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <label for="branch-maps">Ubicación en Google Maps</label>
+            <input id="branch-maps" type="url" formControlName="maps_url" maxlength="2048" placeholder="https://maps.app.goo.gl/..." />
+            <small>Comparte el pin de la sucursal. Esta ubicación será el origen de sus deliveries.</small>
+          </div>
           <div class="form-group">
             <label for="branch-address">Dirección Física</label>
             <input

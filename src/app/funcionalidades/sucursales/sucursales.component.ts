@@ -69,6 +69,7 @@ export class SucursalesComponent implements OnInit {
       ]],
       address: ['', [Validators.required, longitudMinimaSinEspacios(5), sinEspaciosVaciosValidator()]],
       phone: [''],
+      maps_url: ['',Validators.maxLength(2048)],
       opening_hours: ['Lun - Sáb: 09:00 - 20:00'],
     });
   }
@@ -133,6 +134,7 @@ export class SucursalesComponent implements OnInit {
       name: '',
       city: this.municipalityOptions().includes(this.selectedCity()) ? this.selectedCity() : '',
       address: '',
+      maps_url: '',
       phone: '',
       opening_hours: 'Lun - Sáb: 09:00 - 20:00',
     });
@@ -147,6 +149,7 @@ export class SucursalesComponent implements OnInit {
       name: branch.name,
       city: branch.city,
       address: branch.address,
+      maps_url: branch.maps_url || '',
       phone: branch.phone || '',
       opening_hours: branch.opening_hours || '',
     });

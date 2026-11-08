@@ -119,12 +119,29 @@ describe('Aporte Propio workflows', () => {
 
   it('shows delivery errors without inventing successful state changes',()=>{
     const {fixture,component,http}=setup('deliveries');
-    http.expectOne(r=>r.url.includes('/own/purchases')).flush([]);
     http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([{id:'delivery',status:'PENDING',history:[],shipping_payment_status:'PENDING'}]);
     component.updateDelivery(component.rows()[0],'PREPARING');
     http.expectOne(r=>r.method==='PATCH').flush({detail:'Confirma el cobro del envío'},{status:409,statusText:'Conflict'});
     expect(component.rows()[0].status).toBe('PENDING');expect(component.error()).toContain('Confirma el cobro');fixture.destroy();http.verify();
   });
+  it('separates acceptance from dispatch and shows the branch route and USD quote',()=>{
+    const {fixture,component,http}=setup('deliveries');
+    const row={id:'d',source:'reservation',status:'REQUESTED',recipient:'Felipe',phone:'70001234',address:'Calle 123',history:[],distance_km:2.5,fee:1.44,fee_bob:10,bob_per_usd:6.96,branch_name:'Central',reservation_code:'RSV-123',purchase_payment_status:'PAID',origin_maps_url:'https://www.google.com/maps?q=1,2',destination_maps_url:'https://www.google.com/maps?q=3,4',directions_url:'https://www.google.com/maps/dir/?api=1',estimated_minutes_min:25,estimated_minutes_max:35};
+    http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([row]);fixture.detectChanges();
+    expect(component.actions(row)).toEqual(['ACCEPTED','REJECTED']);
+    expect(fixture.nativeElement.textContent).toContain('USD 1.44');
+    expect(fixture.nativeElement.textContent).toContain('Origen: sucursal');
+    expect(fixture.nativeElement.textContent).toContain('Aceptar delivery');
+    component.updateDelivery(row,'ACCEPTED');
+    http.expectOne(r=>r.method==='PATCH').flush({...row,status:'ACCEPTED'});
+    http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([{...row,status:'ACCEPTED'}]);
+    expect(component.actions(component.rows()[0])).toEqual(['OUT_FOR_DELIVERY','REJECTED']);
+    component.couriers['d']='Repartidor Uno';component.updateDelivery(component.rows()[0],'OUT_FOR_DELIVERY');
+    const req=http.expectOne(r=>r.method==='PATCH');expect(req.request.body).toMatchObject({status:'OUT_FOR_DELIVERY',courier:'Repartidor Uno'});
+    req.flush({...row,status:'OUT_FOR_DELIVERY'});http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([{...row,status:'OUT_FOR_DELIVERY'}]);
+    expect(component.actions(component.rows()[0])).toEqual(['DELIVERED','FAILED']);fixture.destroy();http.verify();
+  });
+
   it('shows staff the descending ranking without private reward codes',()=>{
     const {fixture,http}=setup('loyalty');
     http.expectOne(r=>r.url.includes('/saas/directory')).flush([{id:'company',branches:[]}]);

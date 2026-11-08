@@ -287,3 +287,14 @@ cliente global y pago de reserva sin descontar inventario por segunda vez.
   se editan: primero se reenvían para consultar su confirmación idempotente.
 - Guardar una operación offline no garantiza existencias ni confirma un cobro.
   PayPal requiere conexión; no se cobra desde el almacenamiento local.
+
+
+## Aporte Propio sin conexión (8 de noviembre)
+
+La descarga del catálogo ahora incluye compras elegibles para cambios, stock, ranking de puntos o saldo/beneficios del cliente y, para administradores, las sugerencias de descuento desde cinco minutos.
+
+- Cambios: se busca por código o cliente en los comprobantes descargados. Se revisan localmente las 48 horas, unidades disponibles para cambiar, stock y diferencia. La solicitud queda pendiente y proyecta el stock; el comprobante definitivo aparece después de la confirmación del servidor. El servidor vuelve a revisar el plazo de 48 horas al sincronizar.
+- Descuentos sugeridos: se consultan y filtran las propuestas descargadas (5/30 minutos y meses). El botón abre Promociones con datos completos; crear guarda una promoción pendiente. Se excluyen de las propuestas las prendas que ya tienen una promoción local en espera.
+- Fidelización: se consulta el ranking descargado; el cliente puede solicitar canjes con puntos disponibles localmente. Esos puntos se descuentan del saldo local, pero no existe un cupón utilizable hasta sincronizar. Caja puede guardar la entrega de una caja misteriosa y la aplicación de un cupón existente a una venta pendiente. Códigos, pertenencia, vigencia, saldo y stock se comprueban de nuevo en el backend.
+
+Las cuatro acciones tienen comandos explícitos, validación de roles y una transacción conjunta con su recibo de sincronización. No se repite el movimiento al reintentar una respuesta perdida. Las funciones de traslado y delivery conservan sus requisitos de conexión.

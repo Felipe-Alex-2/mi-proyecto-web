@@ -54,7 +54,7 @@ export class AportePropioComponent implements OnInit {
   coupon = ''; pendingPayment = ''; minAgeMinutes = 43200;
   recipient = ''; phone = ''; address = ''; zone = 'CENTRO';
   couriers: Record<string,string> = {}; deliveryNotes: Record<string,string> = {};
-  readonly statusLabels: Record<string,string> = {SENT:'En tránsito', RECEIVED:'Recibido', PENDING:'Pendiente', PREPARING:'En preparación', OUT_FOR_DELIVERY:'En reparto', DELIVERED:'Entregado', FAILED:'Entrega fallida', CANCELLED:'Cancelado', RESERVED:'Reservado en una compra', CLAIMED:'Retirado presencialmente', AVAILABLE:'Disponible', USED:'Utilizado', PAID:'Pagado'};
+  readonly statusLabels: Record<string,string> = {AWAITING_PAYMENT:'Pendiente de pago', REQUESTED:'Por aceptar',ACCEPTED:'Aceptado · preparando',REJECTED:'Rechazado · retiro en sucursal',SENT:'En tránsito', RECEIVED:'Recibido', PENDING:'Pendiente', PREPARING:'En preparación', OUT_FOR_DELIVERY:'En reparto', DELIVERED:'Entregado', FAILED:'Entrega fallida', CANCELLED:'Cancelado', RESERVED:'Reservado en una compra', CLAIMED:'Retirado presencialmente', AVAILABLE:'Disponible', USED:'Utilizado', PAID:'Pagado'};
 
   constructor() {
     effect(() => {
@@ -69,7 +69,7 @@ export class AportePropioComponent implements OnInit {
       this.activeScope=scope;this.initializedScope=true;
     });
   }
-  ngOnInit() { this.load(); }
+  ngOnInit() { this.load(); if(this.mode==='deliveries'){const timer=setInterval(()=>{if(!document.hidden&&!this.busy()&&!this.loading())this.load();},15000);this.destroy.onDestroy(()=>clearInterval(timer));} }
   get purchase() { return this.purchases().find(p=>p.id===this.purchaseId); }
   get item() { return this.purchase?.items[this.line]; }
   get replacements() {
@@ -92,7 +92,7 @@ export class AportePropioComponent implements OnInit {
   }
   label(row: StockRow) { return `${row.product_name} · ${row.size} · ${row.color} (${row.quantity} disponibles)`; }
   branchName(id: string) { return this.branches().find(b=>b.id===id)?.name || id; }
-  private message(e:any) { return typeof e.error?.detail==='string' ? e.error.detail : 'No se pudo completar la operación. Revisa tu conexión e inténtalo de nuevo.'; }
+  private message(e:any) { return typeof e.error?.detail==='string' ? e.error.detail : e.message || 'No se pudo completar la operación. Revisa tu conexión e inténtalo de nuevo.'; }
   private storageKey(key:string) {
     const user=this.auth.currentUser();
     return ['vesta-own-request',user?.id,user?.role==='CUSTOMER'?user.selected_tenant_id:user?.tenant_id,key].join(':');
@@ -116,7 +116,7 @@ export class AportePropioComponent implements OnInit {
         for(const [key,value] of this.requests) if(value.id===requestId) {
           this.requests.delete(key);try {sessionStorage.removeItem(this.storageKey(key));} catch {}
         }
-        this.success.set(message);done?.(row);this.load();
+        this.success.set(row.sync_status==='PENDING'?'Guardado en este dispositivo. Pendiente de validación al recuperar Internet.':message);done?.(row);this.load();
       }, error:e=>this.error.set(this.message(e)),
     });
   }
@@ -148,7 +148,8 @@ export class AportePropioComponent implements OnInit {
         },error:e=>{this.purchaseId='';this.purchases.set([]);this.error.set(this.message(e));},
       });return;
     }
-    forkJoin({purchases,rows:this.api.get<any[]>('deliveries')}).pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>{this.purchases.set(r.purchases.filter(p=>p.currency==='BOB'));this.rows.set(r.rows);},error:e=>this.error.set(this.message(e))});
+    this.api.get<any[]>('deliveries').pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.loading.set(false))).subscribe({next:r=>this.rows.set(r),error:e=>this.error.set(this.message(e))});return;
+
   }
   selectPurchase(keepReceipt=false) {this.line=0;this.newVariant='';this.confirmCash=false;this.resellable=false;if(!keepReceipt)this.receiptId.set('');if(this.purchase && this.mode==='exchanges')this.loadInventory(this.purchase.branch_id);}
   selectLine() {this.newVariant='';this.confirmCash=false;}
@@ -166,7 +167,7 @@ export class AportePropioComponent implements OnInit {
   exchange() {
     if(!this.exchangeValid)return;
     const payload={...(this.purchase?.source==='reservation'?{reservation_id:this.purchaseId}:{payment_id:this.purchaseId}),original_line:this.line,new_variant_id:this.newVariant,quantity:this.quantity,resellable:true,confirm_cash:this.confirmCash,expected_difference:this.difference};
-    this.submit('exchanges',this.request('exchange',payload),'Cambio confirmado. Puedes descargar su comprobante.',r=>{this.receiptId.set(r.receipt_payment_id);this.newVariant='';this.confirmCash=false;this.resellable=false;if(this.purchase)this.loadInventory(this.purchase.branch_id);});
+    this.submit('exchanges',this.request('exchange',payload),'Cambio confirmado. Puedes descargar su comprobante.',r=>{this.receiptId.set(r.receipt_payment_id||'');this.newVariant='';this.confirmCash=false;this.resellable=false;if(this.purchase)this.loadInventory(this.purchase.branch_id);});
   }
   removeItem(id:string) {this.transferItems=this.transferItems.filter(i=>i.variant_id!==id);}
   send() {
@@ -183,7 +184,7 @@ export class AportePropioComponent implements OnInit {
     if(!this.purchaseId || this.recipient.trim().length<2 || this.phone.trim().length<7 || this.address.trim().length<10)return;
     this.submit('deliveries',this.request('delivery',{payment_id:this.purchaseId,recipient:this.recipient.trim(),phone:this.phone.trim(),address:this.address.trim(),zone:this.zone}),'Entrega solicitada. El envío debe pagarse antes de su preparación.',()=>{this.purchaseId='';this.recipient='';this.phone='';this.address='';});
   }
-  actions(row:any):string[] {return ({PENDING:['PREPARING','CANCELLED'],PREPARING:['OUT_FOR_DELIVERY','CANCELLED'],OUT_FOR_DELIVERY:['DELIVERED','FAILED'],FAILED:['OUT_FOR_DELIVERY']} as Record<string,string[]>)[row.status] || [];}
+  actions(row:any):string[] {if(row.source==='reservation')return ({REQUESTED:['ACCEPTED','REJECTED'],ACCEPTED:['OUT_FOR_DELIVERY','REJECTED'],OUT_FOR_DELIVERY:['DELIVERED','FAILED'],FAILED:['OUT_FOR_DELIVERY']} as Record<string,string[]>)[row.status]||[];return ({PENDING:['PREPARING','CANCELLED'],PREPARING:['OUT_FOR_DELIVERY','CANCELLED'],OUT_FOR_DELIVERY:['DELIVERED','FAILED'],FAILED:['OUT_FOR_DELIVERY']} as Record<string,string[]>)[row.status] || [];}
   updateDelivery(row:any,status:string) {
     if(this.busy())return;
     this.busy.set(true);this.error.set('');this.success.set('');

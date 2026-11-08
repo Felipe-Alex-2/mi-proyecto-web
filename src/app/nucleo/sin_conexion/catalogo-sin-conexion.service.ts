@@ -175,6 +175,13 @@ export class CatalogoSinConexion {
         await this.store.cache(environment.apiUrl + '/reservations', await this.downloadPages('/reservations'), scope);
         await this.store.cache(environment.apiUrl + '/saas/history', await firstValueFrom(this.http.get(environment.apiUrl + '/saas/history')), scope);
       }
+      const ownPaths=customer?['/own/loyalty']:['/own/purchases?for_exchange=true','/own/loyalty/ranking','/own/pending-sales','/saas/directory',
+        ...branches.map(branch=>'/own/stock?branch_id='+encodeURIComponent(branch.id)),
+        ...(user.role==='ADMIN'?['/promotions/suggestions/stock-age?min_age_minutes=5']:[])];
+      for(const path of ownPaths) {
+        assertScope();
+        await this.store.cache(environment.apiUrl+path,await firstValueFrom(this.http.get(environment.apiUrl+path)),scope);
+      }
       assertScope();
       const completedAt = new Date().toISOString();
       await this.store.cache(

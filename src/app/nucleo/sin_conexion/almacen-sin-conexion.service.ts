@@ -162,11 +162,11 @@ export class AlmacenSinConexion {
       request.onerror = () => reject(request.error);
     });
   }
-  async enqueue(path: string, body: any, preview: any = {}, method = 'POST', needsBranch = true): Promise<any> {
+  async enqueue(path: string, body: any, preview: any = {}, method = 'POST', needsBranch = true, branchOverride?:string): Promise<any> {
     const user = this.tokens.getIdentity();
     const scope = this.scope;
     const tenant = user?.role === 'CUSTOMER' ? user.selected_tenant_id : user?.tenant_id;
-    const branch = body.branch_id || user?.branch_id || '';
+    const branch = branchOverride || body.branch_id || user?.branch_id || '';
     if (!user || !tenant || (needsBranch && !branch))
       throw new Error(
         'Inicia sesión y selecciona tu empresa y sucursal antes de operar sin conexión.',
