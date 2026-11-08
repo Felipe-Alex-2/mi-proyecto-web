@@ -35,11 +35,13 @@ export class PrincipalLayoutComponent implements OnInit {
         { path: '/branches', label: 'Sucursales', icon: 'home' },
         { path: '/models', label: 'Modelos y entrenamiento', icon: 'chart' },
       ] : [] },
-      { title: 'Inteligencia', links: manager ? [
+      { title: 'Inteligencia', links: [
         { path: '/reports', label: 'Reportes', icon: 'chart' },
+        ...(manager ? [
         { path: '/recommendations', label: 'Recomendaciones', icon: 'spark' },
         { path: '/activity-log', label: 'Bitácora', icon: 'list' },
-      ] : [] },
+        ] : []),
+      ] },
       { title: 'Ventas y stock', links: sales ? [
         { path: '/branch-availability', label: 'Stock por sucursal', icon: 'box' },
         { path: '/inventory-movements', label: 'Movimientos', icon: 'arrows' },

@@ -7,15 +7,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ReportRequest, ReportResponse } from '../../nucleo/modelos/reporte.model';
 import { ReporteService } from '../../nucleo/servicios/reporte.service';
-import { SelectorSucursalComponent } from '../../nucleo/componentes/selector-sucursal.component';
-import { SucursalService } from '../../nucleo/servicios/sucursal.service';
 import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
 import { Branch } from '../../nucleo/modelos/sucursal.model';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SelectorSucursalComponent],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './reportes.component.html',
   styleUrls: ['./reportes.component.css'],
 })
@@ -23,6 +21,11 @@ export class ReportesComponent implements OnInit, OnDestroy {
   private saas = inject(SaasService);
   aiAvailable = signal(false);
   reportTypes = [
+    {value:'products_detail',label:'Detalle de prendas en stock'},
+    {value:'companies_list',label:'Empresas existentes'},
+    {value:'branches_list',label:'Sucursales de todas las empresas'},
+    {value:'payments_detail',label:'Detalle de pagos'},
+    {value:'wallet_topups',label:'Recargas de wallet'},
     { value: 'inventory_by_branch', label: 'Stock disponible por sucursal' },
     { value: 'sales_by_branch', label: 'Ventas cobradas por sucursal' },
     { value: 'products_by_category', label: 'Productos por categoría' },
@@ -33,7 +36,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
     { value: 'products_by_supplier', label: 'Catálogo por proveedor' },
     { value: 'registered_customers', label: 'Clientes registrados' },
   ];
-  allCompanies = false;
+  allCompanies = true;
   emailTo = '';
   sendingEmail = signal(false);
   speaking = signal(false);
@@ -60,7 +63,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   search = '';
   threshold = 5;
   transcript = '';
-  branches = signal<Branch[]>([]);
+  branches = signal<(Branch & {company_name?:string})[]>([]);
   branchId = '';
   dateFrom = '';
   dateTo = '';
@@ -81,14 +84,14 @@ export class ReportesComponent implements OnInit, OnDestroy {
   private request?: Subscription;
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor(private reportService: ReporteService, private branchService: SucursalService, public auth: AutenticacionService) {}
+  constructor(private reportService: ReporteService, public auth: AutenticacionService) {}
 
   ngOnInit(): void {
     this.saas.subscription().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:sub=>this.aiAvailable.set(sub.ai_reports||this.platform),error:()=>this.aiAvailable.set(this.platform)});
-    this.allCompanies=this.platform;
-    if(this.platform){this.aiAvailable.set(true);this.reportTypes.push({value:'sales_by_company',label:'Ventas cobradas por empresa'});}
-    this.branchId = this.auth.currentUser()?.role === 'ADMIN' ? '' : this.auth.currentUser()?.branch_id || '';
-    this.branchService.getBranches().subscribe({ next: branches => this.branches.set(branches), error: () => this.error.set('No se pudieron cargar las sucursales.') });
+    this.allCompanies=true;
+    this.reportTypes.push({value:'sales_by_company',label:'Ventas cobradas por empresa'});
+    this.branchId = '';
+    this.reportService.branches().subscribe({ next: branches => this.branches.set(branches), error: () => this.error.set('No se pudieron cargar las sucursales.') });
   }
 
   changeBranch(value: string): void {
@@ -114,7 +117,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
     this.error.set('');
     const request: ReportRequest = {
       report_type: this.reportType,
-      all_companies:this.platform&&this.allCompanies,
+      all_companies:this.allCompanies,
       email_to:this.emailTo.trim()||undefined,
       status: this.status || undefined,
       search: this.search.trim() || undefined,
@@ -171,7 +174,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
     this.report.set(null);
     this.loading.set(true);
     this.error.set('');
-    this.request = this.reportService.generateFromVoice(this.transcript.trim(), this.branchId || undefined, this.platform&&this.allCompanies,this.emailTo.trim()||undefined).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.request = this.reportService.generateFromVoice(this.transcript.trim(), this.branchId || undefined, this.allCompanies,this.emailTo.trim()||undefined).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.report.set(response.report);
         this.loading.set(false);

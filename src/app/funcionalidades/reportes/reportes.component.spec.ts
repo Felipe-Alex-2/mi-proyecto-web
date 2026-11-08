@@ -44,19 +44,20 @@ describe('Reports branch boundaries', () => {
     http.verify();
   });
 
-  it('includes the assigned branch in natural-language reports', () => {
+  it('allows a manager to request global natural-language reports', () => {
     const {fixture, http, component} = setup('STORE_MANAGER');
-    expect(component.branchId).toBe('centro');
+    expect(component.branchId).toBe('');
     component.transcript = 'Qué sucursal vendió más';
     component.sendVoiceReport();
     const request = http.expectOne(req => req.url.endsWith('/reports/voice'));
-    expect(request.request.body.branch_id).toBe('centro');
+    expect(request.request.body.branch_id).toBeUndefined();
+    expect(request.request.body.all_companies).toBe(true);
     request.flush({report:{report_type:'sales_by_branch', title:'Ventas', generated_by:'natural_language', summary:{scope:'Centro'}, columns:[], rows:[]}});
     fixture.destroy();
     http.verify();
   });
-  it('lets only the platform UI request global comparisons and carries the PDF recipient',()=>{
-    const {fixture,http,component}=setup('ADMIN',true);
+  it.each(['ADMIN','STORE_MANAGER','CASHIER','CUSTOMER'])('lets %s request global comparisons and carries the PDF recipient',(role)=>{
+    const {fixture,http,component}=setup(role,false);
     expect(component.allCompanies).toBe(true);
     component.reportType='sales_by_company';component.emailTo='felipe@gmail.com';component.generateManual();
     const request=http.expectOne(r=>r.url.endsWith('/reports/generate'));

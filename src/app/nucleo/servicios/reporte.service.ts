@@ -12,11 +12,13 @@ export class ReporteService {
 
   constructor(private http: HttpClient) {}
 
+  branches(): Observable<any[]> {return this.http.get<any[]>(`${this.baseUrl}/branches`);}
+
   generate(request: ReportRequest): Observable<ReportResponse> {
     return this.http.post<ReportResponse>(`${this.baseUrl}/generate`, request);
   }
 
-  generateFromVoice(transcript: string, branchId?: string, allCompanies=false, emailTo?:string): Observable<VoiceReportResponse> {
+  generateFromVoice(transcript: string, branchId?: string, allCompanies=true, emailTo?:string): Observable<VoiceReportResponse> {
     return this.http.post<VoiceReportResponse>(`${this.baseUrl}/voice`, { transcript, branch_id: branchId, all_companies:allCompanies, email_to:emailTo });
   }
   email(id:string,emailTo:string) {return this.http.post<ReportResponse>(`${this.baseUrl}/${id}/email`,{email_to:emailTo});}

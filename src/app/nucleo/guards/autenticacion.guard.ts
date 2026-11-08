@@ -124,31 +124,10 @@ export const managerGuard: CanActivateFn = () => {
 };
 
 export const reportsGuard: CanActivateFn = () => {
-  const authService = inject(AutenticacionService);
-  const tokenService = inject(TokenService);
-  const router = inject(Router);
-
-  if (!tokenService.hasToken()) {
-    router.navigate(['/login']);
-    return false;
-  }
-
-  const user = authService.currentUser();
-  if (user) {
-    // Los reportes empresariales son para administración y encargados.
-    return (user.role === 'ADMIN' || user.role === 'STORE_MANAGER')
-      ? true
-      : router.parseUrl(getDefaultRouteForRole(user.role));
-  }
-
-  return authService.loadCurrentUser().pipe(
-    map((loadedUser) =>
-      (loadedUser?.role === 'ADMIN' || loadedUser?.role === 'STORE_MANAGER')
-        ? true
-        : router.parseUrl(loadedUser ? getDefaultRouteForRole(loadedUser.role) : '/login')
-    ),
-    catchError(() => of(router.parseUrl('/login')))
-  );
+  const auth = inject(AutenticacionService), token = inject(TokenService), router = inject(Router);
+  if (!token.hasToken()) return router.parseUrl('/login');
+  if (auth.currentUser()) return true;
+  return auth.loadCurrentUser().pipe(map(user => user ? true : router.parseUrl('/login')),catchError(() => of(router.parseUrl('/login'))));
 };
 
 export const platformGuard: CanActivateFn = () => {

@@ -10,12 +10,12 @@
   </header>
 
   <section class="delivery-controls">
-    @if(platform){<label>Ámbito de empresas<select [(ngModel)]="allCompanies" (ngModelChange)="changeScope()"><option [ngValue]="false">Mi empresa actual</option><option [ngValue]="true">Todas las empresas y sucursales</option></select></label>}
+    <label>Ámbito de empresas<select [(ngModel)]="allCompanies" (ngModelChange)="changeScope()"><option [ngValue]="false">Mi empresa actual</option><option [ngValue]="true">Todas las empresas y sucursales</option></select></label>
     <label>Correo de destino del PDF (opcional)<input type="email" [(ngModel)]="emailTo" maxlength="254" placeholder="nombre@gmail.com" /></label>
     <p>Al generar el reporte con un correo indicado se enviará su PDF a esa dirección.</p>
   </section>
   @if(!allCompanies){
-  <app-branch-selector [branches]="branches()" [value]="branchId" [allowAll]="auth.currentUser()?.role === 'ADMIN'" (valueChange)="changeBranch($event)" />
+  <label>Sucursal<select [ngModel]="branchId" (ngModelChange)="changeBranch($event)"><option value="">Todas las sucursales de mi empresa actual</option>@for(branch of branches();track branch.id){<option [value]="branch.id">{{branch.company_name}} · {{branch.name}}</option>}</select></label>
   }
   <section class="control-grid">
     <article class="control-panel manual-panel">
@@ -57,7 +57,6 @@
       <button class="primary-button" type="button" (click)="generateManual()" [disabled]="loading()">{{ loading() ? 'Generando...' : 'Generar reporte' }}</button>
     </article>
 
-    @if(aiAvailable()) {
     <article class="control-panel voice-panel">
       <div class="panel-heading">
         <span class="panel-index voice-index">02</span>
@@ -66,14 +65,14 @@
       <p class="panel-description">Pregunta «¿Qué sucursal vendió más?» o «¿Qué sucursal tiene más prendas?». La consulta respeta la sucursal seleccionada y tus permisos.</p>
       <div class="voice-orb" [class.is-listening]="listening()" aria-hidden="true"><span>◉</span></div>
       <p class="voice-status">{{ listening() ? 'Escuchando...' : 'Presiona el micrófono para comenzar' }}</p>
-      <textarea [(ngModel)]="transcript" placeholder="Ej.: Muéstrame las alertas de stock bajo"></textarea>
+      <textarea [(ngModel)]="transcript" placeholder="Ej.: Lista las empresas existentes. Ventas de este mes."></textarea>
       <div class="voice-actions">
         @if (listening()) { <button class="stop-button" type="button" (click)="stopVoice()">Detener</button> }
         @else { <button class="voice-button" type="button" (click)="startVoice()" aria-label="Iniciar dictado">● <span>Hablar</span></button> }
         <button class="text-button" type="button" (click)="sendVoiceReport()" [disabled]="!transcript.trim() || loading()">Procesar texto</button>
       </div>
     </article>
-    } @else { <article class="control-panel voice-panel"><p class="eyebrow">PROFESIONAL</p><h2>Reportes con IA</h2><p>Activa el plan Profesional para consultar tus datos con lenguaje natural.</p><a routerLink="/subscription">Consultar mi plan →</a></article> }
+
   </section>
 
   @if (error()) { <div class="alert" role="alert">{{ error() }}</div> }
