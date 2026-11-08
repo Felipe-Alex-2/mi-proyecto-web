@@ -15,6 +15,7 @@ import { DatePipe } from '@angular/common';
 import { CatalogoSinConexion } from '../../nucleo/sin_conexion/catalogo-sin-conexion.service';
 import { CambiosPendientesComponent } from '../../nucleo/sin_conexion/cambios-pendientes.component';
 import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
+import { SelectorEmpresaTrabajoComponent } from '../../nucleo/componentes/selector-empresa-trabajo.component';
 import { SelectorTiendaComponent } from '../../nucleo/componentes/selector-tienda.component';
 import { AvatarId } from '../../nucleo/modelos/usuario.model';
 import { AvatarUsuarioComponent } from '../../nucleo/componentes/avatar-usuario.component';
@@ -23,7 +24,7 @@ import { sinEspaciosVaciosValidator, longitudMinimaSinEspacios } from '../../nuc
 @Component({
   standalone: true,
   selector: 'app-profile',
-  imports: [DatePipe, ReactiveFormsModule, AvatarUsuarioComponent, SelectorTiendaComponent, CambiosPendientesComponent],
+  imports: [DatePipe, ReactiveFormsModule, AvatarUsuarioComponent, SelectorTiendaComponent, SelectorEmpresaTrabajoComponent, CambiosPendientesComponent],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css',
 })
@@ -86,8 +87,12 @@ export class PerfilComponent {
   }
 
   storeBusy = signal(false);
-  changeStore(selection: { tenant_id: string; branch_id: string }): void {
-    if (this.storeBusy()) return;
+  storeError = signal('');
+  storeSuccess = signal('');
+  changeStore(selection: { tenant_id: string; branch_id: string|null }): void {
+    if (this.storeBusy() || this.saving()) return;
+    this.storeError.set('');
+    this.storeSuccess.set('');
     this.storeBusy.set(true);
     this.error.set('');
     this.success.set('');
@@ -98,12 +103,16 @@ export class PerfilComponent {
         finalize(() => this.storeBusy.set(false)),
       )
       .subscribe({
-        next: () =>
-          this.success.set(this.auth.currentUser()?.is_saas_admin ? 'Empresa y sucursal actualizadas. Ya puedes trabajar en la selección elegida.' : 'Tienda actualizada. Tu historial y comprobantes se conservan.'),
-        error: (e) =>
-          this.error.set(
-            typeof e.error?.detail === 'string' ? e.error.detail : 'No se pudo cambiar de tienda.',
-          ),
+        next: () => {
+          const message = this.auth.currentUser()?.is_saas_admin ? 'Selección guardada. Ya puedes trabajar en la empresa elegida.' : 'Tienda actualizada. Tu historial y comprobantes se conservan.';
+          this.storeSuccess.set(message);
+          if (!this.auth.currentUser()?.is_saas_admin) this.success.set(message);
+        },
+        error: (e) => {
+          const message = typeof e.error?.detail === 'string' ? e.error.detail : 'No se pudo guardar la selección.';
+          this.storeError.set(message);
+          if (!this.auth.currentUser()?.is_saas_admin) this.error.set(message);
+        },
       });
   }
 
@@ -205,7 +214,7 @@ export class PerfilComponent {
   }
 
   save(): void {
-    if (this.saving() || this.processing() || this.cameraOpen()) return;
+    if (this.saving() || this.storeBusy() || this.processing() || this.cameraOpen()) return;
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     this.error.set('');

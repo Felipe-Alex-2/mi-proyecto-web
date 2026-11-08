@@ -22,6 +22,7 @@ export class AutenticacionService {
   private readonly destroyRef = inject(DestroyRef);
   private userRequest$?: Observable<User | null>;
   private userRequestToken: string | null = null;
+  private contextVersion = 0;
   private readonly baseUrl = environment.apiUrl;
 
   // Modern Angular signals for reactive state
@@ -89,12 +90,14 @@ export class AutenticacionService {
     const token = this.tokenService.getAccessToken();
     if (!token) return of(null);
     if (this.userRequest$ && this.userRequestToken === token) return this.userRequest$;
+    const version = this.contextVersion;
     const request$ = this.http.get<User>(`${this.baseUrl}/users/me`).pipe(
-      map((user) => this.tokenService.getAccessToken() === token ? user : null),
+      map((user) => this.tokenService.getAccessToken() === token ? (version === this.contextVersion ? user : this.currentUserSignal()) : null),
       tap((user) => {
         if (this.tokenService.getAccessToken() === token) this.acceptUser(user);
       }),
       catchError((error) => {
+        if (version !== this.contextVersion) return of(this.currentUserSignal());
         // A temporary outage must not destroy a valid session. Ignore replies
         // belonging to a session that has already logged out or changed user.
         if ((error.status === 401 || error.status === 403) && this.tokenService.getAccessToken() === token) {
@@ -120,8 +123,12 @@ export class AutenticacionService {
     );
   }
 
-  selectStore(selection: {tenant_id:string;branch_id:string}): Observable<User> {
-    return this.http.put<User>(`${this.baseUrl}/saas/selection`, selection).pipe(tap(user=>this.acceptUser(user)));
+  selectStore(selection: {tenant_id:string;branch_id:string|null}): Observable<User> {
+    return this.http.put<User>(`${this.baseUrl}/saas/selection`, selection).pipe(tap(user=>{
+      this.contextVersion++;
+      this.userRequest$ = undefined;
+      this.acceptUser(user);
+    }));
   }
 
   forgotPassword(email: string): Observable<MessageResponse> {

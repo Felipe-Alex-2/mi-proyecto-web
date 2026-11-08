@@ -21,6 +21,17 @@ describe('AutenticacionService session loading', () => {
   });
   afterEach(() => { http.verify(); localStorage.clear(); });
 
+  it('ignores an old profile response after a workspace selection has been saved', () => {
+    const auth=TestBed.inject(AutenticacionService);
+    const oldRequest=http.expectOne(url);
+    const selected={...user,role:'ADMIN',is_saas_admin:true,tenant_id:'modat',selected_tenant_id:'modat',branch_id:null};
+    auth.selectStore({tenant_id:'modat',branch_id:null}).subscribe();
+    http.expectOne(`${environment.apiUrl}/saas/selection`).flush(selected);
+    oldRequest.flush({...user,role:'ADMIN',is_saas_admin:true,tenant_id:'vesta'});
+    expect(auth.currentUser()?.tenant_id).toBe('modat');
+    expect(auth.currentUser()?.branch_id).toBeNull();
+  });
+
   it('shares the initial request with guards and layout', () => {
     const auth = TestBed.inject(AutenticacionService);
     const received: unknown[] = [];

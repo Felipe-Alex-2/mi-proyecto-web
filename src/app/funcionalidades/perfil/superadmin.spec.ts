@@ -22,24 +22,48 @@ describe('Superadmin company workspace', () => {
     TestBed.configureTestingModule({ imports: [PerfilComponent, PrincipalLayoutComponent], providers: [
       provideRouter([]),
       { provide: AutenticacionService, useValue: auth },
-      { provide: SaasService, useValue: { directory: () => of([{ id:'a', name:'Empresa A', branches:[{id:'branch-a', name:'Central', city:'La Paz'}] }]) } },
+      { provide: SaasService, useValue: { directory: () => of([{ id:'a', name:'Empresa A', branches:[{id:'branch-a', name:'Central', city:'La Paz'}] }, {id:'empty',name:'MODAT',branches:[]}]) } },
       { provide: CatalogoSinConexion, useValue: { lastDownload:signal(null), productCount:signal(0), error:signal(''), busy:signal(false), store:{online:signal(true)}, download:vi.fn() } },
     ] });
   });
 
-  it('waits for explicit selection and shows the confirmed workspace', () => {
+  it('waits for explicit Save and shows the confirmed workspace', async () => {
     const fixture = TestBed.createComponent(PerfilComponent); fixture.detectChanges();
+    await fixture.whenStable();fixture.detectChanges();
     expect(auth.selectStore).not.toHaveBeenCalled();
-    const input: HTMLInputElement = fixture.nativeElement.querySelector('app-store-picker input');
-    input.checked = true; input.dispatchEvent(new Event('change')); fixture.detectChanges();
+    const selects = fixture.nativeElement.querySelectorAll('app-company-workspace-picker select');
+    selects[0].value='a';selects[0].dispatchEvent(new Event('change'));
+    await fixture.whenStable();fixture.detectChanges();
+    selects[1].value='branch-a';selects[1].dispatchEvent(new Event('change'));
+    await fixture.whenStable();fixture.detectChanges();
+    expect(auth.selectStore).not.toHaveBeenCalled();
+    fixture.nativeElement.querySelector('app-company-workspace-picker button[type=submit]').click();
+    await fixture.whenStable();fixture.detectChanges();
     expect(auth.selectStore).toHaveBeenCalledWith({tenant_id:'a', branch_id:'branch-a'});
-    expect(input.disabled).toBe(true);
+    expect(selects[0].disabled).toBe(true);
     const updated = {...base, tenant_id:'a', selected_tenant_id:'a', branch_id:'branch-a', company_name:'Empresa A', branch_name:'Central'};
     currentUser.set(updated); response.next(updated); response.complete(); fixture.detectChanges();
+    await fixture.whenStable();fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Empresa A');
     expect(fixture.nativeElement.textContent).toContain('Central');
     expect(fixture.componentInstance.storeBusy()).toBe(false);
-    expect(fixture.componentInstance.success()).toContain('Ya puedes trabajar');
+    expect(fixture.componentInstance.storeSuccess()).toContain('Ya puedes trabajar');
+    fixture.destroy();
+  });
+
+  it('selects a company without branches and sends null only when Save is pressed', async () => {
+    const fixture=TestBed.createComponent(PerfilComponent);fixture.detectChanges();
+    await fixture.whenStable();fixture.detectChanges();
+    const company:HTMLSelectElement=fixture.nativeElement.querySelector('app-company-workspace-picker select');
+    company.value='empty';company.dispatchEvent(new Event('change'));
+    await fixture.whenStable();fixture.detectChanges();
+    expect(auth.selectStore).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('crear su primera sucursal');
+    fixture.nativeElement.querySelector('app-company-workspace-picker button[type=submit]').click();
+    expect(auth.selectStore).toHaveBeenCalledWith({tenant_id:'empty',branch_id:null});
+    response.error({error:{detail:'No se pudo guardar'}});fixture.detectChanges();
+    expect(currentUser().tenant_id).toBeUndefined();
+    expect(fixture.nativeElement.querySelector('[role=alert]').textContent).toContain('No se pudo guardar');
     fixture.destroy();
   });
 
@@ -61,7 +85,7 @@ describe('Superadmin company workspace', () => {
     currentUser.set({...base, is_saas_admin:false});
     expect(links()).not.toContain('/companies'); expect(links()).not.toContain('/subscription');
     const profile = TestBed.createComponent(PerfilComponent); profile.detectChanges();
-    expect(profile.nativeElement.querySelector('app-store-picker')).toBeNull();
+    expect(profile.nativeElement.querySelector('app-company-workspace-picker')).toBeNull();
     expect(links()).toContain('/users');
     profile.destroy(); layout.destroy();
   });

@@ -6,8 +6,10 @@
       <h2>Trabajar en una empresa y sucursal</h2>
       <p>Selecciona dónde trabajar. Las operaciones se registrarán en la empresa y sucursal elegidas.</p>
       <p>Empresa actual: <strong>{{auth.currentUser()?.company_name || 'Sin seleccionar'}}</strong> · Sucursal: <strong>{{auth.currentUser()?.branch_name || 'Sin seleccionar'}}</strong></p>
-      <app-store-picker [compact]="true" [selectedCompany]="auth.currentUser()?.tenant_id" [selectedBranch]="auth.currentUser()?.branch_id" [disabled]="storeBusy()" [autoSelect]="false" (selection)="changeStore($event)" />
-      @if(storeBusy()) { <p role="status">Cambiando empresa y sucursal…</p> }
+      <app-company-workspace-picker [selectedCompany]="auth.currentUser()?.tenant_id" [selectedBranch]="auth.currentUser()?.branch_id" [disabled]="storeBusy() || saving()" (selection)="changeStore($event)" />
+      @if(storeBusy()) { <p role="status">Guardando empresa y sucursal…</p> }
+      @if(storeError()) { <p class="feedback error" role="alert">{{storeError()}}</p> }
+      @if(storeSuccess()) { <p class="feedback success" role="status">{{storeSuccess()}}</p> }
     </section>
   }
   @if(auth.currentUser()?.role==='CUSTOMER') {
@@ -48,7 +50,7 @@
       </div>
       @if (error()) { <p class="feedback error" role="alert">{{ error() }}</p> }
       @if (success()) { <p class="feedback success" role="status">{{ success() }}</p> }
-      <button class="save-button" type="submit" [disabled]="form.invalid || saving() || processing() || (form.pristine && !imageChanged())">{{ saving() ? 'Guardando…' : 'Guardar cambios' }}</button>
+      <button class="save-button" type="submit" [disabled]="form.invalid || saving() || storeBusy() || processing() || (form.pristine && !imageChanged())">{{ saving() ? 'Guardando…' : 'Guardar cambios' }}</button>
     </section>
   </form>
   <app-pending-changes />
