@@ -11,7 +11,8 @@
 
   <section class="delivery-controls">
     <label>Ámbito de empresas<select [(ngModel)]="allCompanies" (ngModelChange)="changeScope()"><option [ngValue]="false">Mi empresa actual</option><option [ngValue]="true">Todas las empresas y sucursales</option></select></label>
-    <label>Correo de destino del PDF (opcional)<input type="email" [(ngModel)]="emailTo" maxlength="254" placeholder="nombre@gmail.com" /></label>
+    <label>Gmail / correo de destino del PDF<input type="email" [(ngModel)]="emailTo" maxlength="254" placeholder="nombre@gmail.com" /></label>
+    <button class="export-button" type="button" (click)="sendPdf()" [disabled]="!report()?.report_id || sendingEmail() || !emailTo.trim()">{{sendingEmail()?'Enviando…':'Mandar al Gmail'}}</button>
     <p>Al generar el reporte con un correo indicado se enviará su PDF a esa dirección.</p>
   </section>
   @if(!allCompanies){
@@ -83,7 +84,7 @@
         <div><p class="eyebrow">{{ current.generated_by === 'manual' ? 'CONSULTA MANUAL' : 'CONSULTA EN LENGUAJE NATURAL' }}</p><h2>{{ current.title }}</h2></div>
         <div class="report-actions">
           @if(speaking()){<button class="export-button" type="button" (click)="stopReading()">Detener lectura</button>}@else{<button class="export-button" type="button" (click)="readReport()">Leer en voz alta</button>}
-          @if(current.report_id){<button class="export-button" type="button" (click)="downloadPdf()">Descargar PDF</button><button class="export-button" type="button" (click)="sendPdf()" [disabled]="sendingEmail()||!emailTo.trim()">{{sendingEmail()?'Enviando…':'Enviar PDF al correo'}}</button>}
+          @if(current.report_id){<button class="export-button" type="button" (click)="downloadPdf()">Descargar PDF</button><button class="export-button" type="button" (click)="sendPdf()" [disabled]="sendingEmail()||!emailTo.trim()">{{sendingEmail()?'Enviando…':'Mandar al Gmail'}}</button>}
         <button class="export-button" type="button" (click)="exportCsv()">↓ Exportar CSV</button></div>
       </header>
       @if(current.email_message){<p role="status">{{current.email_message}}</p>}

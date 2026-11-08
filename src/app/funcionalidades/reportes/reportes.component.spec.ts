@@ -10,7 +10,7 @@ describe('Reports branch boundaries', () => {
   function setup(role = 'ADMIN', platform=false) {
     TestBed.configureTestingModule({ imports: [ReportesComponent], providers: [
       provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
-      {provide: AutenticacionService, useValue: {currentUser: signal({role,is_saas_admin:platform, branch_id: role === 'ADMIN' ? null : 'centro'})}},
+      {provide: AutenticacionService, useValue: {currentUser: signal({email:'usuario@gmail.com',role,is_saas_admin:platform, branch_id: role === 'ADMIN' ? null : 'centro'})}},
     ] });
     const fixture = TestBed.createComponent(ReportesComponent);
     const http = TestBed.inject(HttpTestingController);
@@ -47,6 +47,7 @@ describe('Reports branch boundaries', () => {
   it('allows a manager to request global natural-language reports', () => {
     const {fixture, http, component} = setup('STORE_MANAGER');
     expect(component.branchId).toBe('');
+    expect(component.emailTo).toBe('usuario@gmail.com');
     component.transcript = 'Qué sucursal vendió más';
     component.sendVoiceReport();
     const request = http.expectOne(req => req.url.endsWith('/reports/voice'));

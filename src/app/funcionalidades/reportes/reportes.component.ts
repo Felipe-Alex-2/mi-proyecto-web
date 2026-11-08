@@ -87,6 +87,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   constructor(private reportService: ReporteService, public auth: AutenticacionService) {}
 
   ngOnInit(): void {
+    this.emailTo = this.auth.currentUser()?.email || '';
     this.saas.subscription().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:sub=>this.aiAvailable.set(sub.ai_reports||this.platform),error:()=>this.aiAvailable.set(this.platform)});
     this.allCompanies=true;
     this.reportTypes.push({value:'sales_by_company',label:'Ventas cobradas por empresa'});
