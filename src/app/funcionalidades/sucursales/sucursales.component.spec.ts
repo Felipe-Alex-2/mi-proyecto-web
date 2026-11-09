@@ -51,6 +51,17 @@ describe('Branch municipality selection', () => {
     fixture.destroy(); http.verify();
   });
 
+  it('opens the saved branch location through an accessible Maps logo button',()=>{
+    const {fixture,component,http}=setup('Santa Cruz');component.closeBranchModal();
+    component.branches.set([{id:'central',name:'Central',city:'Santa Cruz de la Sierra',address:'Av. Principal',maps_url:'https://maps.app.goo.gl/cXzSxikcRGXvG7cU8',is_active:true,cashiers:[],staff_count:0,created_at:'2026-11-09',updated_at:'2026-11-09'}]);
+    fixture.detectChanges();
+    const button=fixture.nativeElement.querySelector('a.maps-location-button') as HTMLAnchorElement;
+    expect(button.href).toBe('https://maps.app.goo.gl/cXzSxikcRGXvG7cU8');expect(button.target).toBe('_blank');
+    expect(button.getAttribute('aria-label')).toContain('Central');expect(button.rel).toContain('noopener');
+    expect(button.querySelector('img')?.getAttribute('src')).toBe('/icons/google-maps-location.png');
+    fixture.destroy();http.verify();
+  });
+
   it('requires an assigned department before creating a branch for a legacy company', () => {
     const { fixture, component, http } = setup(null);
     component.branchForm.patchValue({ city: 'La Paz' });

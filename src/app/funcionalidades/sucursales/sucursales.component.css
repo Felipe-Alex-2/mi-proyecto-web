@@ -313,3 +313,12 @@
 .btn-remove-staff:hover { background: rgba(192, 57, 43, 0.15); color: #A93226; }
 
 .unassigned-notice { font-size: 0.85rem; color: #A08060; margin: 0; padding: 0.5rem 0; }
+.maps-location-button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; flex: 0 0 48px; margin-left: auto;
+  border: 1px solid #E9E1D9; border-radius: 14px; background: #fff;
+  overflow: hidden;
+}
+.maps-location-button img { display: block; border-radius: 10px; object-fit: cover; }
+.maps-location-button:hover { border-color: #A34F3D; }
+.maps-location-button:focus-visible { outline: 3px solid #A34F3D; outline-offset: 3px; }
