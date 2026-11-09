@@ -1,3 +1,5 @@
+import { TiempoRealService } from '../../nucleo/servicios/tiempo-real.service';
+import { auditTime } from 'rxjs';
 import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -226,6 +228,7 @@ type CustomerReservation = Reservation & {
   `,
 })
 export class ReservasTiendaComponent {
+  private realtime=inject(TiempoRealService);
   readonly shop = inject(TiendaService);
   readonly route = inject(ActivatedRoute);
   readonly destroyRef = inject(DestroyRef);
@@ -240,6 +243,11 @@ export class ReservasTiendaComponent {
   readonly cancelledCheckout = this.route.snapshot.queryParamMap.get('checkout') === 'cancel';
   private autoPay = this.route.snapshot.queryParamMap.get('pay');
   constructor() {
+    this.realtime.events$.pipe(auditTime(150),takeUntilDestroyed(this.destroyRef)).subscribe(event=>{
+      if(this.busy()||this.loading()||!(event.type==='resync'||event.type.startsWith('reservation.')||event.type.startsWith('delivery.')))return;
+      const scope=this.shop.scope();
+      this.shop.http.get<CustomerReservation[]>(`${this.shop.api}/reservations`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({next:rows=>{if(scope===this.shop.scope())this.rows.set(rows);},error:()=>{}});
+    });
     effect((onCleanup) => {
       const scope = this.shop.scope();
       this.reload();

@@ -1,3 +1,4 @@
+import { TiempoRealService } from '../../nucleo/servicios/tiempo-real.service';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -48,6 +49,7 @@ const emptyCart = (): Cart => ({ items: [], total_items: 0, total_amount: 0 });
 
 @Injectable({ providedIn: 'root' })
 export class TiendaService {
+  private realtime=inject(TiempoRealService);
   readonly http = inject(HttpClient);
   private readonly saas = inject(SaasService);
   readonly auth = inject(AutenticacionService);
@@ -137,6 +139,8 @@ export class TiendaService {
               );
           },
         });
+      const events=this.realtime.events$.subscribe(event=>{if(event.type==='resync'||event.type==='notification.changed')refresh();});
+      onCleanup(()=>events.unsubscribe());
       let notificationRequest = refresh();
       const timer = setInterval(() => {
         notificationRequest.unsubscribe();

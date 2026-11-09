@@ -1,9 +1,10 @@
+import { TiempoRealService } from '../../nucleo/servicios/tiempo-real.service';
 import { Component, DestroyRef, OnInit, effect, inject, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize, forkJoin, Subject, takeUntil } from 'rxjs';
+import { auditTime, finalize, forkJoin, Subject, takeUntil } from 'rxjs';
 import { AportePropioService } from '../../nucleo/servicios/aporte-propio.service';
 import { AutenticacionService } from '../../nucleo/servicios/autenticacion.service';
 import { SaasService } from '../../nucleo/servicios/saas.service';
@@ -19,6 +20,7 @@ interface Purchase {source?:'payment'|'reservation';reservation_id?:string|null;
   templateUrl:'./aporte-propio.component.html', styleUrl:'./aporte-propio.component.css',
 })
 export class AportePropioComponent implements OnInit {
+  private realtime = inject(TiempoRealService);
   private api = inject(AportePropioService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -69,7 +71,7 @@ export class AportePropioComponent implements OnInit {
       this.activeScope=scope;this.initializedScope=true;
     });
   }
-  ngOnInit() { this.load(); if(this.mode==='deliveries'){const timer=setInterval(()=>{if(!document.hidden&&!this.busy()&&!this.loading())this.load();},15000);this.destroy.onDestroy(()=>clearInterval(timer));} }
+  ngOnInit() { this.realtime.events$.pipe(auditTime(150),takeUntilDestroyed(this.destroy)).subscribe(event=>{if(this.mode==='deliveries'&&!this.busy()&&!this.loading()&&(event.type==='resync'||event.type.startsWith('delivery.')||event.type.startsWith('reservation.')))this.load();});this.load(); if(this.mode==='deliveries'){const timer=setInterval(()=>{if(!document.hidden&&!this.busy()&&!this.loading())this.load();},15000);this.destroy.onDestroy(()=>clearInterval(timer));} }
   get purchase() { return this.purchases().find(p=>p.id===this.purchaseId); }
   get item() { return this.purchase?.items[this.line]; }
   get replacements() {

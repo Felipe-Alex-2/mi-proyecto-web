@@ -24,6 +24,7 @@
       <a class="topbar-user" routerLink="/profile"><span>{{ roleLabel() }}</span><app-user-avatar [user]="authService.currentUser()" [size]="36" /></a>
     </header>
     <app-offline-banner />
+    <app-realtime-notice />
     <main class="page-content"><router-outlet /></main>
   </div>
 </div>

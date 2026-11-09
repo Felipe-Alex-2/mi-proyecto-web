@@ -162,6 +162,12 @@
               <li>Operación offline</li>
               <li>Reportes convencionales</li>
               <li>{{plan.ai_reports ? 'Incluye reportes generativos con IA' : 'Sin reportes generativos con IA'}}</li>
+              @if(plan.code === 'PRO' || plan.code === 'MAX') {
+                <li>Descuentos sugeridos por antigüedad del stock</li>
+              }
+              @if(plan.code === 'MAX') {
+                <li>Gestión de delivery por sucursal</li>
+              }
             </ul>
             @if(auth.currentUser()?.is_saas_admin) {
               <div class="plan-settings">
@@ -176,8 +182,8 @@
 
       @if(!company.is_root && auth.currentUser()?.role === 'ADMIN') {
         <p class="hint">
-          {{billingCycle() === 'annual' ? 'El plan anual de USD 200 añade 365 días de cobertura Profesional (10 sucursales activas e IA) con un ahorro del 17%.' : 'Cada pago mensual de USD 20 añade 30 días de Profesional (10 sucursales activas e Inteligencia Artificial).'}}
-          Max cuesta USD 50 por 30 días. Cada pago suma su vigencia al vencimiento vigente de tu plan de pago y activa el plan elegido.
+          {{billingCycle() === 'annual' ? 'El plan anual de USD 200 añade 365 días de cobertura Profesional (10 sucursales activas, reportes con IA y descuentos sugeridos) con un ahorro del 17%.' : 'Cada pago mensual de USD 20 añade 30 días de Profesional (10 sucursales activas, reportes con IA y descuentos sugeridos).'}}
+          Max cuesta USD 50 por 30 días e incluye reportes, descuentos sugeridos y gestión de delivery, además de sus beneficios actuales. Cada pago suma su vigencia al vencimiento vigente de tu plan de pago y activa el plan elegido.
           No se realizan cobros automáticos. Te dirigiremos a PayPal Sandbox en una pestaña nueva: autoriza el pago y al volver pulsa "Verificar pago" para emitir tu recibo.
         </p>
       }

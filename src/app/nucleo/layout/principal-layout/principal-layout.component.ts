@@ -2,13 +2,14 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angula
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AvisoTiempoRealComponent } from '../../componentes/aviso-tiempo-real.component';
 import { AvisoSinConexionComponent } from '../../sin_conexion/aviso-sin-conexion.component';
 import { AutenticacionService } from '../../servicios/autenticacion.service';
 import { AvatarUsuarioComponent } from '../../componentes/avatar-usuario.component';
 
 @Component({
   selector: 'app-main-layout', standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AvatarUsuarioComponent, AvisoSinConexionComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AvatarUsuarioComponent, AvisoSinConexionComponent, AvisoTiempoRealComponent],
   templateUrl: './principal-layout.component.html', styleUrl: './principal-layout.component.css',
 })
 export class PrincipalLayoutComponent implements OnInit {

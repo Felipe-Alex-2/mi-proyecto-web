@@ -1,4 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { auditTime } from 'rxjs';
+import { TiempoRealService } from '../../nucleo/servicios/tiempo-real.service';
+import { Component, DestroyRef, OnInit, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -17,6 +20,12 @@ import { SelectorSucursalComponent } from '../../nucleo/componentes/selector-suc
   styleUrls: ['./reservas-admin.component.css'],
 })
 export class ReservasAdminComponent implements OnInit {
+  private realtime=inject(TiempoRealService);
+  private destroy=inject(DestroyRef);
+  private reservationsVersion=0;
+  private statsVersion=0;
+  private currentScope='';
+  private scope(){const u=this.authService.currentUser();return [u?.id,u?.tenant_id,u?.branch_id].join('|');}
   reservations = signal<Reservation[]>([]);
   stats = signal<ReservationStats | null>(null);
   branches = signal<Branch[]>([]);
@@ -40,6 +49,15 @@ export class ReservasAdminComponent implements OnInit {
     private branchService: SucursalService,
     public authService: AutenticacionService
   ) {
+    effect(()=>{
+      const scope=this.scope();
+      if(this.currentScope && this.currentScope!==scope){
+        this.reservations.set([]);this.stats.set(null);this.branches.set([]);this.selectedBranchFilter.set('');
+        this.isStatusModalOpen.set(false);this.selectedReservation.set(null);
+        if(this.authService.currentUser()){this.loadBranches();this.loadStats();this.loadReservations();}
+      }
+      this.currentScope=scope;
+    });
     this.statusForm = this.fb.group({
       status: ['CONFIRMED', Validators.required],
       staff_notes: ['', [Validators.required, Validators.minLength(5)]],
@@ -49,14 +67,19 @@ export class ReservasAdminComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.realtime.events$.pipe(auditTime(150),takeUntilDestroyed(this.destroy)).subscribe(event=>{
+      if(!this.isSubmitting()&&(event.type==='resync'||event.type.startsWith('reservation.'))){this.loadStats();this.loadReservations();}
+    });
     this.loadBranches();
     this.loadStats();
     this.loadReservations();
   }
 
   loadBranches(): void {
-    this.branchService.getBranches(undefined, true).subscribe({
+    const scope=this.scope();
+    this.branchService.getBranches(undefined, true).pipe(takeUntilDestroyed(this.destroy)).subscribe({
       next: (b) => {
+        if(scope!==this.scope())return;
         this.branches.set(b);
         const user = this.authService.currentUser();
         if (user?.branch_id && user.role !== 'ADMIN') {
@@ -67,25 +90,29 @@ export class ReservasAdminComponent implements OnInit {
   }
 
   loadStats(): void {
+    const version=++this.statsVersion,scope=this.scope();
     const branchId = this.selectedBranchFilter() || undefined;
-    this.reservationService.getStats(branchId).subscribe({
-      next: (s) => this.stats.set(s),
+    this.reservationService.getStats(branchId).pipe(takeUntilDestroyed(this.destroy)).subscribe({
+      next: (s) => {if(version===this.statsVersion&&scope===this.scope())this.stats.set(s);},
     });
   }
 
   loadReservations(): void {
+    const version=++this.reservationsVersion,scope=this.scope();
     this.isLoading.set(true);
     this.reservationService
       .getReservations({
         branch_id: this.selectedBranchFilter() || undefined,
         status: this.selectedStatusFilter() || undefined,
       })
+      .pipe(takeUntilDestroyed(this.destroy))
       .subscribe({
         next: (list) => {
+          if(version!==this.reservationsVersion||scope!==this.scope())return;
           this.reservations.set(list);
           this.isLoading.set(false);
         },
-        error: () => this.isLoading.set(false),
+        error: () => {if(version===this.reservationsVersion&&scope===this.scope())this.isLoading.set(false);},
       });
   }
 
