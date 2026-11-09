@@ -55,8 +55,9 @@ export class AportePropioComponent implements OnInit {
   transferItems: {variant_id:string; quantity:number; label:string}[] = []; notes = '';
   coupon = ''; pendingPayment = ''; minAgeMinutes = 43200;
   recipient = ''; phone = ''; address = ''; zone = 'CENTRO';
+  feesCollected: Record<string,boolean> = {};
   couriers: Record<string,string> = {}; deliveryNotes: Record<string,string> = {};
-  readonly statusLabels: Record<string,string> = {AWAITING_PAYMENT:'Pendiente de pago', REQUESTED:'Por aceptar',ACCEPTED:'Aceptado · preparando',REJECTED:'Rechazado · retiro en sucursal',SENT:'En tránsito', RECEIVED:'Recibido', PENDING:'Pendiente', PREPARING:'En preparación', OUT_FOR_DELIVERY:'En reparto', DELIVERED:'Entregado', FAILED:'Entrega fallida', CANCELLED:'Cancelado', RESERVED:'Reservado en una compra', CLAIMED:'Retirado presencialmente', AVAILABLE:'Disponible', USED:'Utilizado', PAID:'Pagado'};
+  readonly statusLabels: Record<string,string> = {AWAITING_PAYMENT:'Pendiente de pago', REQUESTED:'Por aceptar',ACCEPTED:'Pedido aceptado y apartado',REJECTED:'Rechazado · retiro en sucursal',SENT:'En tránsito', RECEIVED:'Recibido', PENDING:'Pendiente', PREPARING:'En preparación', OUT_FOR_DELIVERY:'En reparto', DELIVERED:'Entregado', FAILED:'Entrega fallida', CANCELLED:'Cancelado', RESERVED:'Reservado en una compra', CLAIMED:'Retirado presencialmente', AVAILABLE:'Disponible', USED:'Utilizado', PAID:'Pagado'};
 
   constructor() {
     effect(() => {
@@ -190,7 +191,10 @@ export class AportePropioComponent implements OnInit {
   updateDelivery(row:any,status:string) {
     if(this.busy())return;
     this.busy.set(true);this.error.set('');this.success.set('');
-    this.api.patch('deliveries/'+row.id,{status,courier:this.couriers[row.id]||row.courier||'',note:this.deliveryNotes[row.id]||''}).pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.busy.set(false))).subscribe({next:()=>{this.success.set('Estado de entrega actualizado.');this.load();},error:e=>this.error.set(this.message(e))});
+    this.api.patch('deliveries/'+row.id,{status,courier:this.couriers[row.id]||row.courier||'',note:this.deliveryNotes[row.id]||'',...(this.feesCollected[row.id]?{confirm_fee_collected:true}:{})}).pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy),finalize(()=>this.busy.set(false))).subscribe({next:updated=>{this.success.set(updated.route_error?'Salida registrada y notificación generada. El cálculo del envío quedó pendiente.':'Estado de entrega actualizado.');this.load();},error:e=>this.error.set(this.message(e))});
+  }
+  retryDeliveryCalculation(row:any) {
+    this.submit('deliveries/'+row.id+'/calculate',{},'Cálculo del envío actualizado. El importe se cobra al recibir.');
   }
   downloadReceipt() {
     this.api.receipt(this.receiptId()).pipe(takeUntil(this.contextChanged),takeUntilDestroyed(this.destroy)).subscribe({next:blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='comprobante-cambio.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);},error:e=>this.error.set(this.message(e))});

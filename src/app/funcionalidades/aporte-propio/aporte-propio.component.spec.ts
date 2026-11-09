@@ -131,7 +131,7 @@ describe('Aporte Propio workflows', () => {
     expect(component.actions(row)).toEqual(['ACCEPTED','REJECTED']);
     expect(fixture.nativeElement.textContent).toContain('USD 1.44');
     expect(fixture.nativeElement.textContent).toContain('Origen: sucursal');
-    expect(fixture.nativeElement.textContent).toContain('Aceptar delivery');
+    expect(fixture.nativeElement.textContent).toContain('Aceptar y apartar pedido');
     component.updateDelivery(row,'ACCEPTED');
     http.expectOne(r=>r.method==='PATCH').flush({...row,status:'ACCEPTED'});
     http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([{...row,status:'ACCEPTED'}]);
@@ -140,6 +140,25 @@ describe('Aporte Propio workflows', () => {
     const req=http.expectOne(r=>r.method==='PATCH');expect(req.request.body).toMatchObject({status:'OUT_FOR_DELIVERY',courier:'Repartidor Uno'});
     req.flush({...row,status:'OUT_FOR_DELIVERY'});http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([{...row,status:'OUT_FOR_DELIVERY'}]);
     expect(component.actions(component.rows()[0])).toEqual(['DELIVERED','FAILED']);fixture.destroy();http.verify();
+  });
+
+  it('accepts an unquoted request, confirms departure and records cash only on delivery',()=>{
+    const {fixture,component,http}=setup('deliveries');
+    const row={id:'request',source:'reservation',status:'REQUESTED',recipient:'Felipe',address:'Calle 123',phone:'70001234',history:[],fee:null,fee_collection:'CASH_ON_DELIVERY',purchase_payment_status:'PAID'};
+    http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([row]);fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('pendiente de cálculo');
+    expect(fixture.nativeElement.textContent).toContain('Aceptar y apartar pedido');
+    component.updateDelivery(row,'ACCEPTED');http.expectOne(r=>r.method==='PATCH').flush({...row,status:'ACCEPTED'});
+    http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([{...row,status:'ACCEPTED'}]);fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Confirmar salida de la moto');
+    component.couriers['request']='Moto Uno';component.updateDelivery(component.rows()[0],'OUT_FOR_DELIVERY');
+    http.expectOne(r=>r.method==='PATCH').flush({...row,status:'OUT_FOR_DELIVERY',fee:1.44,shipping_payment_status:'PENDING'});
+    http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([{...row,status:'OUT_FOR_DELIVERY',fee:1.44,shipping_payment_status:'PENDING'}]);fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Confirmo que se recibió en efectivo');
+    component.feesCollected['request']=true;component.updateDelivery(component.rows()[0],'DELIVERED');
+    const req=http.expectOne(r=>r.method==='PATCH');expect(req.request.body.confirm_fee_collected).toBe(true);
+    req.flush({...row,status:'DELIVERED'});http.expectOne(r=>r.url.endsWith('/own/deliveries')).flush([]);
+    fixture.destroy();http.verify();
   });
 
   it('shows staff the descending ranking without private reward codes',()=>{
