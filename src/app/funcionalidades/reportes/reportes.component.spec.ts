@@ -71,6 +71,19 @@ describe('Reports branch boundaries', () => {
     fixture.destroy();http.verify();
   });
 
+  it('shows the applied period and least-selling zero branch without claiming it sold more',()=>{
+    const {fixture,http,component}=setup();
+    component.report.set({report_type:'sales_by_branch',title:'Menores ventas por sucursal',generated_by:'natural_language',
+      summary:{period:'Últimos 3 meses · 11/08/2026 al 11/11/2026',lowest_USD:'VESTA · La Paz',total_USD:0,comparison_total_USD:79},
+      columns:['branch','amount'],rows:[{branch:'La Paz',amount:0}]});
+    fixture.detectChanges();
+    const text=fixture.nativeElement.textContent;
+    expect(text).toContain('Periodo consultado');expect(text).toContain('Últimos 3 meses');
+    expect(text).toContain('Menor venta (USD)');expect(text).toContain('VESTA · La Paz');
+    expect(text).not.toContain('Mayor venta (USD)');
+    fixture.destroy();http.verify();
+  });
+
   it('reads the generated narration and stops speaking on scope changes',()=>{
     const speak=vi.fn(),cancel=vi.fn();
     vi.stubGlobal('speechSynthesis',{speak,cancel});

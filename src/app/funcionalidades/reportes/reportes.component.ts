@@ -68,7 +68,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   dateFrom = '';
   dateTo = '';
   readonly labels: Record<string, string> = {
-    company:'Empresa',companies:'Empresas',records:'Registros', branch: 'Sucursal', city: 'Ciudad', units: 'Unidades', variants_in_stock: 'Variantes con stock',
+    comparison_sales:'Cobros de todo el ámbito',comparison_units:'Unidades de todo el ámbito',least_stock_branch:'Menor inventario',period:'Periodo consultado',ranking_criterion:'Criterio de comparación',matching_records:'Registros encontrados',company:'Empresa',companies:'Empresas',records:'Registros', branch: 'Sucursal', city: 'Ciudad', units: 'Unidades', variants_in_stock: 'Variantes con stock',
     branches: 'Sucursales', total_units: 'Unidades totales', most_stock_branch: 'Mayor inventario',
     sales: 'Cobros realizados', amount: 'Importe cobrado', currency: 'Moneda', scope: 'Sucursal consultada',
     category: 'Categoría', categories: 'Categorías', products: 'Prendas', season: 'Temporada', seasons: 'Temporadas',
@@ -105,6 +105,8 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   label(key: string): string {
+    if (key.startsWith('comparison_total_')) return `Total de todo el ámbito (${key.substring(17)})`;
+    if (key.startsWith('lowest_')) return `Menor venta (${key.substring(7)})`;
     if (key.startsWith('leader_')) return `Mayor venta (${key.substring(7)})`;
     if (key.startsWith('total_') && !this.labels[key]) return `Total (${key.substring(6)})`;
     return this.labels[key] || key;
