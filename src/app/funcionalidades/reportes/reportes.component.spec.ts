@@ -99,6 +99,26 @@ describe('Reports branch boundaries', () => {
     fixture.destroy();http.verify();
   });
 
+  it.each([500,502,504])('identifies backend failures (%s) without blaming interpretation',status=>{
+    const {fixture,http,component}=setup();
+    component.transcript='los 10 productos más vendidos por sucursal';
+    component.sendVoiceReport();
+    http.expectOne(r=>r.url.endsWith('/reports/voice')).flush('Internal Server Error',{status,statusText:'Server error'});
+    expect(component.error()).toContain('backend');
+    expect(component.error()).not.toContain('Gemini no pudo interpretar');
+    expect(component.loading()).toBe(false);
+    fixture.destroy();http.verify();
+  });
+
+  it('displays the backend reference for a failed report',()=>{
+    const {fixture,http,component}=setup();
+    component.generateManual();
+    const detail='No se pudo generar el reporte por un error interno del backend. Referencia: abc123.';
+    http.expectOne(r=>r.url.endsWith('/reports/generate')).flush({detail},{status:500,statusText:'Server error'});
+    expect(component.error()).toBe(detail);
+    fixture.destroy();http.verify();
+  });
+
   it('reads the generated narration and stops speaking on scope changes',()=>{
     const speak=vi.fn(),cancel=vi.fn();
     vi.stubGlobal('speechSynthesis',{speak,cancel});

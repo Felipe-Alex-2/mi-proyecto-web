@@ -139,7 +139,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: (error) => {
-        this.error.set(error?.error?.detail || 'No se pudo generar el reporte.');
+        this.error.set(this.reportError(error));
         this.loading.set(false);
       },
     });
@@ -187,10 +187,20 @@ export class ReportesComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: (error) => {
-        this.error.set(error?.error?.detail || 'Gemini no pudo interpretar la consulta.');
+        this.error.set(this.reportError(error));
         this.loading.set(false);
       },
     });
+  }
+
+  private reportError(error: {status?: number; error?: {detail?: unknown}}): string {
+    const detail = error?.error?.detail;
+    if (typeof detail === 'string' && detail.trim()) return detail;
+    if (error?.status === 401) return 'Tu sesión venció. Inicia sesión para generar el reporte.';
+    if (error?.status === 502 || error?.status === 504) return 'El backend no respondió a tiempo. Revisa el estado del despliegue en Railway e inténtalo de nuevo.';
+    if (error?.status && error.status >= 500) return 'El backend tuvo un error al generar el reporte. Revisa los logs del servicio en Railway.';
+    if (error?.status === 0) return 'No se recibió la respuesta del backend. Revisa la conexión y los logs de Railway; un fallo del servidor también puede impedir recibir la respuesta.';
+    return 'No se pudo generar el reporte. Inténtalo de nuevo.';
   }
 
   exportCsv(): void {
