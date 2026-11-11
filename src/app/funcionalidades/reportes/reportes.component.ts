@@ -68,6 +68,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   dateFrom = '';
   dateTo = '';
   readonly labels: Record<string, string> = {
+    interpretation_source:'Interpretación',unit_price:'Precio unitario neto',current_value:'Valor de venta del stock',day:'Día',week:'Semana',month:'Mes',year:'Año',movement_type:'Tipo de movimiento',previous_stock:'Stock anterior',new_stock:'Stock nuevo',reason:'Motivo',courier:'Repartidor',fee:'Envío cotizado (USD)',distance_km:'Distancia (km)',estimated_minutes:'Minutos estimados',points:'Puntos',description:'Descripción',role:'Rol',active:'Activo',estimated_amount:'Importe estimado',payment_status:'Estado de pago',reservation_code:'Código de reserva',created_at:'Fecha de registro',unitemized_sales:'Cobros sin detalle de prendas',unpriced_sales:'Ventas sin desglose histórico de importes',records_shown:'Filas mostradas',limit_scope:'Límite aplicado',
     comparison_sales:'Cobros de todo el ámbito',comparison_units:'Unidades de todo el ámbito',least_stock_branch:'Menor inventario',period:'Periodo consultado',ranking_criterion:'Criterio de comparación',matching_records:'Registros encontrados',company:'Empresa',companies:'Empresas',records:'Registros', branch: 'Sucursal', city: 'Ciudad', units: 'Unidades', variants_in_stock: 'Variantes con stock',
     branches: 'Sucursales', total_units: 'Unidades totales', most_stock_branch: 'Mayor inventario',
     sales: 'Cobros realizados', amount: 'Importe cobrado', currency: 'Moneda', scope: 'Sucursal consultada',
@@ -105,6 +106,9 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   label(key: string): string {
+    if (this.labels[key]) return this.labels[key];
+    const operations:Record<string,string>={sum_:'Total de ',avg_:'Promedio de ',count_:'Cantidad de ',distinct_:'Valores distintos de ',min_:'Mínimo de ',max_:'Máximo de '};
+    for(const [prefix,title] of Object.entries(operations)){if(key.startsWith(prefix))return title+this.label(key.substring(prefix.length));}
     if (key.startsWith('comparison_total_')) return `Total de todo el ámbito (${key.substring(17)})`;
     if (key.startsWith('lowest_')) return `Menor venta (${key.substring(7)})`;
     if (key.startsWith('leader_')) return `Mayor venta (${key.substring(7)})`;

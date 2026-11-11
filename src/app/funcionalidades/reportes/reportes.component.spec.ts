@@ -84,6 +84,21 @@ describe('Reports branch boundaries', () => {
     fixture.destroy();http.verify();
   });
 
+  it('renders composed product rankings and labels calculated columns',()=>{
+    const {fixture,http,component}=setup();
+    component.report.set({report_type:'sales_items',title:'Productos más vendidos por sucursal',generated_by:'natural_language',
+      summary:{period:'Últimos 3 meses',limit_scope:'10 por sucursal',interpretation_source:'Gemini'},
+      columns:['company','branch','product','sum_units','avg_unit_price'],
+      rows:[{company:'VESTA',branch:'La Paz',product:'Camisa azul',sum_units:12,avg_unit_price:10}]});
+    fixture.detectChanges();
+    const text=fixture.nativeElement.textContent;
+    expect(text).toContain('Camisa azul');expect(text).toContain('10 por sucursal');
+    expect(component.label('sum_units')).toContain('Unidades');
+    expect(component.label('avg_unit_price')).toContain('Precio unitario');
+    expect(component.label('interpretation_source')).toBe('Interpretación');
+    fixture.destroy();http.verify();
+  });
+
   it('reads the generated narration and stops speaking on scope changes',()=>{
     const speak=vi.fn(),cancel=vi.fn();
     vi.stubGlobal('speechSynthesis',{speak,cancel});
